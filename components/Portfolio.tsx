@@ -37,12 +37,22 @@ function OptimizedImage({
   eager?: boolean;
 }) {
   const asset = media[assetKey];
+  const imageRef = useRef<HTMLImageElement>(null);
   const [loaded, setLoaded] = useState(() => decodedAssets.has(assetKey));
 
   function reveal() {
     decodedAssets.add(assetKey);
     setLoaded(true);
   }
+
+  useLayoutEffect(() => {
+    // A cached image can finish before React attaches onLoad during hydration.
+    // In that case reveal it explicitly instead of leaving the LQIP visible.
+    if (imageRef.current?.complete) {
+      decodedAssets.add(assetKey);
+      setLoaded(true);
+    }
+  }, [assetKey]);
 
   return (
     <picture
@@ -55,6 +65,7 @@ function OptimizedImage({
       <source type="image/avif" srcSet={asset.avifSrcSet} sizes={sizes} />
       <source type="image/webp" srcSet={asset.webpSrcSet} sizes={sizes} />
       <img
+        ref={imageRef}
         className="optimized-image__img"
         data-loaded={loaded ? "true" : undefined}
         src={asset.fallback}
