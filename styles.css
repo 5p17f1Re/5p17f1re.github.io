@@ -1,0 +1,886 @@
+/* ─── Reset ─────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ─── Base ──────────────────────────────────────────────────────────────── */
+html { scroll-behavior: smooth; }
+
+body {
+  background: #0F0F14;
+  color: #FFFFFF;
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 500;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+.nav-right {
+  display: flex;
+  gap: 12px;
+}
+
+.project--link {
+  cursor: pointer;
+}
+
+.project--link:focus-visible,
+.nav__link:focus-visible,
+.case-close:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #0f0f14, 0 0 0 4px #fff;
+}
+
+.case-page-shell {
+  min-height: 100vh;
+  background: #000;
+}
+
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+
+.optimized-image {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+
+.optimized-image > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.optimized-image__img {
+  opacity: 0;
+  transition: opacity 100ms ease-out;
+}
+
+.optimized-image__img[data-loaded="true"] {
+  opacity: 1;
+}
+
+/* ─── Nav ───────────────────────────────────────────────────────────────── */
+.nav {
+  position: fixed;
+  top: 0;
+  right: 8px;
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+}
+
+.nav__link {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.13px;
+  line-height: 18px;
+  color: rgba(255, 255, 255, 0.65);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  transition: color 0.2s ease-out, opacity 0.2s ease-out;
+}
+
+.nav__link:hover {
+  color: #FFFFFF;
+}
+
+/* Copy button: fade between "Email" and "Copied!" */
+.nav__copy.is-copied {
+  opacity: 0.55;
+}
+
+/* ─── Page wrapper ──────────────────────────────────────────────────────── */
+.page {
+  width: 1440px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.view-stage {
+  position: relative;
+  width: 100%;
+}
+
+.view-stage[data-view-ready="false"] {
+  visibility: hidden;
+}
+
+.view-stage--switching {
+  overflow: hidden;
+}
+
+.view-layer {
+  width: 100%;
+  transform-origin: top center;
+}
+
+.view-layer--incoming {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 2;
+}
+
+.view-layer--active {
+  position: relative;
+  z-index: 1;
+}
+
+.view-stage:not(.view-stage--switching) .view-layer--active {
+  transform: none !important;
+  opacity: 1 !important;
+}
+
+/* ─── Projects ──────────────────────────────────────────────────────────── */
+/* Birdview default: 3-column grid, 120px 20px gap                          */
+.projects {
+  max-width: 1408px;
+  margin: 0 auto;
+  margin-top: 120px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 120px 20px;
+  align-items: flex-start;
+  padding-bottom: 120px;
+  transform-origin: top center;
+}
+
+.projects .project {
+  width: calc(33.333% - 14px);
+  flex-shrink: 0;
+}
+
+.project-motion-cell {
+  width: calc(33.333% - 14px);
+}
+
+.project-motion-cell .project {
+  width: 100%;
+}
+
+/* ─── Snakeview: 1-column view ──────────────────────────────────────────── */
+.projects--snakeview {
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  flex-direction: column;
+  gap: 80px;
+}
+
+.projects--snakeview .project {
+  width: 100%;
+}
+
+.projects--snakeview .project-motion-cell {
+  width: 100%;
+}
+
+.projects--snakeview .project__img {
+  width: 100%;
+  height: auto !important;
+}
+
+.projects--snakeview .hero-about__img {
+  width: 300px;
+  height: 300px !important;
+}
+
+.projects--snakeview .project__imgs {
+  width: 100%;
+}
+
+/* In birdview (3 columns), show the extra images on Samokat */
+.projects:not(.projects--snakeview) .project__imgs--extra {
+  display: none;
+
+}
+
+/* In snakeview (1 column), hide extra images */
+.projects--snakeview .project__imgs--extra {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 4px;
+  row-gap: 20px;
+  width: calc(50% - 2px);
+}
+
+/* ─── Project card ──────────────────────────────────────────────────────── */
+.project {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* ─── About Seva: birdview only (regular project card, first in list) ───── */
+.about-seva {
+  display: flex;
+}
+
+.about-seva__image-frame {
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+
+.about-seva__img {
+  width: 100%;
+  height: 100% !important;
+  object-fit: cover;
+}
+
+.about-seva .hero-about__content {
+  display: none;
+}
+
+.projects--snakeview .about-seva {
+  width: 100%;
+  max-width: 600px;
+  margin: -120px 32px 0;
+  align-items: flex-start;
+  gap: 40px;
+}
+
+.projects--snakeview .about-seva__bird-header,
+.projects--snakeview .about-seva__bird-desc {
+  display: none;
+}
+
+.projects--snakeview .about-seva__image-frame {
+  width: 300px;
+  height: 300px;
+  aspect-ratio: 1;
+  flex-shrink: 0;
+}
+
+.projects--snakeview .about-seva .hero-about__content {
+  display: flex;
+}
+
+/* Snakeview About keeps its original top-left placement. */
+.projects--snakeview .hero-about {
+  align-items: flex-start;
+  align-self: stretch;
+  max-width: 600px;
+  margin: -120px 32px 0;
+  gap: 40px;
+}
+
+.hero-about__content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: auto;
+  max-width: 600px;
+}
+
+.hero-about__header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  width: auto;
+}
+
+.hero-about__tag {
+  display: none;      /* hide "about" tag */
+}
+
+.hero-about__title {
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 28px;
+  letter-spacing: -0.56px;
+  color: #FFFFFF;
+  white-space: normal;
+  margin-bottom: 0;
+}
+
+.hero-about__desc {
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: 0.1px;
+  color: rgba(255, 255, 255, 1);
+  text-align: left;
+  max-width: none;
+}
+.hero-about__desc.gray {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* ─── Project header ────────────────────────────────────────────────────── */
+/* Centered, HORIZONTAL gap=6px                                              */
+.project__header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+}
+
+/* Tag: Inter 500, 11px/12px, ls=+0.10px, 40% white */
+.project__tag {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 12px;
+  letter-spacing: 0.1px;
+  color: rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding-top: 7px;
+}
+
+/* Title: Inter 500, 20px/20px, ls=-0.40px, white */
+.project__title {
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.4px;
+  color: #FFFFFF;
+  white-space: nowrap;
+}
+
+/* ─── Project image ─────────────────────────────────────────────────────── */
+.project__img,
+.project__video {
+  width: 800px;
+  display: block;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+/* Birdview: images 100% width of project card */
+.projects .project__img,
+.projects .project__video {
+  width: 100%;
+  height: auto !important;
+}
+
+/* ─── Multi-image layout (Samokat) ─────────────────────────────────────── */
+.project__imgs {
+  width: 800px;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 4px;
+  row-gap: 20px;
+}
+
+/* Birdview: multi-image container 100% width */
+.projects .project__imgs {
+  width: 100%;
+}
+
+.project__img--full {
+  width: 100%;
+  height: auto;
+}
+
+.project__img--half {
+  width: calc(50% - 2px) !important;
+  height: auto;
+}
+
+/* ─── Project description ───────────────────────────────────────────────── */
+/* max-width 480px, 11px/16px, centered, 65% white                          */
+.project__desc {
+  max-width: 480px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0.1px;
+  color: rgba(255, 255, 255, 0.65);
+  text-align: center;
+}
+
+
+/* ─── Below 1440px: page goes fluid, projects centered ──────────────────── */
+@media (max-width: 1439px) {
+  .page { width: 100%; }
+  .projects { margin-left: max(0, calc((100% - 1408px) / 2)); }
+  .projects--snakeview { margin-left: max(0, calc((100% - 800px) / 2)); }
+}
+
+/* ─── Birdview: below 800px → 2 columns ───────────────────────────────── */
+@media (max-width: 800px) {
+  .projects .project {
+    width: calc(50% - 10px);
+  }
+
+  .project-motion-cell {
+    width: calc(50% - 10px);
+  }
+}
+
+/* ─── Tablet birdview: images edge-to-edge, desc 8px padding ────────────── */
+@media (max-width: 800px) {
+  /* birdview: images full-width no side margins */
+  .projects .project__img,
+  .projects .project__video {
+    width: 100%;
+    height: auto !important;
+  }
+  .projects .project__imgs {
+    width: 100%;
+  }
+  .projects .project__desc {
+    padding: 0 8px;
+    max-width: none;
+  }
+  /* left margin reset for birdview since images go full width */
+  .projects {
+    margin-left: 0;
+    margin-right: 0;
+    max-width: 100%;
+  }
+
+}
+
+/* ─── Below 800px: birdview 2 per row, snakeview single column ──────────── */
+@media (max-width: 800px) {
+  /* birdview: 2 columns on tablet */
+  .projects {
+    gap: 80px 20px;
+    margin-left: 0;
+    margin-right: 0;
+    max-width: 100%;
+  }
+
+  /* snakeview: full width on smaller screens */
+  .projects--snakeview {
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .projects .project {
+    width: calc(50% - 10px);
+  }
+
+  /* snakeview: keep projects 100% width */
+  .projects--snakeview .project {
+    width: 100%;
+  }
+
+  .projects--snakeview .project-motion-cell {
+    width: 100%;
+  }
+  .projects .project__img,
+  .projects .project__video {
+    width: 100%;
+    height: auto !important;
+  }
+  
+  /* Snakeview mobile: hero-about photo smaller */
+  .projects--snakeview .about-seva__image-frame {
+    width: 240px;
+    height: 240px;
+  }
+  
+  .project__imgs { width: 100%; }
+}
+
+/* ─── Case page styles ──────────────────────────────────────────────────────── */
+.case-page-shell {
+  background: #000;
+}
+
+/* Hide nav view toggle on case pages */
+.case-page-shell .nav__view-toggle {
+  display: none;
+}
+
+/* Nav positioning for case pages */
+.case-page-shell .nav {
+  top: 8px;
+  left: 16px;
+  right: auto;
+  flex-direction: row;
+  gap: 12px;
+}
+
+.case-page-shell .nav > a:first-child {
+  position: fixed;
+  top: 8px;
+  left: 16px;
+}
+
+.case-page-shell .nav-right {
+  position: fixed;
+  top: 8px;
+  right: 16px;
+  display: flex;
+  gap: 12px;
+}
+
+/* Case page wrapper */
+.case-wrapper {
+  width: 100%;
+  min-height: 100vh;
+  background: #000;
+  color: #fff;
+}
+
+/* ─── Case header ───────────────────────────────────────────────────────── */
+.case-header {
+  padding: 148px 0 0;
+  text-align: center;
+}
+
+.case-header .project__tag {
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.case-header .project__title {
+  display: inline-block;
+}
+
+/* ─── Case hero section ─────────────────────────────────────────────────── */
+.case-hero {
+  position: relative;
+  padding: 208px 0 0;
+  background: #8c6666;
+  overflow: hidden;
+  min-height: 900px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.case-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('/yandex-eats-smartreserve/assets/hero-img.jpg');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.4;
+  z-index: 0;
+}
+
+.case-hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 696px;
+  text-align: center;
+  padding: 0 32px;
+}
+
+.case-hero-content h1 {
+  font-size: 26px;
+  font-weight: 500;
+  margin: 0 0 52px;
+  letter-spacing: -0.39px;
+  color: #fff;
+}
+
+.case-hero-content p {
+  font-size: 17px;
+  line-height: 24px;
+  color: rgba(255,255,255,0.65);
+  margin: 0 0 12px;
+  letter-spacing: -0.17px;
+}
+
+.case-hero-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* ─── Case section ──────────────────────────────────────────────────────── */
+.case-section {
+  max-width: 1172px;
+  margin: 0 auto;
+  padding: 64px 133.9px;
+}
+
+.case-section h2 {
+  font-size: 26px;
+  font-weight: 500;
+  margin: 0 0 16px;
+  letter-spacing: -0.39px;
+  color: #fff;
+}
+
+.case-section p {
+  font-size: 17px;
+  line-height: 24px;
+  color: rgba(255,255,255,0.65);
+  margin: 0 0 12px;
+  letter-spacing: -0.17px;
+}
+
+.case-section p:last-child {
+  margin-bottom: 0;
+}
+
+/* ─── Case role list ────────────────────────────────────────────────────── */
+.case-role-list {
+  list-style: none;
+  padding: 0;
+  margin: 24px 0 0;
+}
+
+.case-role-list li {
+  font-size: 23.63px;
+  line-height: 28.35px;
+  margin-bottom: 16px;
+  padding-left: 40px;
+  position: relative;
+  color: rgba(255,255,255,0.71);
+}
+
+.case-role-list li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: rgba(255,255,255,0.71);
+  font-size: 26.78px;
+}
+
+/* ─── Case dashboard image ──────────────────────────────────────────────── */
+.case-dashboard-img {
+  width: 100%;
+  max-width: 1440px;
+  margin: 64px auto;
+  padding: 0 32px;
+  display: block;
+}
+
+.case-dashboard-img img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 16px;
+}
+
+/* ─── Case metrics ──────────────────────────────────────────────────────── */
+.case-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 48px 32px;
+  margin-top: 56px;
+}
+
+.case-metric {
+  flex: 0 0 340px;
+}
+
+.case-metric .value {
+  font-family: 'Inter Tight', 'Inter', sans-serif;
+  font-weight: 300;
+  font-size: 88px;
+  line-height: 88px;
+  letter-spacing: -0.88px;
+  margin: 0;
+  color: #fff;
+}
+
+.case-metric .label {
+  font-size: 17px;
+  line-height: 24px;
+  color: rgba(255,255,255,0.65);
+  margin: 0;
+  letter-spacing: -0.17px;
+}
+
+/* ─── Case close button ─────────────────────────────────────────────────── */
+.case-close {
+  position: fixed;
+  bottom: 21px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255,255,255,0.11);
+  padding: 22px 40px;
+  border-radius: 44px;
+  box-shadow: 0 4px 4px rgba(0,0,0,0.25);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  text-decoration: none;
+  font-size: 13px;
+  z-index: 10;
+  transition: background 0.2s ease-out;
+}
+
+.case-close:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+.case-close svg {
+  width: 20px;
+  height: 20px;
+}
+
+.case-close > span {
+  font-size: 18px;
+  line-height: 1;
+}
+
+@media (hover: hover) {
+  .project--link:hover .project__img,
+  .project--link:hover .project__video {
+    opacity: 0.88;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* ─── Case page responsive ──────────────────────────────────────────────── */
+@media (max-width: 800px) {
+  .case-section {
+    padding: 48px 32px;
+  }
+
+  .case-hero {
+    min-height: 600px;
+    padding: 120px 0 0;
+  }
+
+  .case-hero-content {
+    max-width: 100%;
+  }
+
+  .case-hero-content h1 {
+    font-size: 20px;
+    margin-bottom: 32px;
+  }
+
+  .case-hero-content p {
+    font-size: 15px;
+    line-height: 22px;
+  }
+
+  .case-role-list li {
+    font-size: 18px;
+    line-height: 24px;
+  }
+
+  .case-metrics {
+    gap: 32px 24px;
+  }
+
+  .case-metric {
+    flex: 0 0 calc(50% - 12px);
+  }
+
+  .case-metric .value {
+    font-size: 56px;
+    line-height: 56px;
+    letter-spacing: -0.56px;
+  }
+}
+
+/* ─── Mobile: both views 1 column, hide extra images ─────────────────────── */
+@media (max-width: 600px) {
+  .nav {
+    right: 16px;
+    gap: 12px;
+  }
+
+  /* birdview: 2 columns on mobile */
+  .projects {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 80px 20px;
+    margin-top: 80px;
+    padding-bottom: 80px;
+  }
+
+  /* snakeview: keep 1 column on mobile */
+  .projects--snakeview {
+    flex-direction: column;
+    gap: 80px;
+  }
+
+  .projects--snakeview .hero-about {
+    width: calc(100% - 64px);
+    margin: -80px 32px 0;
+  }
+
+  .projects .project {
+    width: calc(50% - 10px);
+    gap: 12px;
+  }
+
+  .project-motion-cell {
+    width: calc(50% - 10px);
+  }
+
+  /* snakeview: keep projects 100% width on mobile */
+  .projects--snakeview .project {
+    width: 100%;
+  }
+
+  /* Mobile snakeview: about card with side padding and top margin */
+  .projects--snakeview .about-seva {
+    padding: 0 32px;
+    margin-top: 80px;
+  }
+
+  /* Mobile: about card same as other projects */
+  .projects .project--about {
+    width: calc(50% - 10px);
+    gap: 12px;
+  }
+
+  .projects .project--about .project__img--about {
+    width: 100%;
+    height: auto;
+  }
+
+  .project__header { padding: 0; }
+
+  .project__imgs {
+    column-gap: 4px;
+    row-gap: 12px;
+  }
+}
+
+/* Keep the Snakeview portrait intentionally compact despite generic project media rules. */
+@media (min-width: 801px) {
+  .projects--snakeview .hero-about__img {
+    width: 300px;
+    height: 300px !important;
+  }
+}
+
+@media (max-width: 800px) {
+  .projects--snakeview .hero-about__img {
+    width: 240px;
+    height: 240px !important;
+  }
+}
+
+/* A motion cell owns the grid width; its project must always fill that cell. */
+.projects .project-motion-cell > .project {
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .projects--snakeview > .hero-about {
+    width: calc(100% - 64px);
+  }
+}
