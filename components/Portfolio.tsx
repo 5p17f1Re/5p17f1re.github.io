@@ -10,6 +10,25 @@ import { Navigation } from "./Navigation";
 type ViewMode = "birdview" | "snakeview";
 
 const easeOutExpo = [0.16, 1, 0.3, 1] as const;
+const easeInQuart = [0.5, 0, 0.75, 0] as const;
+const viewTransition = {
+  zoomOut: {
+    outScale: 0.84,
+    inScale: 1.08,
+    inRowGapFrom: "156px",
+    inRowGapTo: "120px",
+  },
+  zoomIn: {
+    outScale: 1.12,
+    inScale: 0.9,
+    inRowGapFrom: "56px",
+    inRowGapTo: "80px",
+  },
+  outDuration: 0.42,
+  inDuration: 0.48,
+  inDelay: 0.14,
+  totalDurationMs: 700,
+} as const;
 
 type MediaAsset = {
   width: number;
@@ -427,13 +446,14 @@ export function Portfolio() {
     completionTimerRef.current = setTimeout(() => {
       finishSwitch(next);
       completionTimerRef.current = null;
-    }, 760);
+    }, viewTransition.totalDurationMs);
   }
 
   const displayedView = nextView ?? view;
   const isDisplayedSnake = displayedView === "snakeview";
-  const switchingToBird = nextView === "birdview";
-  const switchingToSnake = nextView === "snakeview";
+  const isSwitching = nextView !== null;
+  const transitionPreset =
+    nextView === "birdview" ? viewTransition.zoomOut : viewTransition.zoomIn;
 
   return (
     <>
@@ -463,13 +483,14 @@ export function Portfolio() {
             className="view-layer view-layer--active"
             initial={false}
             animate={
-              switchingToBird
-                ? { scale: 0.68, opacity: 0 }
-                : switchingToSnake
-                  ? { scale: 1.16, opacity: 0 }
-                  : { scale: 1, opacity: 1 }
+              isSwitching
+                ? { scale: transitionPreset.outScale, opacity: 0 }
+                : { scale: 1, opacity: 1 }
             }
-            transition={{ duration: 0.62, ease: easeOutExpo }}
+            transition={{
+              duration: viewTransition.outDuration,
+              ease: easeInQuart,
+            }}
             style={nextView ? undefined : { transform: "none", opacity: 1 }}
           >
             {view === "birdview" ? <BirdView /> : <SnakeView />}
@@ -480,16 +501,24 @@ export function Portfolio() {
               ref={incomingLayerRef}
               className="view-layer view-layer--incoming"
               initial={
-                nextView === "birdview"
-                  ? "hidden"
-                  : { opacity: 0, y: 30, scale: 0.96 }
+                {
+                  opacity: 0,
+                  scale: transitionPreset.inScale,
+                  "--project-row-gap": transitionPreset.inRowGapFrom,
+                } as Record<string, string | number>
               }
               animate={
-                nextView === "birdview"
-                  ? "visible"
-                  : { opacity: 1, y: 0, scale: 1 }
+                {
+                  opacity: 1,
+                  scale: 1,
+                  "--project-row-gap": transitionPreset.inRowGapTo,
+                } as Record<string, string | number>
               }
-              transition={{ duration: 0.62, ease: easeOutExpo }}
+              transition={{
+                delay: viewTransition.inDelay,
+                duration: viewTransition.inDuration,
+                ease: easeOutExpo,
+              }}
             >
               {nextView === "birdview" ? <BirdView /> : <SnakeView />}
             </motion.div>
