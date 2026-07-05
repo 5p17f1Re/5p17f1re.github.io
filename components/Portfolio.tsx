@@ -8,26 +8,25 @@ import mediaManifest from "@/generated/media-manifest.json";
 import { Navigation } from "./Navigation";
 
 type ViewMode = "birdview" | "snakeview";
+type ViewLayerState = "current" | "outgoing" | "incoming" | "hidden";
 
 const easeOutExpo = [0.16, 1, 0.3, 1] as const;
-const easeInQuart = [0.5, 0, 0.75, 0] as const;
-const viewTransition = {
-  zoomOut: {
-    outScale: 0.84,
-    inScale: 1.08,
-    inRowGapFrom: "156px",
-    inRowGapTo: "120px",
+const viewTransitionEase = [0.76, 0, 0.24, 1] as const;
+const viewTransitions = {
+  snakeviewToBirdview: {
+    snakeviewExitScale: 0.9,
+    birdviewEnterScale: 1.1,
+    birdviewRowGapFrom: "156px",
+    birdviewRowGapTo: "120px",
   },
-  zoomIn: {
-    outScale: 1.12,
-    inScale: 0.9,
-    inRowGapFrom: "56px",
-    inRowGapTo: "80px",
+  birdviewToSnakeview: {
+    birdviewExitScale: 1.1,
+    snakeviewEnterScale: 0.9,
+    snakeviewRowGapFrom: "56px",
+    snakeviewRowGapTo: "80px",
   },
-  outDuration: 0.42,
-  inDuration: 0.48,
-  inDelay: 0.14,
-  totalDurationMs: 700,
+  duration: 0.5,
+  totalDurationMs: 500,
 } as const;
 
 type MediaAsset = {
@@ -350,9 +349,19 @@ export function Portfolio() {
   const reduceMotion = useReducedMotion();
   const switchingRef = useRef(false);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const activeLayerRef = useRef<HTMLDivElement>(null);
-  const incomingLayerRef = useRef<HTMLDivElement>(null);
+  const birdviewLayerRef = useRef<HTMLDivElement>(null);
+  const snakeviewLayerRef = useRef<HTMLDivElement>(null);
   const heightCacheRef = useRef<Partial<Record<ViewMode, number>>>({});
+
+  function getLayer(mode: ViewMode) {
+    return mode === "birdview"
+      ? birdviewLayerRef.current
+      : snakeviewLayerRef.current;
+  }
+
+  function getProjectsHeight(mode: ViewMode) {
+    return getLayer(mode)?.querySelector<HTMLElement>(".projects")?.offsetHeight;
+  }
 
   useLayoutEffect(() => {
     const storedView =
@@ -371,8 +380,7 @@ export function Portfolio() {
   }, []);
 
   useEffect(() => {
-    const projectsElement =
-      activeLayerRef.current?.querySelector<HTMLElement>(".projects");
+    const projectsElement = getLayer(view)?.querySelector<HTMLElement>(".projects");
 
     if (projectsElement) {
       heightCacheRef.current[view] = projectsElement.offsetHeight;
@@ -380,16 +388,10 @@ export function Portfolio() {
   }, [view]);
 
   useEffect(() => {
-    if (!nextView || !incomingLayerRef.current) return;
+    if (!nextView) return;
 
-    const incomingHeight =
-      incomingLayerRef.current.querySelector<HTMLElement>(".projects")
-        ?.offsetHeight ?? 0;
-    const activeHeight =
-      activeLayerRef.current?.querySelector<HTMLElement>(".projects")
-        ?.offsetHeight ?? 0;
-
-    setContainerHeight(Math.max(activeHeight, incomingHeight));
+    const incomingHeight = getProjectsHeight(nextView) ?? 0;
+    setContainerHeight(incomingHeight);
     heightCacheRef.current[nextView] = incomingHeight;
   }, [nextView]);
 
@@ -422,9 +424,10 @@ export function Portfolio() {
 
     const currentHeight =
       heightCacheRef.current[view] ??
-      activeLayerRef.current?.querySelector<HTMLElement>(".projects")
-        ?.offsetHeight;
-    const targetHeight = heightCacheRef.current[next];
+      getProjectsHeight(view);
+    const targetHeight =
+      heightCacheRef.current[next] ??
+      getProjectsHeight(next);
 
     if (currentHeight && targetHeight) {
       const viewportHeight = window.innerHeight;
@@ -438,22 +441,84 @@ export function Portfolio() {
       });
     }
 
-    setContainerHeight(
-      activeLayerRef.current?.querySelector<HTMLElement>(".projects")
-        ?.offsetHeight,
-    );
+    setContainerHeight(targetHeight ?? currentHeight);
     setNextView(next);
     completionTimerRef.current = setTimeout(() => {
       finishSwitch(next);
       completionTimerRef.current = null;
-    }, viewTransition.totalDurationMs);
+    }, viewTransitions.totalDurationMs);
   }
 
   const displayedView = nextView ?? view;
   const isDisplayedSnake = displayedView === "snakeview";
-  const isSwitching = nextView !== null;
-  const transitionPreset =
-    nextView === "birdview" ? viewTransition.zoomOut : viewTransition.zoomIn;
+  const transitionDirection =
+    nextView === "birdview"
+      ? "snakeviewToBirdview"
+      : "birdviewToSnakeview";
+
+  function getViewLayerState(mode: ViewMode): ViewLayerState {
+    if (nextView === mode) return "incoming";
+    if (view === mode) return nextView ? "outgoing" : "current";
+    return "hidden";
+  }
+
+  function layerAnimation(mode: ViewMode) {
+    const state = getViewLayerState(mode);
+
+    if (state === "outgoing") {
+      return {
+        opacity: 0,
+        scale:
+          transitionDirection === "birdviewToSnakeview"
+            ? viewTransitions.birdviewToSnakeview.birdviewExitScale
+            : viewTransitions.snakeviewToBirdview.snakeviewExitScale,
+        "--project-row-gap":
+          mode === "birdview"
+            ? viewTransitions.snakeviewToBirdview.birdviewRowGapTo
+            : viewTransitions.birdviewToSnakeview.snakeviewRowGapTo,
+      };
+    }
+
+    if (state === "current") {
+      return {
+        opacity: 1,
+        scale: 1,
+        "--project-row-gap":
+          mode === "birdview"
+            ? viewTransitions.snakeviewToBirdview.birdviewRowGapTo
+            : viewTransitions.birdviewToSnakeview.snakeviewRowGapTo,
+      };
+    }
+
+    if (state === "incoming") {
+      return {
+        opacity: 1,
+        scale: 1,
+        "--project-row-gap":
+          mode === "birdview"
+            ? viewTransitions.snakeviewToBirdview.birdviewRowGapTo
+            : viewTransitions.birdviewToSnakeview.snakeviewRowGapTo,
+      };
+    }
+
+    return {
+      opacity: 0,
+      scale:
+        mode === "birdview"
+          ? viewTransitions.snakeviewToBirdview.birdviewEnterScale
+          : viewTransitions.birdviewToSnakeview.snakeviewEnterScale,
+      "--project-row-gap":
+        mode === "birdview"
+          ? viewTransitions.snakeviewToBirdview.birdviewRowGapFrom
+          : viewTransitions.birdviewToSnakeview.snakeviewRowGapFrom,
+    };
+  }
+
+  const viewLayerTransition = {
+    delay: 0,
+    duration: viewTransitions.duration,
+    ease: viewTransitionEase,
+  };
 
   return (
     <>
@@ -478,51 +543,26 @@ export function Portfolio() {
           style={containerHeight ? { height: containerHeight } : undefined}
         >
           <motion.div
-            key={`active-${view}-${nextView ?? "idle"}`}
-            ref={activeLayerRef}
-            className="view-layer view-layer--active"
+            ref={birdviewLayerRef}
+            className={`view-layer view-layer--birdview view-layer--${getViewLayerState("birdview")}`}
             initial={false}
-            animate={
-              isSwitching
-                ? { scale: transitionPreset.outScale, opacity: 0 }
-                : { scale: 1, opacity: 1 }
-            }
-            transition={{
-              duration: viewTransition.outDuration,
-              ease: easeInQuart,
-            }}
-            style={nextView ? undefined : { transform: "none", opacity: 1 }}
+            animate={layerAnimation("birdview") as Record<string, string | number>}
+            transition={viewLayerTransition}
+            aria-hidden={displayedView !== "birdview"}
           >
-            {view === "birdview" ? <BirdView /> : <SnakeView />}
+            <BirdView />
           </motion.div>
 
-          {nextView ? (
-            <motion.div
-              ref={incomingLayerRef}
-              className="view-layer view-layer--incoming"
-              initial={
-                {
-                  opacity: 0,
-                  scale: transitionPreset.inScale,
-                  "--project-row-gap": transitionPreset.inRowGapFrom,
-                } as Record<string, string | number>
-              }
-              animate={
-                {
-                  opacity: 1,
-                  scale: 1,
-                  "--project-row-gap": transitionPreset.inRowGapTo,
-                } as Record<string, string | number>
-              }
-              transition={{
-                delay: viewTransition.inDelay,
-                duration: viewTransition.inDuration,
-                ease: easeOutExpo,
-              }}
-            >
-              {nextView === "birdview" ? <BirdView /> : <SnakeView />}
-            </motion.div>
-          ) : null}
+          <motion.div
+            ref={snakeviewLayerRef}
+            className={`view-layer view-layer--snakeview view-layer--${getViewLayerState("snakeview")}`}
+            initial={false}
+            animate={layerAnimation("snakeview") as Record<string, string | number>}
+            transition={viewLayerTransition}
+            aria-hidden={displayedView !== "snakeview"}
+          >
+            <SnakeView />
+          </motion.div>
         </div>
       </main>
     </>

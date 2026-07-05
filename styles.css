@@ -123,18 +123,31 @@ img { display: block; max-width: 100%; }
   transform-origin: top center;
 }
 
-.view-layer--incoming {
+.view-layer--incoming,
+.view-layer--hidden {
   position: absolute;
   inset: 0 0 auto;
+}
+
+.view-layer--incoming {
   z-index: 2;
 }
 
-.view-layer--active {
+.view-layer--hidden {
+  z-index: 0;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.view-layer--current,
+.view-layer--outgoing {
   position: relative;
   z-index: 1;
 }
 
-.view-stage--switching .view-layer--active {
+.view-stage--switching .view-layer--outgoing {
   z-index: 1;
 }
 
@@ -142,7 +155,7 @@ img { display: block; max-width: 100%; }
   z-index: 2;
 }
 
-.view-stage:not(.view-stage--switching) .view-layer--active {
+.view-stage:not(.view-stage--switching) .view-layer--current {
   transform: none !important;
   opacity: 1 !important;
 }
