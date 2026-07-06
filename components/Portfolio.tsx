@@ -41,6 +41,16 @@ type MediaAsset = {
 const media = mediaManifest as Record<string, MediaAsset>;
 const decodedAssets = new Set<string>();
 
+function getMediaAsset(assetKey: string) {
+  const asset = media[assetKey];
+
+  if (!asset) {
+    throw new Error(`Missing media asset: ${assetKey}`);
+  }
+
+  return asset;
+}
+
 function OptimizedImage({
   assetKey,
   alt,
@@ -54,7 +64,7 @@ function OptimizedImage({
   sizes: string;
   eager?: boolean;
 }) {
-  const asset = media[assetKey];
+  const asset = getMediaAsset(assetKey);
   const imageRef = useRef<HTMLImageElement>(null);
   const [loaded, setLoaded] = useState(() => decodedAssets.has(assetKey));
 
@@ -110,7 +120,7 @@ function ViewportVideo({
   title: string;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const poster = media[posterKey];
+  const poster = getMediaAsset(posterKey);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -155,12 +165,16 @@ function ProjectMedia({
   eager?: boolean;
   view: ViewMode;
 }) {
-  if (project.video) {
+  if (project.mediaType === "text") {
+    return null;
+  }
+
+  if (project.mediaType === "video") {
     return (
       <>
         <ViewportVideo
           src={project.video}
-          posterKey={project.poster!}
+          posterKey={project.poster}
           title={project.title}
         />
         {project.extraImages ? (
@@ -183,7 +197,7 @@ function ProjectMedia({
   return (
     <OptimizedImage
       className="project__img"
-      assetKey={project.image!}
+      assetKey={project.image}
       alt={project.title}
       sizes={
         view === "snakeview"
@@ -367,8 +381,10 @@ export function Portfolio() {
     const storedView =
       document.documentElement.dataset.portfolioView ??
       window.localStorage.getItem("portfolio-view");
+    /* eslint-disable react-hooks/set-state-in-effect -- The client-only preference is applied after hydration. */
     setView(storedView === "snakeview" ? "snakeview" : "birdview");
     setViewReady(true);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
   useEffect(() => {
@@ -380,19 +396,34 @@ export function Portfolio() {
   }, []);
 
   useEffect(() => {
-    const projectsElement = getLayer(view)?.querySelector<HTMLElement>(".projects");
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const mode = entry.target.closest(".view-layer--birdview")
+          ? "birdview"
+          : "snakeview";
+        const height = (entry.target as HTMLElement).offsetHeight;
 
-    if (projectsElement) {
-      heightCacheRef.current[view] = projectsElement.offsetHeight;
+        heightCacheRef.current[mode] = height;
+
+        if (nextView === mode) {
+          setContainerHeight((currentHeight) =>
+            currentHeight === height ? currentHeight : height,
+          );
+        }
+      }
+    });
+
+    for (const mode of ["birdview", "snakeview"] as const) {
+      const projectsElement =
+        getLayer(mode)?.querySelector<HTMLElement>(".projects");
+
+      if (projectsElement) {
+        heightCacheRef.current[mode] = projectsElement.offsetHeight;
+        observer.observe(projectsElement);
+      }
     }
-  }, [view]);
 
-  useEffect(() => {
-    if (!nextView) return;
-
-    const incomingHeight = getProjectsHeight(nextView) ?? 0;
-    setContainerHeight(incomingHeight);
-    heightCacheRef.current[nextView] = incomingHeight;
+    return () => observer.disconnect();
   }, [nextView]);
 
   function persistView(next: ViewMode) {

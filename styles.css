@@ -219,13 +219,13 @@ img { display: block; max-width: 100%; }
   width: 100%;
 }
 
-/* In birdview (3 columns), show the extra images on Samokat */
+/* In birdview (3 columns), hide the extra images on Samokat */
 .projects:not(.projects--snakeview) .project__imgs--extra {
   display: none;
 
 }
 
-/* In snakeview (1 column), hide extra images */
+/* In snakeview (1 column), show extra images */
 .projects--snakeview .project__imgs--extra {
   display: flex;
   flex-wrap: wrap;
@@ -244,46 +244,6 @@ img { display: block; max-width: 100%; }
 
 /* ─── About Seva: birdview only (regular project card, first in list) ───── */
 .about-seva {
-  display: flex;
-}
-
-.about-seva__image-frame {
-  width: 100%;
-  aspect-ratio: 1;
-  overflow: hidden;
-}
-
-.about-seva__img {
-  width: 100%;
-  height: 100% !important;
-  object-fit: cover;
-}
-
-.about-seva .hero-about__content {
-  display: none;
-}
-
-.projects--snakeview .about-seva {
-  width: 100%;
-  max-width: 600px;
-  margin: -120px 32px 0;
-  align-items: flex-start;
-  gap: 40px;
-}
-
-.projects--snakeview .about-seva__bird-header,
-.projects--snakeview .about-seva__bird-desc {
-  display: none;
-}
-
-.projects--snakeview .about-seva__image-frame {
-  width: 300px;
-  height: 300px;
-  aspect-ratio: 1;
-  flex-shrink: 0;
-}
-
-.projects--snakeview .about-seva .hero-about__content {
   display: flex;
 }
 
@@ -498,12 +458,6 @@ img { display: block; max-width: 100%; }
   .projects .project__video {
     width: 100%;
     height: auto !important;
-  }
-  
-  /* Snakeview mobile: hero-about photo smaller */
-  .projects--snakeview .about-seva__image-frame {
-    width: 240px;
-    height: 240px;
   }
   
   .project__imgs { width: 100%; }
@@ -855,24 +809,15 @@ img { display: block; max-width: 100%; }
     width: 100%;
   }
 
-  /* Mobile snakeview: about card with side padding and top margin */
-  .projects--snakeview .about-seva {
-    padding: 0 32px;
-    margin-top: 80px;
+  .project__header {
+    flex-wrap: wrap;
+    padding: 0 8px;
   }
 
-  /* Mobile: about card same as other projects */
-  .projects .project--about {
-    width: calc(50% - 10px);
-    gap: 12px;
+  .project__title {
+    white-space: normal;
+    text-align: center;
   }
-
-  .projects .project--about .project__img--about {
-    width: 100%;
-    height: auto;
-  }
-
-  .project__header { padding: 0; }
 
   .project__imgs {
     column-gap: 4px;

@@ -1,4 +1,4 @@
 allowBuilds:
-  sharp: set this to true or false
-ignoredBuiltDependencies:
-  - sharp
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
