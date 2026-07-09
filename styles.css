@@ -414,8 +414,9 @@ img { display: block; max-width: 100%; }
     width: 100%;
   }
   .projects .project__desc {
+    width: 100%;
     padding: 0 8px;
-    max-width: none;
+    max-width: 480px;
   }
   /* left margin reset for birdview since images go full width */
   .projects {
@@ -809,15 +810,7 @@ img { display: block; max-width: 100%; }
     width: 100%;
   }
 
-  .project__header {
-    flex-wrap: wrap;
-    padding: 0 8px;
-  }
-
-  .project__title {
-    white-space: normal;
-    text-align: center;
-  }
+  .project__header { padding: 0; }
 
   .project__imgs {
     column-gap: 4px;
