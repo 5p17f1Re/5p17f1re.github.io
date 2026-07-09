@@ -27,18 +27,18 @@ export const projects: Project[] = [
   {
     mediaType: "image",
     tag: "b2b",
-    title: "Yandex Eats Panel",
+    title: "Yandex Eats Partner Analytics",
     image: "yandex-eats-panel",
     description:
-      "Helped restaurants understand their guests, retain them and forecast revenue through an analytics dashboard in the partner panel.",
+      "Designed partner analytics that help restaurants understand guest behavior, track retention and forecast revenue",
   },
   {
     mediaType: "image",
-    tag: "product",
-    title: "Foodhalls for Starter",
+    tag: "b2b",
+    title: "Starter Food Halls",
     image: "starter-foodhalls",
     description:
-      "Food courts and food halls are a large and fast-growing part of the catering market. We had to figure out how to build support for food halls into the current solution so we could take the client into a new market.",
+      "Extended Starter’s restaurant platform to support food halls, helping the product enter a new market without rebuilding its core system",
   },
   {
     mediaType: "video",
@@ -52,35 +52,43 @@ export const projects: Project[] = [
   },
   {
     mediaType: "image",
-    tag: "place",
-    title: "Sevcableport",
-    image: "sevcableport",
+    tag: "ecom",
+    title: "Avgvst Jewelry",
+    image: "avgvst-jewelry",
     description:
-      "A magazine-style editorial platform for Sevcableport — a cultural waterfront venue in Saint Petersburg with a strong local identity.",
+      "Designed and built the Avgvst e-commerce site, combining catalog, collections, brand storytelling and service flows in one storefront",
   },
   {
     mediaType: "image",
-    tag: "web",
+    tag: "platform",
     title: "Arxel",
     image: "arxl",
     description:
-      "Online platform for urban planning professionals and city-building teams. Clean service design with a strong information hierarchy.",
+      "Designed a platform that helps urban-planning teams organize complex project information and collaborate across disciplines",
   },
   {
     mediaType: "image",
-    tag: "mag",
+    tag: "editorial",
     title: "Re.View",
     image: "review",
     description:
-      "A digital beauty and culture magazine with bold editorial voice and a mood-heavy visual system built for long-form content.",
+      "Created an editorial system for a digital beauty and culture magazine, supporting distinctive storytelling and long-form reading",
   },
   {
     mediaType: "image",
     tag: "app",
-    title: "PYE",
+    title: "PYE Home Try-On",
     image: "pye-web",
     description:
-      "Home try-on app for premium eyewear. Soft editorial feel, warm golden visual identity, and a focus on reducing purchase anxiety.",
+      "Designed a home try-on experience for premium eyewear, reducing the uncertainty of buying glasses online",
+  },
+  {
+    mediaType: "image",
+    tag: "place",
+    title: "Sevcableport",
+    image: "sevcableport",
+    description:
+      "Designed a public website for Sevcableport, helping visitors navigate events, residents, territory and practical information about the space",
   },
   {
     mediaType: "image",

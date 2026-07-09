@@ -7,6 +7,14 @@
     "webpSrcSet": "/media/images/arxl-360.webp 360w, /media/images/arxl-720.webp 720w, /media/images/arxl-1200.webp 1200w, /media/images/arxl-1600.webp 1600w",
     "placeholder": "data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAABQAwCdASoYAA8APwFKvFirIqckmAFgIAlnAABc6Pz5UBiVIAD+7VgpfJFDDpCltxNSUB7LJCN/4gtTGNjrAAAA"
   },
+  "avgvst-jewelry": {
+    "width": 800,
+    "height": 1000,
+    "fallback": "/media/images/avgvst-jewelry-800.webp",
+    "avifSrcSet": "/media/images/avgvst-jewelry-360.avif 360w, /media/images/avgvst-jewelry-720.avif 720w, /media/images/avgvst-jewelry-800.avif 800w",
+    "webpSrcSet": "/media/images/avgvst-jewelry-360.webp 360w, /media/images/avgvst-jewelry-720.webp 720w, /media/images/avgvst-jewelry-800.webp 800w",
+    "placeholder": "data:image/webp;base64,UklGRoAAAABXRUJQVlA4IHQAAAAQBQCdASoYAB4APu1kqE8ppaQiN/qoATAdiWgAuwBYaCS+IWNYsp0PYBNN5kmnn6GAAP6NO4LCaC4UL8BNc49icVszBJP3HGrlJI/LeiDivoUyGu+XRtFMw0gplmx3GtuHWHf/U0hslRUufshvLCvWvUwAAA=="
+  },
   "pye-web": {
     "width": 1600,
     "height": 2000,
@@ -72,12 +80,12 @@
     "placeholder": "data:image/webp;base64,UklGRo4AAABXRUJQVlA4IIIAAADQBACdASoYABgAPvlsp08qpiMiMAwBUB8JZgCdMoM3WDRme0OVfo3vOxRiDBGwAAD+r24fy9ttN15IEEN3Jh/ZIGcf7r80BnT07dhQsHtfw/OkiiVlCnvAIqgGVWjmAihzvwexQKYE2PUJjiWBilFI4BAR6gatw9GcABshBugJyAAA"
   },
   "yandex-eats-panel": {
-    "width": 1600,
-    "height": 1200,
-    "fallback": "/media/images/yandex-eats-panel-1600.webp",
-    "avifSrcSet": "/media/images/yandex-eats-panel-360.avif 360w, /media/images/yandex-eats-panel-720.avif 720w, /media/images/yandex-eats-panel-1200.avif 1200w, /media/images/yandex-eats-panel-1600.avif 1600w",
-    "webpSrcSet": "/media/images/yandex-eats-panel-360.webp 360w, /media/images/yandex-eats-panel-720.webp 720w, /media/images/yandex-eats-panel-1200.webp 1200w, /media/images/yandex-eats-panel-1600.webp 1600w",
-    "placeholder": "data:image/webp;base64,UklGRkYAAABXRUJQVlA4IDoAAABQAwCdASoYABIAPuVepU8pJSOiN+gBIByJZwAAb5Gv240gYAD+fUT0pXUhd4l+yj+shRZsZzd294AA"
+    "width": 800,
+    "height": 600,
+    "fallback": "/media/images/yandex-eats-panel-800.webp",
+    "avifSrcSet": "/media/images/yandex-eats-panel-360.avif 360w, /media/images/yandex-eats-panel-720.avif 720w, /media/images/yandex-eats-panel-800.avif 800w",
+    "webpSrcSet": "/media/images/yandex-eats-panel-360.webp 360w, /media/images/yandex-eats-panel-720.webp 720w, /media/images/yandex-eats-panel-800.webp 800w",
+    "placeholder": "data:image/webp;base64,UklGRkYAAABXRUJQVlA4IDoAAABQAwCdASoYABIAPuVepk8pJSOiN+gBIByJZwAAb5GuDXjurAD+fUT0pXUhcjoS5Q7AJ91pgfoYAAAA"
   },
   "yandex-eats": {
     "width": 1600,

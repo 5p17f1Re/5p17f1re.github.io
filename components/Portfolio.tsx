@@ -40,6 +40,12 @@ type MediaAsset = {
 
 const media = mediaManifest as Record<string, MediaAsset>;
 const decodedAssets = new Set<string>();
+const aboutSevaFirstParagraph =
+  "Product designer with 11 years of experience in complex B2B and B2C products. I work where product logic, interface clarity and visual quality all matter.";
+const aboutSevaDetails = [
+  "My focus is analytics, operational tools and 0→1 products. I’m useful when a product is messy: many roles, edge cases, data states, business rules and unclear structure.",
+  "Now I design restaurant-facing products at Yandex Eats. Before that, I led product design at STARTER, managed a team of designers and stayed hands-on with key flows. Earlier, I designed and launched digital products for Samokat, PYE, Auto.ru, Praktikum and Avgvst.",
+];
 
 function getMediaAsset(assetKey: string) {
   const asset = media[assetKey];
@@ -287,11 +293,7 @@ function BirdView() {
           sizes="(max-width: 800px) 50vw, 33vw"
           eager
         />
-        <p className="project__desc">
-          Product Designer who brings consumer-grade experience to complex
-          products. 11 years in ecomm, foodtech and craft. Work with Yandex,
-          Samokat, PYE, Auto.ru, Praktikum and Avgvst.
-        </p>
+        <p className="project__desc">{aboutSevaFirstParagraph}</p>
       </motion.article>
 
       {projects.map((project, index) => {
@@ -337,14 +339,12 @@ function SnakeView() {
           <div className="hero-about__header">
             <span className="hero-about__title">Seva Kudryavtsev</span>
           </div>
-          <p className="hero-about__desc">
-            Product Designer who brings consumer-grade experience to complex
-            products.
-          </p>
-          <p className="hero-about__desc gray">
-            11 years in ecomm, foodtech and craft. Work with Yandex, Samokat, PYE,
-            Auto.ru, Praktikum and Avgvst.
-          </p>
+          <p className="hero-about__desc">{aboutSevaFirstParagraph}</p>
+          {aboutSevaDetails.map((paragraph) => (
+            <p className="hero-about__desc gray" key={paragraph}>
+              {paragraph}
+            </p>
+          ))}
         </div>
       </article>
 
