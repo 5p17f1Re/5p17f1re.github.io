@@ -78,7 +78,7 @@ export const projects: Project[] = [
     mediaType: "image",
     tag: "app",
     title: "PYE Home Try-On",
-    image: "pye-web",
+    image: "pye-home-tryon",
     description:
       "Designed a home try-on experience for premium eyewear, reducing the uncertainty of buying glasses online",
   },

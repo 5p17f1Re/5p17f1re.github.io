@@ -15,13 +15,13 @@
     "webpSrcSet": "/media/images/avgvst-jewelry-360.webp 360w, /media/images/avgvst-jewelry-720.webp 720w, /media/images/avgvst-jewelry-800.webp 800w",
     "placeholder": "data:image/webp;base64,UklGRoAAAABXRUJQVlA4IHQAAAAQBQCdASoYAB4APu1kqE8ppaQiN/qoATAdiWgAuwBYaCS+IWNYsp0PYBNN5kmnn6GAAP6NO4LCaC4UL8BNc49icVszBJP3HGrlJI/LeiDivoUyGu+XRtFMw0gplmx3GtuHWHf/U0hslRUufshvLCvWvUwAAA=="
   },
-  "pye-web": {
+  "pye-home-tryon": {
     "width": 1600,
     "height": 2000,
-    "fallback": "/media/images/pye-web-1600.webp",
-    "avifSrcSet": "/media/images/pye-web-360.avif 360w, /media/images/pye-web-720.avif 720w, /media/images/pye-web-1200.avif 1200w, /media/images/pye-web-1600.avif 1600w",
-    "webpSrcSet": "/media/images/pye-web-360.webp 360w, /media/images/pye-web-720.webp 720w, /media/images/pye-web-1200.webp 1200w, /media/images/pye-web-1600.webp 1600w",
-    "placeholder": "data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAACwBACdASoYAB4APwFor08rJaSiMBgMAWAgCUAYZoId9iBdk+9TYz6kAYZXMiOgAP6vELc3t5c9XhGGl51ASpJKH04nai7lWrYZhadDU2jBJWx+//DpvsGtZU0AAA=="
+    "fallback": "/media/images/pye-home-tryon-1600.webp",
+    "avifSrcSet": "/media/images/pye-home-tryon-360.avif 360w, /media/images/pye-home-tryon-720.avif 720w, /media/images/pye-home-tryon-1200.avif 1200w, /media/images/pye-home-tryon-1600.avif 1600w",
+    "webpSrcSet": "/media/images/pye-home-tryon-360.webp 360w, /media/images/pye-home-tryon-720.webp 720w, /media/images/pye-home-tryon-1200.webp 1200w, /media/images/pye-home-tryon-1600.webp 1600w",
+    "placeholder": "data:image/webp;base64,UklGRnYAAABXRUJQVlA4IGoAAADwBACdASoYAB4APwFqrk8rJiSiMBgMAWAgCWMAzjhU0DrGdWMURYGvsbJHrN9DhwAA/ozmThFSLVYu8XeAeal4GPR+F8kdvJxgfHFlGMIemJ7tj0ue40TL85O1yYXBvBJzLrqLG6pJAAAA"
   },
   "review": {
     "width": 1600,
