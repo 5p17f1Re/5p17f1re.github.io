@@ -46,7 +46,6 @@ img { display: block; max-width: 100%; }
 
 .optimized-image__img {
   opacity: 0;
-  transition: opacity 100ms ease-out;
 }
 
 .optimized-image__img[data-loaded="true"] {

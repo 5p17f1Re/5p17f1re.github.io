@@ -42,16 +42,27 @@ export function OptimizedImage({
   const imageRef = useRef<HTMLImageElement>(null);
   const [loaded, setLoaded] = useState(() => decodedAssets.has(assetKey));
 
-  function reveal() {
+  async function reveal() {
+    const image = imageRef.current;
+
+    if (!image) return;
+
+    try {
+      await image.decode();
+    } catch {
+      if (!image.complete || image.naturalWidth === 0) return;
+    }
+
+    if (imageRef.current !== image) return;
+
     decodedAssets.add(assetKey);
     setLoaded(true);
   }
 
   useLayoutEffect(() => {
-    if (imageRef.current?.complete) {
-      decodedAssets.add(assetKey);
-      setLoaded(true);
-    }
+    const image = imageRef.current;
+
+    if (image?.complete && image.naturalWidth > 0) void reveal();
   }, [assetKey]);
 
   return (
@@ -59,7 +70,7 @@ export function OptimizedImage({
       className={`optimized-image ${className}`.trim()}
       style={{
         aspectRatio: `${asset.width} / ${asset.height}`,
-        backgroundImage: `url("${asset.placeholder}")`,
+        backgroundImage: loaded ? "none" : `url("${asset.placeholder}")`,
       }}
     >
       <source type="image/avif" srcSet={asset.avifSrcSet} sizes={sizes} />
@@ -75,8 +86,8 @@ export function OptimizedImage({
         loading={eager ? "eager" : "lazy"}
         fetchPriority={eager ? "high" : "auto"}
         decoding="async"
-        onLoad={reveal}
-        onError={reveal}
+        onLoad={() => void reveal()}
+        onError={() => setLoaded(false)}
       />
     </picture>
   );
