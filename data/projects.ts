@@ -1,5 +1,6 @@
 type ProjectBase = {
   slug?: string;
+  transitionId?: string;
   tag: string;
   title: string;
   description: string;
@@ -25,6 +26,8 @@ export type Project = ImageProject | VideoProject | TextProject;
 
 export const projects: Project[] = [
   {
+    slug: "yandex-eats-smartreserve",
+    transitionId: "yandex-eats-smartreserve",
     mediaType: "image",
     tag: "b2b",
     title: "Yandex Eats Partner Analytics",

@@ -31,17 +31,32 @@ export function EmailButton() {
     }
 
     setCopied(true);
-    timerRef.current = setTimeout(() => setCopied(false), 1400);
+    timerRef.current = setTimeout(() => setCopied(false), 3000);
   }
 
   return (
-    <button
-      className={`nav__link nav__copy${copied ? " is-copied" : ""}`}
-      type="button"
-      onClick={copyEmail}
-      aria-live="polite"
-    >
-      {copied ? "Copied!" : "Email"}
-    </button>
+    <>
+      <button
+        className="nav__link nav__copy"
+        type="button"
+        onClick={copyEmail}
+        data-nav-item
+        tabIndex={0}
+      >
+        Email
+      </button>
+      <div
+        className={`nav__email-toast${copied ? " is-visible" : ""}`}
+        role="status"
+        aria-live="polite"
+        aria-hidden={!copied}
+      >
+        <span>
+          {EMAIL}
+          <br />
+          copied to clipboard
+        </span>
+      </div>
+    </>
   );
 }

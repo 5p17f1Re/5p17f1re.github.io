@@ -87,6 +87,158 @@
     "webpSrcSet": "/media/images/yandex-eats-panel-360.webp 360w, /media/images/yandex-eats-panel-720.webp 720w, /media/images/yandex-eats-panel-800.webp 800w",
     "placeholder": "data:image/webp;base64,UklGRkYAAABXRUJQVlA4IDoAAABQAwCdASoYABIAPuVepk8pJSOiN+gBIByJZwAAb5GuDXjurAD+fUT0pXUhcjoS5Q7AJ91pgfoYAAAA"
   },
+  "yandex-eats-smartreserve/01-cover": {
+    "width": 2880,
+    "height": 1800,
+    "fallback": "/media/images/yandex-eats-smartreserve/01-cover-2880.webp",
+    "avifSrcSet": "/media/images/yandex-eats-smartreserve/01-cover-360.avif 360w, /media/images/yandex-eats-smartreserve/01-cover-720.avif 720w, /media/images/yandex-eats-smartreserve/01-cover-1200.avif 1200w, /media/images/yandex-eats-smartreserve/01-cover-1600.avif 1600w, /media/images/yandex-eats-smartreserve/01-cover-2880.avif 2880w",
+    "webpSrcSet": "/media/images/yandex-eats-smartreserve/01-cover-360.webp 360w, /media/images/yandex-eats-smartreserve/01-cover-720.webp 720w, /media/images/yandex-eats-smartreserve/01-cover-1200.webp 1200w, /media/images/yandex-eats-smartreserve/01-cover-1600.webp 1600w, /media/images/yandex-eats-smartreserve/01-cover-2880.webp 2880w",
+    "placeholder": "data:image/webp;base64,UklGRmIAAABXRUJQVlA4IFYAAAAwBACdASoYAA8APwFqrU8rJaQiMAgBYCAJQBYdg9Iz/B1k8ZSJ94XVIAAA/jDXiPtV+WaBTyGWxHSAK2WxtskLqjW+SXa/kHinePrHScSu1gLG6AAAAA=="
+  },
+  "yandex-eats-smartreserve/02-platform-hostess": {
+    "width": 676,
+    "height": 676,
+    "fallback": "/media/images/yandex-eats-smartreserve/02-platform-hostess-676.webp",
+    "avifSrcSet": "/media/images/yandex-eats-smartreserve/02-platform-hostess-360.avif 360w, /media/images/yandex-eats-smartreserve/02-platform-hostess-676.avif 676w",
+    "webpSrcSet": "/media/images/yandex-eats-smartreserve/02-platform-hostess-360.webp 360w, /media/images/yandex-eats-smartreserve/02-platform-hostess-676.webp 676w",
+    "placeholder": "data:image/webp;base64,UklGRi4BAABXRUJQVlA4WAoAAAAQAAAAFwAAFwAAQUxQSM0AAAANuYzof2jgNpIkyfkfG+i/bfThpzDL4ZqQjZULfSobJRNtwKweMQET8PwFO4v9r8G3H+TBgHRDfLG3rIFM31Lf+fBpSRuFjZUrpdPxiqKA6o4VQIYsvzPuobvzzRKqsFnRajPpLuWyM+teRwIR0UdTJ/8JaR14yIh6UKgdCWQJDNiIsmTMKFuAzKYrBSjFzkrttLuFPOXKMkgmNaVAsuqIMNNePst5OesvNKO1dB4OXYr1C/QExTpK5RmXulNpt9CMUNvCgJgWYEZ5zgIAAFZQOCA6AAAAcAMAnQEqGAAYAD8BbK5PKyWkIjAIAWAgCWkAAHHBzbdYdVQAAP7wTAqFgiQFdRHX7VaDZI02gAAAAA=="
+  },
+  "yandex-eats-smartreserve/02-platform-manager": {
+    "width": 676,
+    "height": 676,
+    "fallback": "/media/images/yandex-eats-smartreserve/02-platform-manager-676.webp",
+    "avifSrcSet": "/media/images/yandex-eats-smartreserve/02-platform-manager-360.avif 360w, /media/images/yandex-eats-smartreserve/02-platform-manager-676.avif 676w",
+    "webpSrcSet": "/media/images/yandex-eats-smartreserve/02-platform-manager-360.webp 360w, /media/images/yandex-eats-smartreserve/02-platform-manager-676.webp 676w",
+    "placeholder": "data:image/webp;base64,UklGRjABAABXRUJQVlA4WAoAAAAQAAAAFwAAFwAAQUxQSNsAAAANuYzof2jkNpLs2o6iioH5x8YYtH4qhD649mDpvkXbFwvQ/dclIiZgAt7/gBuHmz+CH67TJ3nW31Vd41fQr+XlMybflJ0/0vliv7/CwUerp92dE8z4/95SuzNQ7R/SM+7LcnWK3qSQuOaNbd2lWqk5KImis1mclE4WQKhKczaAnJKyc4qYExFMNWcNgCEC8QIIZwPn7AoYG4GcwxakJYItwS7O2gJi25lSjYmpGMuOHkdWoS2A7Vps4wvvNJXCBJGU+Qe7x18wFYgGzDb2qu6RyzNdEQjXcDpeYwAAVlA4IC4AAADwAgCdASoYABgAPwF2slKrJySiqAqpYCAJaQAAOsg2AAD+8HhuX2xGP8gKAAAA"
+  },
+  "yandex-eats-smartreserve/03-version-navigation": {
+    "width": 1156,
+    "height": 682,
+    "fallback": "/media/images/yandex-eats-smartreserve/03-version-navigation-1156.webp",
+    "avifSrcSet": "/media/images/yandex-eats-smartreserve/03-version-navigation-360.avif 360w, /media/images/yandex-eats-smartreserve/03-version-navigation-720.avif 720w, /media/images/yandex-eats-smartreserve/03-version-navigation-1156.avif 1156w",
+    "webpSrcSet": "/media/images/yandex-eats-smartreserve/03-version-navigation-360.webp 360w, /media/images/yandex-eats-smartreserve/03-version-navigation-720.webp 720w, /media/images/yandex-eats-smartreserve/03-version-navigation-1156.webp 1156w",
+    "placeholder": "data:image/webp;base64,UklGRj4AAABXRUJQVlA4IDIAAACwAgCdASoYAA4APwFsrU8rJiQiMAgBYCAJZwAAeyAA/u8Msp+nCXHihccokAY8u8cAAA=="
+  },
+  "yandex-eats-smartreserve/04-research-board": {
+    "width": 1368,
+    "height": 1096,
+    "fallback": "/media/images/yandex-eats-smartreserve/04-research-board-1368.webp",
+    "avifSrcSet": "/media/images/yandex-eats-smartreserve/04-research-board-360.avif 360w, /media/images/yandex-eats-smartreserve/04-research-board-720.avif 720w, /media/images/yandex-eats-smartreserve/04-research-board-1200.avif 1200w, /media/images/yandex-eats-smartreserve/04-research-board-1368.avif 1368w",
+    "webpSrcSet": "/media/images/yandex-eats-smartreserve/04-research-board-360.webp 360w, /media/images/yandex-eats-smartreserve/04-research-board-720.webp 720w, /media/images/yandex-eats-smartreserve/04-research-board-1200.webp 1200w, /media/images/yandex-eats-smartreserve/04-research-board-1368.webp 1368w",
+    "placeholder": "data:image/webp;base64,UklGRk4AAABXRUJQVlA4IEIAAADQAwCdASoYABMAPv1sr08rJiSiMBgMAWAfiWkAACmZg8pq0r1FSAAA/sTO2cygZXuuVHaxBJMdeSs1YwejS7XxcAA="
+  },
+  "yandex-eats-smartreserve/05-metrics-map": {
+    "width": 2312,
+    "height": 1390,
+    "fallback": "/media/images/yandex-eats-smartreserve/05-metrics-map-2312.webp",
+    "avifSrcSet": "/media/images/yandex-eats-smartreserve/05-metrics-map-360.avif 360w, /media/images/yandex-eats-smartreserve/05-metrics-map-720.avif 720w, /media/images/yandex-eats-smartreserve/05-metrics-map-1200.avif 1200w, /media/images/yandex-eats-smartreserve/05-metrics-map-1600.avif 1600w, /media/images/yandex-eats-smartreserve/05-metrics-map-2312.avif 2312w",
+    "webpSrcSet": "/media/images/yandex-eats-smartreserve/05-metrics-map-360.webp 360w, /media/images/yandex-eats-smartreserve/05-metrics-map-720.webp 720w, /media/images/yandex-eats-smartreserve/05-metrics-map-1200.webp 1200w, /media/images/yandex-eats-smartreserve/05-metrics-map-1600.webp 1600w, /media/images/yandex-eats-smartreserve/05-metrics-map-2312.webp 2312w",
+    "placeholder": "data:image/webp;base64,UklGRj4AAABXRUJQVlA4IDIAAAAQAwCdASoYAA4APwFsrU8rJiQiMAgBYCAJaQAAetD1XgAA/u+OjE01HlcC06T1yK2AAA=="
+  },
+  "yandex-eats-smartreserve/06-summary-wireframe": {
+    "width": 2316,
+    "height": 1448,
+    "fallback": "/media/images/yandex-eats-smartreserve/06-summary-wireframe-2316.webp",
+    "avifSrcSet": "/media/images/yandex-eats-smartreserve/06-summary-wireframe-360.avif 360w, /media/images/yandex-eats-smartreserve/06-summary-wireframe-720.avif 720w, /media/images/yandex-eats-smartreserve/06-summary-wireframe-1200.avif 1200w, /media/images/yandex-eats-smartreserve/06-summary-wireframe-1600.avif 1600w, /media/images/yandex-eats-smartreserve/06-summary-wireframe-2316.avif 2316w",
+    "webpSrcSet": "/media/images/yandex-eats-smartreserve/06-summary-wireframe-360.webp 360w, /media/images/yandex-eats-smartreserve/06-summary-wireframe-720.webp 720w, /media/images/yandex-eats-smartreserve/06-summary-wireframe-1200.webp 1200w, /media/images/yandex-eats-smartreserve/06-summary-wireframe-1600.webp 1600w, /media/images/yandex-eats-smartreserve/06-summary-wireframe-2316.webp 2316w",
+    "placeholder": "data:image/webp;base64,UklGRpwAAABXRUJQVlA4WAoAAAAQAAAAFwAADgAAQUxQSCwAAAABuTJE9D+gtG0kKdn++73/jg47GjEBEzCqIHgsjRDVg5J58LFXbAkJnZ6EIFZQOCBKAAAAkAMAnQEqGAAPAD8BbK1PKyYkIjAIAWAgCWQAxNgekPXjVndfAAD+wUafEQBX1xSdFbR+d19xh7jV8mCYRij4o6Qmp8Bczi0AAAA="
+  },
+  "yandex-eats-smartreserve/07-chart-forms": {
+    "width": 2312,
+    "height": 1390,
+    "fallback": "/media/images/yandex-eats-smartreserve/07-chart-forms-2312.webp",
+    "avifSrcSet": "/media/images/yandex-eats-smartreserve/07-chart-forms-360.avif 360w, /media/images/yandex-eats-smartreserve/07-chart-forms-720.avif 720w, /media/images/yandex-eats-smartreserve/07-chart-forms-1200.avif 1200w, /media/images/yandex-eats-smartreserve/07-chart-forms-1600.avif 1600w, /media/images/yandex-eats-smartreserve/07-chart-forms-2312.avif 2312w",
+    "webpSrcSet": "/media/images/yandex-eats-smartreserve/07-chart-forms-360.webp 360w, /media/images/yandex-eats-smartreserve/07-chart-forms-720.webp 720w, /media/images/yandex-eats-smartreserve/07-chart-forms-1200.webp 1200w, /media/images/yandex-eats-smartreserve/07-chart-forms-1600.webp 1600w, /media/images/yandex-eats-smartreserve/07-chart-forms-2312.webp 2312w",
+    "placeholder": "data:image/webp;base64,UklGRlAAAABXRUJQVlA4IEQAAABwAwCdASoYAA4APwFusU8rJqUiMAgBYCAJZwAAS9NKXv8fUAAA/faeWwrgRGl8t6dsd59xP9DKRpZlR5M74PyIBwAAAA=="
+  },
+  "yandex-eats-smartreserve/08-chart-states": {
+    "width": 2312,
+    "height": 1406,
+    "fallback": "/media/images/yandex-eats-smartreserve/08-chart-states-2312.webp",
+    "avifSrcSet": "/media/images/yandex-eats-smartreserve/08-chart-states-360.avif 360w, /media/images/yandex-eats-smartreserve/08-chart-states-720.avif 720w, /media/images/yandex-eats-smartreserve/08-chart-states-1200.avif 1200w, /media/images/yandex-eats-smartreserve/08-chart-states-1600.avif 1600w, /media/images/yandex-eats-smartreserve/08-chart-states-2312.avif 2312w",
+    "webpSrcSet": "/media/images/yandex-eats-smartreserve/08-chart-states-360.webp 360w, /media/images/yandex-eats-smartreserve/08-chart-states-720.webp 720w, /media/images/yandex-eats-smartreserve/08-chart-states-1200.webp 1200w, /media/images/yandex-eats-smartreserve/08-chart-states-1600.webp 1600w, /media/images/yandex-eats-smartreserve/08-chart-states-2312.webp 2312w",
+    "placeholder": "data:image/webp;base64,UklGRkoAAABXRUJQVlA4ID4AAABQAwCdASoYAA8APwFqrU8rJaQiMAgBYCAJQBadBlFZ1D2PQAD+75DvY7j5CoyicCyKUNaiDkTAVd6CimAAAA=="
+  },
+  "yandex-eats-smartreserve/09-color-search": {
+    "width": 2312,
+    "height": 1164,
+    "fallback": "/media/images/yandex-eats-smartreserve/09-color-search-2312.webp",
+    "avifSrcSet": "/media/images/yandex-eats-smartreserve/09-color-search-360.avif 360w, /media/images/yandex-eats-smartreserve/09-color-search-720.avif 720w, /media/images/yandex-eats-smartreserve/09-color-search-1200.avif 1200w, /media/images/yandex-eats-smartreserve/09-color-search-1600.avif 1600w, /media/images/yandex-eats-smartreserve/09-color-search-2312.avif 2312w",
+    "webpSrcSet": "/media/images/yandex-eats-smartreserve/09-color-search-360.webp 360w, /media/images/yandex-eats-smartreserve/09-color-search-720.webp 720w, /media/images/yandex-eats-smartreserve/09-color-search-1200.webp 1200w, /media/images/yandex-eats-smartreserve/09-color-search-1600.webp 1600w, /media/images/yandex-eats-smartreserve/09-color-search-2312.webp 2312w",
+    "placeholder": "data:image/webp;base64,UklGRjwAAABXRUJQVlA4IDAAAAAwAwCdASoYAAwAPwFsrU8rJiQiMAgBYCAJZwAAetHmq2wAAP7v0y9tOWMgSvh0CAA="
+  },
+  "yandex-eats-smartreserve/10-color-system": {
+    "width": 1368,
+    "height": 1198,
+    "fallback": "/media/images/yandex-eats-smartreserve/10-color-system-1368.webp",
+    "avifSrcSet": "/media/images/yandex-eats-smartreserve/10-color-system-360.avif 360w, /media/images/yandex-eats-smartreserve/10-color-system-720.avif 720w, /media/images/yandex-eats-smartreserve/10-color-system-1200.avif 1200w, /media/images/yandex-eats-smartreserve/10-color-system-1368.avif 1368w",
+    "webpSrcSet": "/media/images/yandex-eats-smartreserve/10-color-system-360.webp 360w, /media/images/yandex-eats-smartreserve/10-color-system-720.webp 720w, /media/images/yandex-eats-smartreserve/10-color-system-1200.webp 1200w, /media/images/yandex-eats-smartreserve/10-color-system-1368.webp 1368w",
+    "placeholder": "data:image/webp;base64,UklGRmwAAABXRUJQVlA4IGAAAABwBACdASoYABUAPvViq08qpaQiN/qoAVAeiWRkeVssVPHtcXXO+GByFDrsAAD+77ZM2j/z0kbaGQd+SFlSrfqx6gD1Si/jnxcUk1iy+ugtnHEiisXHTEs/5Z+IC0FMAAA="
+  },
+  "yandex-eats-smartreserve/11-heatmap": {
+    "width": 2312,
+    "height": 1754,
+    "fallback": "/media/images/yandex-eats-smartreserve/11-heatmap-2312.webp",
+    "avifSrcSet": "/media/images/yandex-eats-smartreserve/11-heatmap-360.avif 360w, /media/images/yandex-eats-smartreserve/11-heatmap-720.avif 720w, /media/images/yandex-eats-smartreserve/11-heatmap-1200.avif 1200w, /media/images/yandex-eats-smartreserve/11-heatmap-1600.avif 1600w, /media/images/yandex-eats-smartreserve/11-heatmap-2312.avif 2312w",
+    "webpSrcSet": "/media/images/yandex-eats-smartreserve/11-heatmap-360.webp 360w, /media/images/yandex-eats-smartreserve/11-heatmap-720.webp 720w, /media/images/yandex-eats-smartreserve/11-heatmap-1200.webp 1200w, /media/images/yandex-eats-smartreserve/11-heatmap-1600.webp 1600w, /media/images/yandex-eats-smartreserve/11-heatmap-2312.webp 2312w",
+    "placeholder": "data:image/webp;base64,UklGRmYAAABXRUJQVlA4IFoAAACQBACdASoYABIAPwFur08rJqQiMAgBYCAJaACw7CHfiuzMw1ngSSAUN268hoAA/u1ZZjmPwXS5nlk2WKNRI/zU+5ZaS/VXlK7Z4ezO9sE/a1lM4osCz3/AAAA="
+  },
+  "yandex-eats-smartreserve/12-analytics-system": {
+    "width": 2312,
+    "height": 1288,
+    "fallback": "/media/images/yandex-eats-smartreserve/12-analytics-system-2312.webp",
+    "avifSrcSet": "/media/images/yandex-eats-smartreserve/12-analytics-system-360.avif 360w, /media/images/yandex-eats-smartreserve/12-analytics-system-720.avif 720w, /media/images/yandex-eats-smartreserve/12-analytics-system-1200.avif 1200w, /media/images/yandex-eats-smartreserve/12-analytics-system-1600.avif 1600w, /media/images/yandex-eats-smartreserve/12-analytics-system-2312.avif 2312w",
+    "webpSrcSet": "/media/images/yandex-eats-smartreserve/12-analytics-system-360.webp 360w, /media/images/yandex-eats-smartreserve/12-analytics-system-720.webp 720w, /media/images/yandex-eats-smartreserve/12-analytics-system-1200.webp 1200w, /media/images/yandex-eats-smartreserve/12-analytics-system-1600.webp 1600w, /media/images/yandex-eats-smartreserve/12-analytics-system-2312.webp 2312w",
+    "placeholder": "data:image/webp;base64,UklGRjYAAABXRUJQVlA4ICoAAADQAgCdASoYAA0APwFsrU8rJiQjMAgBYCAJZwAAhAwAAP7wFS19zjccAAA="
+  },
+  "yandex-eats-smartreserve/13-time-behavior": {
+    "width": 1156,
+    "height": 884,
+    "fallback": "/media/images/yandex-eats-smartreserve/13-time-behavior-1156.webp",
+    "avifSrcSet": "/media/images/yandex-eats-smartreserve/13-time-behavior-360.avif 360w, /media/images/yandex-eats-smartreserve/13-time-behavior-720.avif 720w, /media/images/yandex-eats-smartreserve/13-time-behavior-1156.avif 1156w",
+    "webpSrcSet": "/media/images/yandex-eats-smartreserve/13-time-behavior-360.webp 360w, /media/images/yandex-eats-smartreserve/13-time-behavior-720.webp 720w, /media/images/yandex-eats-smartreserve/13-time-behavior-1156.webp 1156w",
+    "placeholder": "data:image/webp;base64,UklGRsgAAABXRUJQVlA4WAoAAAAQAAAAFwAAEQAAQUxQSEkAAAABuTJE9D/ANpIkJ7svcCH/KMGVL/fR2BETMAEh/M3ZaZPTRg27IDCIVKCCYENkNPQU7ILAMEAPVAABEJDqKAoAgAJFKoCS1PsDAFZQOCBYAAAAUAQAnQEqGAASAD8Baq9RqyUkIrAYCAFgIAliAMh8TEGBrQp2WNtvg1VawAD+7VRYj7NlyW/gFdmrAzEmIYfHiMxEXlU1uH8wc51VssZb16uJYZ3hCSAAAA=="
+  },
+  "yandex-eats-smartreserve/14-graph-density": {
+    "width": 2312,
+    "height": 1620,
+    "fallback": "/media/images/yandex-eats-smartreserve/14-graph-density-2312.webp",
+    "avifSrcSet": "/media/images/yandex-eats-smartreserve/14-graph-density-360.avif 360w, /media/images/yandex-eats-smartreserve/14-graph-density-720.avif 720w, /media/images/yandex-eats-smartreserve/14-graph-density-1200.avif 1200w, /media/images/yandex-eats-smartreserve/14-graph-density-1600.avif 1600w, /media/images/yandex-eats-smartreserve/14-graph-density-2312.avif 2312w",
+    "webpSrcSet": "/media/images/yandex-eats-smartreserve/14-graph-density-360.webp 360w, /media/images/yandex-eats-smartreserve/14-graph-density-720.webp 720w, /media/images/yandex-eats-smartreserve/14-graph-density-1200.webp 1200w, /media/images/yandex-eats-smartreserve/14-graph-density-1600.webp 1600w, /media/images/yandex-eats-smartreserve/14-graph-density-2312.webp 2312w",
+    "placeholder": "data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAAAQAwCdASoYABEAPwF4s1QrJySkKAgBYCAJYwC2yBanFAAA/u+vQuvqMXlm87RUhGf/Yd7K8ROARw6pznaVGXAA"
+  },
+  "yandex-eats-smartreserve/15-graph-comparison": {
+    "width": 1148,
+    "height": 1408,
+    "fallback": "/media/images/yandex-eats-smartreserve/15-graph-comparison-1148.webp",
+    "avifSrcSet": "/media/images/yandex-eats-smartreserve/15-graph-comparison-360.avif 360w, /media/images/yandex-eats-smartreserve/15-graph-comparison-720.avif 720w, /media/images/yandex-eats-smartreserve/15-graph-comparison-1148.avif 1148w",
+    "webpSrcSet": "/media/images/yandex-eats-smartreserve/15-graph-comparison-360.webp 360w, /media/images/yandex-eats-smartreserve/15-graph-comparison-720.webp 720w, /media/images/yandex-eats-smartreserve/15-graph-comparison-1148.webp 1148w",
+    "placeholder": "data:image/webp;base64,UklGRjgAAABXRUJQVlA4ICwAAADwAgCdASoYAB0APwF6tVQrJ6UkKAgBYCAJaQAAPbVcAAD+8BSXly5TLQAAAA=="
+  },
+  "yandex-eats-smartreserve/15-graph-mobile": {
+    "width": 1148,
+    "height": 1408,
+    "fallback": "/media/images/yandex-eats-smartreserve/15-graph-mobile-1148.webp",
+    "avifSrcSet": "/media/images/yandex-eats-smartreserve/15-graph-mobile-360.avif 360w, /media/images/yandex-eats-smartreserve/15-graph-mobile-720.avif 720w, /media/images/yandex-eats-smartreserve/15-graph-mobile-1148.avif 1148w",
+    "webpSrcSet": "/media/images/yandex-eats-smartreserve/15-graph-mobile-360.webp 360w, /media/images/yandex-eats-smartreserve/15-graph-mobile-720.webp 720w, /media/images/yandex-eats-smartreserve/15-graph-mobile-1148.webp 1148w",
+    "placeholder": "data:image/webp;base64,UklGRj4AAABXRUJQVlA4IDIAAAAQAwCdASoYAB0APwF6tVQrJ6UkKAgBYCAJZwDKABbHHIAA/u/v+XXaIMuv+m2fwifgAA=="
+  },
+  "yandex-eats-smartreserve/16-hall-load": {
+    "width": 2312,
+    "height": 1444,
+    "fallback": "/media/images/yandex-eats-smartreserve/16-hall-load-2312.webp",
+    "avifSrcSet": "/media/images/yandex-eats-smartreserve/16-hall-load-360.avif 360w, /media/images/yandex-eats-smartreserve/16-hall-load-720.avif 720w, /media/images/yandex-eats-smartreserve/16-hall-load-1200.avif 1200w, /media/images/yandex-eats-smartreserve/16-hall-load-1600.avif 1600w, /media/images/yandex-eats-smartreserve/16-hall-load-2312.avif 2312w",
+    "webpSrcSet": "/media/images/yandex-eats-smartreserve/16-hall-load-360.webp 360w, /media/images/yandex-eats-smartreserve/16-hall-load-720.webp 720w, /media/images/yandex-eats-smartreserve/16-hall-load-1200.webp 1200w, /media/images/yandex-eats-smartreserve/16-hall-load-1600.webp 1600w, /media/images/yandex-eats-smartreserve/16-hall-load-2312.webp 2312w",
+    "placeholder": "data:image/webp;base64,UklGRkgAAABXRUJQVlA4IDwAAAAQAwCdASoYAA8APwFsrk+rJiQiMAgBYCAJZwAAUqfr6wAA/sFGnxEAll21e8ZbkhGehT0d1ATHSJjAAAA="
+  },
+  "yandex-eats-smartreserve/17-result": {
+    "width": 2312,
+    "height": 1486,
+    "fallback": "/media/images/yandex-eats-smartreserve/17-result-2312.webp",
+    "avifSrcSet": "/media/images/yandex-eats-smartreserve/17-result-360.avif 360w, /media/images/yandex-eats-smartreserve/17-result-720.avif 720w, /media/images/yandex-eats-smartreserve/17-result-1200.avif 1200w, /media/images/yandex-eats-smartreserve/17-result-1600.avif 1600w, /media/images/yandex-eats-smartreserve/17-result-2312.avif 2312w",
+    "webpSrcSet": "/media/images/yandex-eats-smartreserve/17-result-360.webp 360w, /media/images/yandex-eats-smartreserve/17-result-720.webp 720w, /media/images/yandex-eats-smartreserve/17-result-1200.webp 1200w, /media/images/yandex-eats-smartreserve/17-result-1600.webp 1600w, /media/images/yandex-eats-smartreserve/17-result-2312.webp 2312w",
+    "placeholder": "data:image/webp;base64,UklGRnwAAABXRUJQVlA4IHAAAABQBACdASoYAA8APwFusU8rJqUiMAgBYCAJagCdOUAC021avoiTrfhNPiogAP7m9Lsm94FfoejFn1CVEq0hIULbQ5ckF9OHUZcZyIkq+JBz7rldXCk8SRqVPGr9mAMT941WDzlWpqEoFo5RuLFV9oAA"
+  },
   "yandex-eats": {
     "width": 1600,
     "height": 1600,

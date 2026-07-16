@@ -4,8 +4,11 @@ import Link from "next/link";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { projects, type Project } from "@/data/projects";
-import mediaManifest from "@/generated/media-manifest.json";
-import { Navigation } from "./Navigation";
+import { getMediaAsset, OptimizedImage } from "./OptimizedImage";
+import {
+  rememberPortfolioScrollPosition,
+  useNavigationViewControls,
+} from "./Navigation";
 
 type ViewMode = "birdview" | "snakeview";
 type ViewLayerState = "current" | "outgoing" | "incoming" | "hidden";
@@ -42,92 +45,12 @@ const initialCardVariants = {
   }),
 };
 
-type MediaAsset = {
-  width: number;
-  height: number;
-  fallback: string;
-  avifSrcSet: string;
-  webpSrcSet: string;
-  placeholder: string;
-};
-
-const media = mediaManifest as Record<string, MediaAsset>;
-const decodedAssets = new Set<string>();
 const aboutSevaFirstParagraph =
   "Product designer with 11 years of experience in complex B2B and B2C products. I work where product logic, interface clarity and visual quality all matter.";
 const aboutSevaDetails = [
   "My focus is analytics, operational tools and 0→1 products. I’m useful when a product is messy: many roles, edge cases, data states, business rules and unclear structure.",
   "Now I design restaurant-facing products at Yandex Eats. Before that, I led product design at STARTER, managed a team of designers and stayed hands-on with key flows. Earlier, I designed and launched digital products for Samokat, PYE, Auto.ru, Praktikum and Avgvst.",
 ];
-
-function getMediaAsset(assetKey: string) {
-  const asset = media[assetKey];
-
-  if (!asset) {
-    throw new Error(`Missing media asset: ${assetKey}`);
-  }
-
-  return asset;
-}
-
-function OptimizedImage({
-  assetKey,
-  alt,
-  className,
-  sizes,
-  eager = false,
-}: {
-  assetKey: string;
-  alt: string;
-  className: string;
-  sizes: string;
-  eager?: boolean;
-}) {
-  const asset = getMediaAsset(assetKey);
-  const imageRef = useRef<HTMLImageElement>(null);
-  const [loaded, setLoaded] = useState(() => decodedAssets.has(assetKey));
-
-  function reveal() {
-    decodedAssets.add(assetKey);
-    setLoaded(true);
-  }
-
-  useLayoutEffect(() => {
-    // A cached image can finish before React attaches onLoad during hydration.
-    // In that case reveal it explicitly instead of leaving the LQIP visible.
-    if (imageRef.current?.complete) {
-      decodedAssets.add(assetKey);
-      setLoaded(true);
-    }
-  }, [assetKey]);
-
-  return (
-    <picture
-      className={`optimized-image ${className}`}
-      style={{
-        aspectRatio: `${asset.width} / ${asset.height}`,
-        backgroundImage: `url("${asset.placeholder}")`,
-      }}
-    >
-      <source type="image/avif" srcSet={asset.avifSrcSet} sizes={sizes} />
-      <source type="image/webp" srcSet={asset.webpSrcSet} sizes={sizes} />
-      <img
-        ref={imageRef}
-        className="optimized-image__img"
-        data-loaded={loaded ? "true" : undefined}
-        src={asset.fallback}
-        width={asset.width}
-        height={asset.height}
-        alt={alt}
-        loading={eager ? "eager" : "lazy"}
-        fetchPriority={eager ? "high" : "auto"}
-        decoding="async"
-        onLoad={reveal}
-        onError={reveal}
-      />
-    </picture>
-  );
-}
 
 function ViewportVideo({
   src,
@@ -256,6 +179,7 @@ function ProjectCard({
     className: "project",
     "data-row": row,
     "data-column": column,
+    "data-transition-project": project.transitionId,
   };
 
   return project.slug ? (
@@ -264,6 +188,7 @@ function ProjectCard({
       className="project project--link"
       href={`/${project.slug}/`}
       aria-label={`Open case study: ${project.title}`}
+      onClick={rememberPortfolioScrollPosition}
     >
       {content}
     </Link>
@@ -423,6 +348,31 @@ export function Portfolio() {
   }, []);
 
   useEffect(() => {
+    let animationFrame = 0;
+
+    function scheduleScrollPositionSave() {
+      if (animationFrame) return;
+
+      animationFrame = requestAnimationFrame(() => {
+        animationFrame = 0;
+        rememberPortfolioScrollPosition();
+      });
+    }
+
+    window.addEventListener("scroll", scheduleScrollPositionSave, {
+      passive: true,
+    });
+    window.addEventListener("pagehide", rememberPortfolioScrollPosition);
+
+    return () => {
+      window.removeEventListener("scroll", scheduleScrollPositionSave);
+      window.removeEventListener("pagehide", rememberPortfolioScrollPosition);
+      cancelAnimationFrame(animationFrame);
+      rememberPortfolioScrollPosition();
+    };
+  }, []);
+
+  useEffect(() => {
     return () => {
       if (completionTimerRef.current) {
         clearTimeout(completionTimerRef.current);
@@ -529,11 +479,16 @@ export function Portfolio() {
   }
 
   const displayedView = nextView ?? view;
-  const isDisplayedSnake = displayedView === "snakeview";
   const transitionDirection =
     nextView === "birdview"
       ? "snakeviewToBirdview"
       : "birdviewToSnakeview";
+
+  useNavigationViewControls({
+    view: displayedView,
+    busy: nextView !== null,
+    toggleView,
+  });
 
   function getViewLayerState(mode: ViewMode): ViewLayerState {
     if (nextView === mode) return "incoming";
@@ -600,56 +555,40 @@ export function Portfolio() {
   };
 
   return (
-    <>
-      <Navigation
-        viewToggle={
-          <button
-            className="nav__link nav__view-toggle"
-            type="button"
-            onClick={toggleView}
-            aria-pressed={isDisplayedSnake}
-            aria-busy={nextView !== null}
-          >
-            {isDisplayedSnake ? "Snakeview" : "Birdview"}
-          </button>
-        }
-      />
-
-      <main className="page">
-        <div
-          className={`view-stage${nextView ? " view-stage--switching" : ""}`}
-          data-view-ready={viewReady ? "true" : "false"}
-          style={containerHeight ? { height: containerHeight } : undefined}
+    <main className="page">
+      <div
+        className={`view-stage${nextView ? " view-stage--switching" : ""}`}
+        data-view-ready={viewReady ? "true" : "false"}
+        style={containerHeight ? { height: containerHeight } : undefined}
+      >
+        <motion.div
+          ref={birdviewLayerRef}
+          className={`view-layer view-layer--birdview view-layer--${getViewLayerState("birdview")}`}
+          initial={false}
+          animate={layerAnimation("birdview") as Record<string, string | number>}
+          transition={viewLayerTransition}
+          aria-hidden={displayedView !== "birdview"}
         >
-          <motion.div
-            ref={birdviewLayerRef}
-            className={`view-layer view-layer--birdview view-layer--${getViewLayerState("birdview")}`}
-            initial={false}
-            animate={layerAnimation("birdview") as Record<string, string | number>}
-            transition={viewLayerTransition}
-            aria-hidden={displayedView !== "birdview"}
-          >
-            <BirdView
-              viewReady={viewReady}
-              reduceMotion={Boolean(reduceMotion)}
-            />
-          </motion.div>
+          <BirdView
+            viewReady={viewReady}
+            reduceMotion={Boolean(reduceMotion)}
+          />
+        </motion.div>
 
-          <motion.div
-            ref={snakeviewLayerRef}
-            className={`view-layer view-layer--snakeview view-layer--${getViewLayerState("snakeview")}`}
-            initial={false}
-            animate={layerAnimation("snakeview") as Record<string, string | number>}
-            transition={viewLayerTransition}
-            aria-hidden={displayedView !== "snakeview"}
-          >
-            <SnakeView
-              viewReady={viewReady}
-              reduceMotion={Boolean(reduceMotion)}
-            />
-          </motion.div>
-        </div>
-      </main>
-    </>
+        <motion.div
+          ref={snakeviewLayerRef}
+          className={`view-layer view-layer--snakeview view-layer--${getViewLayerState("snakeview")}`}
+          initial={false}
+          animate={layerAnimation("snakeview") as Record<string, string | number>}
+          transition={viewLayerTransition}
+          aria-hidden={displayedView !== "snakeview"}
+        >
+          <SnakeView
+            viewReady={viewReady}
+            reduceMotion={Boolean(reduceMotion)}
+          />
+        </motion.div>
+      </div>
+    </main>
   );
 }
