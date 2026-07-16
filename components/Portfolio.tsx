@@ -11,23 +11,36 @@ type ViewMode = "birdview" | "snakeview";
 type ViewLayerState = "current" | "outgoing" | "incoming" | "hidden";
 
 const easeOutExpo = [0.16, 1, 0.3, 1] as const;
-const viewTransitionEase = [0.76, 0, 0.24, 1] as const;
+const viewTransitionEase = [0.22, 1, 0.36, 1] as const;
 const viewTransitions = {
   snakeviewToBirdview: {
     snakeviewExitScale: 0.9,
     birdviewEnterScale: 1.1,
-    birdviewRowGapFrom: "156px",
+    birdviewRowGapFrom: "174px",
     birdviewRowGapTo: "120px",
   },
   birdviewToSnakeview: {
     birdviewExitScale: 1.1,
     snakeviewEnterScale: 0.9,
-    snakeviewRowGapFrom: "56px",
+    snakeviewRowGapFrom: "44px",
     snakeviewRowGapTo: "80px",
   },
   duration: 0.5,
   totalDurationMs: 500,
 } as const;
+
+const initialCardVariants = {
+  hidden: { opacity: 0, y: 18 },
+  visible: (row: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: 0.06 + row * 0.09,
+      duration: 0.56,
+      ease: easeOutExpo,
+    },
+  }),
+};
 
 type MediaAsset = {
   width: number;
@@ -259,42 +272,44 @@ function ProjectCard({
   );
 }
 
-function BirdView() {
-  const rowVariants = {
-    hidden: { opacity: 0, y: 18 },
-    visible: (row: number) => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        delay: 0.06 + row * 0.09,
-        duration: 0.56,
-        ease: easeOutExpo,
-      },
-    }),
-  };
-
+function BirdView({
+  viewReady,
+  reduceMotion,
+}: {
+  viewReady: boolean;
+  reduceMotion: boolean;
+}) {
   return (
-    <section className="projects projects--birdview" aria-label="Birdview">
-      <motion.article
-        className="project about-seva"
-        data-row="0"
-        data-column="0"
-        variants={rowVariants}
+    <motion.section
+      className="projects projects--birdview"
+      aria-label="Birdview"
+      initial={false}
+      animate={viewReady || reduceMotion ? "visible" : "hidden"}
+    >
+      <motion.div
+        className="project-motion-cell"
+        variants={initialCardVariants}
         custom={0}
       >
-        <div className="project__header">
-          <span className="project__tag">about</span>
-          <span className="project__title">Seva Kudryavtsev</span>
-        </div>
-        <OptimizedImage
-          className="project__img"
-          assetKey="sevakudrytavtsev"
-          alt="Seva Kudryavtsev"
-          sizes="(max-width: 800px) 50vw, 33vw"
-          eager
-        />
-        <p className="project__desc">{aboutSevaFirstParagraph}</p>
-      </motion.article>
+        <article
+          className="project about-seva"
+          data-row="0"
+          data-column="0"
+        >
+          <div className="project__header">
+            <span className="project__tag">about</span>
+            <span className="project__title">Seva Kudryavtsev</span>
+          </div>
+          <OptimizedImage
+            className="project__img"
+            assetKey="sevakudrytavtsev"
+            alt="Seva Kudryavtsev"
+            sizes="(max-width: 800px) 50vw, 33vw"
+            eager
+          />
+          <p className="project__desc">{aboutSevaFirstParagraph}</p>
+        </article>
+      </motion.div>
 
       {projects.map((project, index) => {
         const gridIndex = index + 1;
@@ -304,7 +319,7 @@ function BirdView() {
           <motion.div
             key={project.title}
             className="project-motion-cell"
-            variants={rowVariants}
+            variants={initialCardVariants}
             custom={row}
           >
             <ProjectCard
@@ -317,17 +332,29 @@ function BirdView() {
           </motion.div>
         );
       })}
-    </section>
+    </motion.section>
   );
 }
 
-function SnakeView() {
+function SnakeView({
+  viewReady,
+  reduceMotion,
+}: {
+  viewReady: boolean;
+  reduceMotion: boolean;
+}) {
   return (
-    <section
+    <motion.section
       className="projects projects--snakeview"
       aria-label="Snakeview"
+      initial={false}
+      animate={viewReady || reduceMotion ? "visible" : "hidden"}
     >
-      <article className="project hero-about">
+      <motion.article
+        className="project hero-about"
+        variants={initialCardVariants}
+        custom={0}
+      >
         <OptimizedImage
           className="hero-about__img"
           assetKey="sevakudrytavtsev"
@@ -346,12 +373,19 @@ function SnakeView() {
             </p>
           ))}
         </div>
-      </article>
+      </motion.article>
 
-      {projects.map((project) => (
-        <ProjectCard key={project.title} project={project} view="snakeview" />
+      {projects.map((project, index) => (
+        <motion.div
+          key={project.title}
+          className="project-motion-cell"
+          variants={initialCardVariants}
+          custom={index + 1}
+        >
+          <ProjectCard project={project} view="snakeview" />
+        </motion.div>
       ))}
-    </section>
+    </motion.section>
   );
 }
 
@@ -362,6 +396,7 @@ export function Portfolio() {
   const [containerHeight, setContainerHeight] = useState<number>();
   const reduceMotion = useReducedMotion();
   const switchingRef = useRef(false);
+  const transitionIdRef = useRef(0);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const birdviewLayerRef = useRef<HTMLDivElement>(null);
   const snakeviewLayerRef = useRef<HTMLDivElement>(null);
@@ -431,19 +466,25 @@ export function Portfolio() {
     document.documentElement.dataset.portfolioView = next;
   }
 
-  function finishSwitch(next: ViewMode) {
-    if (!switchingRef.current) return;
+  function finishSwitch(next: ViewMode, transitionId: number) {
+    if (
+      !switchingRef.current ||
+      transitionId !== transitionIdRef.current
+    ) {
+      return;
+    }
 
     switchingRef.current = false;
+    completionTimerRef.current = null;
     setView(next);
     setNextView(null);
     setContainerHeight(undefined);
   }
 
   function toggleView() {
-    if (switchingRef.current) return;
-
-    const next: ViewMode = view === "birdview" ? "snakeview" : "birdview";
+    const transitionSource = nextView ?? view;
+    const next: ViewMode =
+      transitionSource === "birdview" ? "snakeview" : "birdview";
     persistView(next);
 
     if (reduceMotion) {
@@ -451,11 +492,18 @@ export function Portfolio() {
       return;
     }
 
+    if (completionTimerRef.current) {
+      clearTimeout(completionTimerRef.current);
+      completionTimerRef.current = null;
+    }
+
+    const transitionId = transitionIdRef.current + 1;
+    transitionIdRef.current = transitionId;
     switchingRef.current = true;
 
     const currentHeight =
-      heightCacheRef.current[view] ??
-      getProjectsHeight(view);
+      heightCacheRef.current[transitionSource] ??
+      getProjectsHeight(transitionSource);
     const targetHeight =
       heightCacheRef.current[next] ??
       getProjectsHeight(next);
@@ -473,10 +521,10 @@ export function Portfolio() {
     }
 
     setContainerHeight(targetHeight ?? currentHeight);
+    setView(transitionSource);
     setNextView(next);
     completionTimerRef.current = setTimeout(() => {
-      finishSwitch(next);
-      completionTimerRef.current = null;
+      finishSwitch(next, transitionId);
     }, viewTransitions.totalDurationMs);
   }
 
@@ -581,7 +629,10 @@ export function Portfolio() {
             transition={viewLayerTransition}
             aria-hidden={displayedView !== "birdview"}
           >
-            <BirdView />
+            <BirdView
+              viewReady={viewReady}
+              reduceMotion={Boolean(reduceMotion)}
+            />
           </motion.div>
 
           <motion.div
@@ -592,7 +643,10 @@ export function Portfolio() {
             transition={viewLayerTransition}
             aria-hidden={displayedView !== "snakeview"}
           >
-            <SnakeView />
+            <SnakeView
+              viewReady={viewReady}
+              reduceMotion={Boolean(reduceMotion)}
+            />
           </motion.div>
         </div>
       </main>

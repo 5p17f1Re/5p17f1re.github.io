@@ -188,6 +188,24 @@ img { display: block; max-width: 100%; }
   width: 100%;
 }
 
+@media (min-width: 801px) {
+  .projects--birdview {
+    justify-content: center;
+  }
+
+  .view-layer--birdview .project[data-column] {
+    transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .view-layer--birdview.view-layer--hidden .project[data-column="0"] {
+    transform: translateX(-24px);
+  }
+
+  .view-layer--birdview.view-layer--hidden .project[data-column="2"] {
+    transform: translateX(24px);
+  }
+}
+
 /* ─── Snakeview: 1-column view ──────────────────────────────────────────── */
 .projects--snakeview {
   max-width: 800px;
@@ -240,6 +258,10 @@ img { display: block; max-width: 100%; }
   flex-direction: column;
   align-items: center;
   gap: 20px;
+}
+
+.projects--birdview .project {
+  gap: 12px;
 }
 
 /* ─── About Seva: birdview only (regular project card, first in list) ───── */
@@ -799,6 +821,10 @@ img { display: block; max-width: 100%; }
   .projects .project {
     width: calc(50% - 10px);
     gap: 12px;
+  }
+
+  .projects--birdview .project {
+    gap: 8px;
   }
 
   .project-motion-cell {
