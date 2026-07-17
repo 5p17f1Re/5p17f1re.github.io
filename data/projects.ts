@@ -55,6 +55,14 @@ export const projects: Project[] = [
       "Designed stories across restaurant apps, websites and admin tools, giving brands a simple way to communicate with guests",
   },
   {
+    mediaType: "image",
+    tag: "ecom",
+    title: "Avgvst Jewelry",
+    image: "avgvst-jewelry",
+    description:
+      "Designed and built the Avgvst e-commerce site, combining catalog, collections, brand storytelling and service flows in one storefront",
+  },
+  {
     mediaType: "video",
     tag: "promo",
     title: "Samokat",
@@ -63,14 +71,6 @@ export const projects: Project[] = [
     extraImages: ["samokat-2", "samokat-3"],
     description:
       "Samokat is #1 online grocery delivery service in Russia. In 2022 I led the redesign of their promo landing system and campaign pages.",
-  },
-  {
-    mediaType: "image",
-    tag: "ecom",
-    title: "Avgvst Jewelry",
-    image: "avgvst-jewelry",
-    description:
-      "Designed and built the Avgvst e-commerce site, combining catalog, collections, brand storytelling and service flows in one storefront",
   },
   {
     mediaType: "image",

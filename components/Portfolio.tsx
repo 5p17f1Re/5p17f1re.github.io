@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  type PointerEvent as ReactPointerEvent,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { projects, type Project } from "@/data/projects";
 import { getMediaAsset, OptimizedImage } from "./OptimizedImage";
@@ -164,6 +170,143 @@ function ProjectCard({
   eager?: boolean;
   view: ViewMode;
 }) {
+  const interactiveCardRef = useRef<HTMLAnchorElement>(null);
+  const projectCaseLinkRef = useRef<HTMLSpanElement>(null);
+  const cursorAnimationFrameRef = useRef<number | null>(null);
+  const cursorPositionRef = useRef<{ x: number; y: number } | null>(null);
+  const cursorTargetRef = useRef<{ x: number; y: number } | null>(null);
+  const isCursorReturningRef = useRef(false);
+
+  function setProjectCursorPosition(clientX: number, clientY: number) {
+    const interactiveCard = interactiveCardRef.current;
+
+    if (!interactiveCard) return;
+
+    interactiveCard.style.setProperty(
+      "--project-cursor-x",
+      `${clientX}px`,
+    );
+    interactiveCard.style.setProperty(
+      "--project-cursor-y",
+      `${clientY}px`,
+    );
+  }
+
+  function cancelProjectCursorAnimation() {
+    if (cursorAnimationFrameRef.current !== null) {
+      cancelAnimationFrame(cursorAnimationFrameRef.current);
+      cursorAnimationFrameRef.current = null;
+    }
+  }
+
+  function runProjectCursorAnimation() {
+    const interactiveCard = interactiveCardRef.current;
+    const cursorPosition = cursorPositionRef.current;
+    const cursorTarget = cursorTargetRef.current;
+
+    if (!interactiveCard || !cursorPosition || !cursorTarget) {
+      cancelProjectCursorAnimation();
+      return;
+    }
+
+    const easing = isCursorReturningRef.current ? 0.18 : 0.35;
+    const deltaX = cursorTarget.x - cursorPosition.x;
+    const deltaY = cursorTarget.y - cursorPosition.y;
+
+    cursorPosition.x += deltaX * easing;
+    cursorPosition.y += deltaY * easing;
+    setProjectCursorPosition(cursorPosition.x, cursorPosition.y);
+
+    if (
+      isCursorReturningRef.current &&
+      Math.hypot(deltaX, deltaY) < 0.75
+    ) {
+      setProjectCursorPosition(cursorTarget.x, cursorTarget.y);
+      delete interactiveCard.dataset.projectCursorState;
+      interactiveCard.dataset.projectCursorHandoff = "true";
+      requestAnimationFrame(() => {
+        delete interactiveCard.dataset.projectCursorHandoff;
+      });
+      cursorPositionRef.current = null;
+      cursorTargetRef.current = null;
+      cursorAnimationFrameRef.current = null;
+      return;
+    }
+
+    cursorAnimationFrameRef.current = requestAnimationFrame(
+      runProjectCursorAnimation,
+    );
+  }
+
+  function startProjectCursorAnimation() {
+    if (cursorAnimationFrameRef.current !== null) return;
+
+    cursorAnimationFrameRef.current = requestAnimationFrame(
+      runProjectCursorAnimation,
+    );
+  }
+
+  function showProjectCursor(event: ReactPointerEvent<HTMLAnchorElement>) {
+    if (
+      event.pointerType !== "mouse" ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+
+    const interactiveCard = interactiveCardRef.current;
+    const projectCaseLink = projectCaseLinkRef.current;
+
+    if (!interactiveCard || !projectCaseLink) return;
+
+    const buttonBounds = projectCaseLink.getBoundingClientRect();
+    cancelProjectCursorAnimation();
+
+    const sourcePosition = {
+      x: buttonBounds.left + buttonBounds.width / 2,
+      y: buttonBounds.top + buttonBounds.height / 2,
+    };
+
+    cursorPositionRef.current = sourcePosition;
+    cursorTargetRef.current = { x: event.clientX, y: event.clientY };
+    isCursorReturningRef.current = false;
+    setProjectCursorPosition(sourcePosition.x, sourcePosition.y);
+    interactiveCard.dataset.projectCursorState = "active";
+    startProjectCursorAnimation();
+  }
+
+  function moveProjectCursor(event: ReactPointerEvent<HTMLAnchorElement>) {
+    if (event.pointerType !== "mouse") return;
+
+    cursorTargetRef.current = {
+      x: event.clientX,
+      y: event.clientY,
+    };
+    isCursorReturningRef.current = false;
+    startProjectCursorAnimation();
+  }
+
+  function hideProjectCursor() {
+    const interactiveCard = interactiveCardRef.current;
+    const projectCaseLink = projectCaseLinkRef.current;
+
+    if (!interactiveCard || !projectCaseLink) return;
+
+    const buttonBounds = projectCaseLink.getBoundingClientRect();
+
+    if (!cursorPositionRef.current) return;
+
+    cursorTargetRef.current = {
+      x: buttonBounds.left + buttonBounds.width / 2,
+      y: buttonBounds.top + buttonBounds.height / 2,
+    };
+    isCursorReturningRef.current = true;
+    interactiveCard.dataset.projectCursorState = "returning";
+    startProjectCursorAnimation();
+  }
+
+  useEffect(() => cancelProjectCursorAnimation, []);
+
   const content = (
     <>
       <div className="project__header">
@@ -171,6 +314,11 @@ function ProjectCard({
       </div>
       <ProjectMedia project={project} eager={eager} view={view} />
       <p className="project__desc">{project.description}</p>
+      {project.slug ? (
+        <span ref={projectCaseLinkRef} className="project__case-link">
+          Read Case
+        </span>
+      ) : null}
     </>
   );
 
@@ -184,12 +332,22 @@ function ProjectCard({
   return project.slug ? (
     <Link
       {...props}
+      ref={interactiveCardRef}
       className="project project--link"
       href={`/${project.slug}/`}
       aria-label={`Open case study: ${project.title}`}
       onClick={rememberPortfolioScrollPosition}
+      onPointerEnter={showProjectCursor}
+      onPointerMove={moveProjectCursor}
+      onPointerLeave={hideProjectCursor}
     >
       {content}
+      <span
+        className="project__cursor-read-case"
+        aria-hidden="true"
+      >
+        Read Case
+      </span>
     </Link>
   ) : (
     <article {...props}>{content}</article>
