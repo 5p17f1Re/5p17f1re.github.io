@@ -222,9 +222,17 @@ function ProjectCard({
       Math.hypot(deltaX, deltaY) < 0.75
     ) {
       setProjectCursorPosition(cursorTarget.x, cursorTarget.y);
+      const projectCaseLink = projectCaseLinkRef.current;
+
+      if (projectCaseLink) {
+        projectCaseLink.style.setProperty("transition", "none");
+        projectCaseLink.style.setProperty("opacity", "1");
+      }
       delete interactiveCard.dataset.projectCursorState;
       interactiveCard.dataset.projectCursorHandoff = "true";
       requestAnimationFrame(() => {
+        projectCaseLink?.style.removeProperty("transition");
+        projectCaseLink?.style.removeProperty("opacity");
         delete interactiveCard.dataset.projectCursorHandoff;
       });
       cursorPositionRef.current = null;
@@ -271,6 +279,7 @@ function ProjectCard({
     cursorTargetRef.current = { x: event.clientX, y: event.clientY };
     isCursorReturningRef.current = false;
     setProjectCursorPosition(sourcePosition.x, sourcePosition.y);
+    projectCaseLink.style.setProperty("opacity", "0");
     interactiveCard.dataset.projectCursorState = "active";
     startProjectCursorAnimation();
   }
