@@ -16,7 +16,6 @@ export default function SmartReservePage() {
     <CaseAccessBoundary id="yandex-eats-smartreserve" scope="public">
       <main className="case-page-shell case-page-shell--entering" lang="ru">
         <header className="case-title">
-          <span className="case-title__tag">b2b</span>
           <h1>Аналитика СмартРезерв для Яндекс Еды</h1>
         </header>
 

@@ -9,7 +9,10 @@ const videosDir = path.join(originalsDir, "videos");
 const outputDir = path.join(root, "public", "media");
 const generatedDir = path.join(root, "generated");
 const widths = [360, 720, 1200, 1600];
-const publishedVideos = new Set(["samokat-cover.mp4"]);
+const publishedVideos = new Set([
+  "samokat-cover.mp4",
+  "starter-stories/16-web-demo.mp4",
+]);
 
 await rm(outputDir, { recursive: true, force: true });
 await mkdir(path.join(outputDir, "images"), { recursive: true });
@@ -101,15 +104,18 @@ for (const file of imageFiles) {
   };
 }
 
-const videoFiles = (await readdir(videosDir))
+const videoFiles = (await listFilesRecursively(videosDir))
   .filter(
     (file) =>
-      /\.(mp4|webm)$/i.test(file) && publishedVideos.has(file),
+      /\.(mp4|webm)$/i.test(file) &&
+      publishedVideos.has(file.split(path.sep).join("/")),
   )
   .sort();
 
 for (const file of videoFiles) {
-  await cp(path.join(videosDir, file), path.join(outputDir, "videos", file));
+  const destination = path.join(outputDir, "videos", file);
+  await mkdir(path.dirname(destination), { recursive: true });
+  await cp(path.join(videosDir, file), destination);
 }
 
 await writeFile(

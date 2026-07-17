@@ -167,7 +167,6 @@ function ProjectCard({
   const content = (
     <>
       <div className="project__header">
-        <span className="project__tag">{project.tag}</span>
         <span className="project__title">{project.title}</span>
       </div>
       <ProjectMedia project={project} eager={eager} view={view} />
@@ -222,7 +221,6 @@ function BirdView({
           data-column="0"
         >
           <div className="project__header">
-            <span className="project__tag">about</span>
             <span className="project__title">Seva Kudryavtsev</span>
           </div>
           <OptimizedImage

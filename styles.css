@@ -79,8 +79,8 @@ img { display: block; max-width: 100%; }
   background-image:
     linear-gradient(rgba(135, 135, 135, 0.3), rgba(135, 135, 135, 0.3)),
     linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2));
-  -webkit-backdrop-filter: blur(28px);
-  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px) saturate(50%);
+  backdrop-filter: blur(28px) saturate(50%);
 }
 
 .nav__indicator {
@@ -371,6 +371,7 @@ img { display: block; max-width: 100%; }
 
 .projects--snakeview .project {
   width: 100%;
+  gap: 16px;
 }
 
 .projects--snakeview .project-motion-cell {
@@ -485,18 +486,6 @@ img { display: block; max-width: 100%; }
   width: 100%;
 }
 
-/* Tag: Inter 500, 11px/12px, ls=+0.10px, 40% white */
-.project__tag {
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 12px;
-  letter-spacing: 0.1px;
-  color: rgba(255, 255, 255, 0.4);
-  white-space: nowrap;
-  flex-shrink: 0;
-  padding-top: 7px;
-}
-
 /* Title: Inter 500, 20px/20px, ls=-0.40px, white */
 .project__title {
   font-size: 20px;
@@ -550,7 +539,9 @@ img { display: block; max-width: 100%; }
 /* ─── Project description ───────────────────────────────────────────────── */
 /* max-width 480px, 11px/16px, centered, 65% white                          */
 .project__desc {
+  width: 100%;
   max-width: 480px;
+  padding: 0 8px;
   font-size: 11px;
   font-weight: 500;
   line-height: 16px;
@@ -564,7 +555,7 @@ img { display: block; max-width: 100%; }
 @media (max-width: 1439px) {
   .page { width: 100%; }
   .projects { margin-left: max(0, calc((100% - 1408px) / 2)); }
-  .projects--snakeview { margin-left: max(0, calc((100% - 800px) / 2)); }
+  .projects--snakeview { margin-left: max(0, calc((100% - 960px) / 2)); }
 }
 
 /* ─── Birdview: below 800px → 2 columns ───────────────────────────────── */
@@ -590,8 +581,6 @@ img { display: block; max-width: 100%; }
     width: 100%;
   }
   .projects .project__desc {
-    width: 100%;
-    padding: 0 8px;
     max-width: 480px;
   }
   /* left margin reset for birdview since images go full width */
@@ -691,13 +680,6 @@ img { display: block; max-width: 100%; }
   letter-spacing: -0.72px;
 }
 
-.case-title__tag {
-  font-family: var(--font-inter), "Inter", sans-serif;
-  font-size: 11px;
-  line-height: 16px;
-  letter-spacing: -0.11px;
-}
-
 .case-content {
   --case-content-gap: 80px;
   display: flex;
@@ -725,11 +707,14 @@ img { display: block; max-width: 100%; }
 
 .case-text p + p,
 .case-text p + ul,
-.case-text ul + p {
+.case-text p + ol,
+.case-text ul + p,
+.case-text ol + p {
   margin-top: 12px;
 }
 
-.case-text ul {
+.case-text ul,
+.case-text ol {
   padding-left: 25px;
 }
 
@@ -769,6 +754,46 @@ img { display: block; max-width: 100%; }
 
 .case-media__image {
   background-color: #17171b;
+}
+
+.case-media__video {
+  display: block;
+  width: 100%;
+  height: auto;
+  background-color: #17171b;
+  object-fit: contain;
+}
+
+.case-video {
+  position: relative;
+}
+
+.case-video__toggle {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: 12px;
+  border: 0;
+  color: #fff;
+  background: transparent;
+  cursor: pointer;
+}
+
+.case-video__control {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.64);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 14px;
+  letter-spacing: -0.11px;
+}
+
+.case-video__toggle:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -4px;
 }
 
 .case-media__caption {
@@ -907,6 +932,18 @@ img { display: block; max-width: 100%; }
     gap: 8px;
   }
 
+  .projects--birdview .project__title {
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0;
+  }
+
+  .projects--birdview .project__desc {
+    font-size: 9px;
+    line-height: 12px;
+    letter-spacing: 0;
+  }
+
   .project-motion-cell {
     width: calc(50% - 10px);
   }
@@ -926,6 +963,16 @@ img { display: block; max-width: 100%; }
 
 /* Keep the Snakeview portrait intentionally compact despite generic project media rules. */
 @media (min-width: 801px) {
+  .projects--snakeview {
+    max-width: 960px;
+  }
+
+  .projects--snakeview .hero-about {
+    align-self: center;
+    width: 600px;
+    margin: -120px 0 0;
+  }
+
   .projects--snakeview .hero-about__img {
     width: 300px;
     height: 300px !important;

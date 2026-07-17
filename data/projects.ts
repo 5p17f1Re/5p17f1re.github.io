@@ -44,6 +44,17 @@ export const projects: Project[] = [
       "Extended Starter’s restaurant platform to support food halls, helping the product enter a new market without rebuilding its core system",
   },
   {
+    slug: "starter-stories",
+    transitionId: "starter-stories",
+    mediaType: "video",
+    tag: "product",
+    title: "Starter Stories",
+    video: "/media/videos/starter-stories/16-web-demo.mp4",
+    poster: "starter-stories/16-video-poster",
+    description:
+      "Designed stories across restaurant apps, websites and admin tools, giving brands a simple way to communicate with guests",
+  },
+  {
     mediaType: "video",
     tag: "promo",
     title: "Samokat",

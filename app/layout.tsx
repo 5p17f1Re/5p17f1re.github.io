@@ -18,6 +18,7 @@ const interTight = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://5p17f1re.github.io"),
   title: "Seva Kudryavtsev — Product Designer",
   description:
     "Product Designer who brings consumer-grade experience to complex products.",

@@ -79,6 +79,142 @@
     "webpSrcSet": "/media/images/starter-foodhalls-360.webp 360w, /media/images/starter-foodhalls-720.webp 720w, /media/images/starter-foodhalls-1200.webp 1200w, /media/images/starter-foodhalls-1600.webp 1600w",
     "placeholder": "data:image/webp;base64,UklGRo4AAABXRUJQVlA4IIIAAADQBACdASoYABgAPvlsp08qpiMiMAwBUB8JZgCdMoM3WDRme0OVfo3vOxRiDBGwAAD+r24fy9ttN15IEEN3Jh/ZIGcf7r80BnT07dhQsHtfw/OkiiVlCnvAIqgGVWjmAihzvwexQKYE2PUJjiWBilFI4BAR6gatw9GcABshBugJyAAA"
   },
+  "starter-stories/01-cover": {
+    "width": 1920,
+    "height": 1080,
+    "fallback": "/media/images/starter-stories/01-cover-1920.webp",
+    "avifSrcSet": "/media/images/starter-stories/01-cover-360.avif 360w, /media/images/starter-stories/01-cover-720.avif 720w, /media/images/starter-stories/01-cover-1200.avif 1200w, /media/images/starter-stories/01-cover-1600.avif 1600w, /media/images/starter-stories/01-cover-1920.avif 1920w",
+    "webpSrcSet": "/media/images/starter-stories/01-cover-360.webp 360w, /media/images/starter-stories/01-cover-720.webp 720w, /media/images/starter-stories/01-cover-1200.webp 1200w, /media/images/starter-stories/01-cover-1600.webp 1600w, /media/images/starter-stories/01-cover-1920.webp 1920w",
+    "placeholder": "data:image/webp;base64,UklGRmwAAABXRUJQVlA4IGAAAADwAwCdASoYAA4APwFwrk8rJqQiMAgBYCAJYgCdACHKQFPSZilBPeGoAP3vetgjCUZawsFzB7W/ok636K6WzEMuI6RIFQBMuKgGfug78EmISvbBvnUC1PZOv4TINgxAAAA="
+  },
+  "starter-stories/02-client-examples": {
+    "width": 2792,
+    "height": 1576,
+    "fallback": "/media/images/starter-stories/02-client-examples-2792.webp",
+    "avifSrcSet": "/media/images/starter-stories/02-client-examples-360.avif 360w, /media/images/starter-stories/02-client-examples-720.avif 720w, /media/images/starter-stories/02-client-examples-1200.avif 1200w, /media/images/starter-stories/02-client-examples-1600.avif 1600w, /media/images/starter-stories/02-client-examples-2792.avif 2792w",
+    "webpSrcSet": "/media/images/starter-stories/02-client-examples-360.webp 360w, /media/images/starter-stories/02-client-examples-720.webp 720w, /media/images/starter-stories/02-client-examples-1200.webp 1200w, /media/images/starter-stories/02-client-examples-1600.webp 1600w, /media/images/starter-stories/02-client-examples-2792.webp 2792w",
+    "placeholder": "data:image/webp;base64,UklGRmIAAABXRUJQVlA4IFYAAAAwBACdASoYAA4APwFurU+rJqQiMAgBYCAJZwDE2CPt1Hcu2JBf4NSmnqAA/uslpYKz0GgXOPYnPSDJ1E41O+OA8JNikinXNqesK9LolKuEyN9WqkQAAA=="
+  },
+  "starter-stories/03-market-research": {
+    "width": 3360,
+    "height": 1890,
+    "fallback": "/media/images/starter-stories/03-market-research-3360.webp",
+    "avifSrcSet": "/media/images/starter-stories/03-market-research-360.avif 360w, /media/images/starter-stories/03-market-research-720.avif 720w, /media/images/starter-stories/03-market-research-1200.avif 1200w, /media/images/starter-stories/03-market-research-1600.avif 1600w, /media/images/starter-stories/03-market-research-3360.avif 3360w",
+    "webpSrcSet": "/media/images/starter-stories/03-market-research-360.webp 360w, /media/images/starter-stories/03-market-research-720.webp 720w, /media/images/starter-stories/03-market-research-1200.webp 1200w, /media/images/starter-stories/03-market-research-1600.webp 1600w, /media/images/starter-stories/03-market-research-3360.webp 3360w",
+    "placeholder": "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAACwAwCdASoYAA4APwFKvFirIqckmAFgIAllAMoAGtsSmg6KKfd1QAD+s69ctuwSGWFol70o+JOG7MvHkk/qeH0G7z9PYhWqYgyGIAAA"
+  },
+  "starter-stories/04-in-product": {
+    "width": 1080,
+    "height": 1080,
+    "fallback": "/media/images/starter-stories/04-in-product-1080.webp",
+    "avifSrcSet": "/media/images/starter-stories/04-in-product-360.avif 360w, /media/images/starter-stories/04-in-product-720.avif 720w, /media/images/starter-stories/04-in-product-1080.avif 1080w",
+    "webpSrcSet": "/media/images/starter-stories/04-in-product-360.webp 360w, /media/images/starter-stories/04-in-product-720.webp 720w, /media/images/starter-stories/04-in-product-1080.webp 1080w",
+    "placeholder": "data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAACwBACdASoYABgAPvFmp08ppiOiN/qoATAeCWcAAFtSroW6V3vtfPZlwoXbQTAAAP7vv24mPpg0/k9SjzYmj0zzqEMuY2SMPDAkbL+mYKoAAAAA"
+  },
+  "starter-stories/04-proportions": {
+    "width": 1080,
+    "height": 1080,
+    "fallback": "/media/images/starter-stories/04-proportions-1080.webp",
+    "avifSrcSet": "/media/images/starter-stories/04-proportions-360.avif 360w, /media/images/starter-stories/04-proportions-720.avif 720w, /media/images/starter-stories/04-proportions-1080.avif 1080w",
+    "webpSrcSet": "/media/images/starter-stories/04-proportions-360.webp 360w, /media/images/starter-stories/04-proportions-720.webp 720w, /media/images/starter-stories/04-proportions-1080.webp 1080w",
+    "placeholder": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAACQBACdASoYABgAPwForU8rJaQiMBgMAWAgCWMAACktu1TMlBkO+qhLKudcIhgA/u1hBN1NPo+7f/l2Q44HWIpOMQnd+yGl8tU5ZL8w+mM/xXki/Xh0LpiVR5D1z2QcRsCrnszpAAJNuc5QAAA="
+  },
+  "starter-stories/05-use-cases": {
+    "width": 3360,
+    "height": 1898,
+    "fallback": "/media/images/starter-stories/05-use-cases-3360.webp",
+    "avifSrcSet": "/media/images/starter-stories/05-use-cases-360.avif 360w, /media/images/starter-stories/05-use-cases-720.avif 720w, /media/images/starter-stories/05-use-cases-1200.avif 1200w, /media/images/starter-stories/05-use-cases-1600.avif 1600w, /media/images/starter-stories/05-use-cases-3360.avif 3360w",
+    "webpSrcSet": "/media/images/starter-stories/05-use-cases-360.webp 360w, /media/images/starter-stories/05-use-cases-720.webp 720w, /media/images/starter-stories/05-use-cases-1200.webp 1200w, /media/images/starter-stories/05-use-cases-1600.webp 1600w, /media/images/starter-stories/05-use-cases-3360.webp 3360w",
+    "placeholder": "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAAAQBACdASoYAA4APwFsrk8rJiQiMAgBYCAJZAC7G1/AT+NQN0nu+tnx6AD+mO8iRrKIt+JGqX3+fypgiJP4kgQO5ISV7D7ENfVqsGhAl35n2ytoH3i0BLCX71gJkpIGp5RVWcqAAAA="
+  },
+  "starter-stories/06-interview": {
+    "width": 3360,
+    "height": 1770,
+    "fallback": "/media/images/starter-stories/06-interview-3360.webp",
+    "avifSrcSet": "/media/images/starter-stories/06-interview-360.avif 360w, /media/images/starter-stories/06-interview-720.avif 720w, /media/images/starter-stories/06-interview-1200.avif 1200w, /media/images/starter-stories/06-interview-1600.avif 1600w, /media/images/starter-stories/06-interview-3360.avif 3360w",
+    "webpSrcSet": "/media/images/starter-stories/06-interview-360.webp 360w, /media/images/starter-stories/06-interview-720.webp 720w, /media/images/starter-stories/06-interview-1200.webp 1200w, /media/images/starter-stories/06-interview-1600.webp 1600w, /media/images/starter-stories/06-interview-3360.webp 3360w",
+    "placeholder": "data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAADQAwCdASoYAA0APwFur0+rJqQiMAgBYCAJZwDE2BTBxCE3DLOToHgA/fZjfarnmrJC+y9DFHtP5szYci3QRKJ5wLBpgnPfoFSz5ShTCdugIkAA"
+  },
+  "starter-stories/07-user-journey": {
+    "width": 2880,
+    "height": 1480,
+    "fallback": "/media/images/starter-stories/07-user-journey-2880.webp",
+    "avifSrcSet": "/media/images/starter-stories/07-user-journey-360.avif 360w, /media/images/starter-stories/07-user-journey-720.avif 720w, /media/images/starter-stories/07-user-journey-1200.avif 1200w, /media/images/starter-stories/07-user-journey-1600.avif 1600w, /media/images/starter-stories/07-user-journey-2880.avif 2880w",
+    "webpSrcSet": "/media/images/starter-stories/07-user-journey-360.webp 360w, /media/images/starter-stories/07-user-journey-720.webp 720w, /media/images/starter-stories/07-user-journey-1200.webp 1200w, /media/images/starter-stories/07-user-journey-1600.webp 1600w, /media/images/starter-stories/07-user-journey-2880.webp 2880w",
+    "placeholder": "data:image/webp;base64,UklGRkAAAABXRUJQVlA4IDQAAABQAwCdASoYAAwAPwFsrU8vJiQiMAgB4CAJZQDKAC0HqDPAAAD+8C7pqP5tKgWqmFZfb0AA"
+  },
+  "starter-stories/08-banner-directions": {
+    "width": 1920,
+    "height": 1080,
+    "fallback": "/media/images/starter-stories/08-banner-directions-1920.webp",
+    "avifSrcSet": "/media/images/starter-stories/08-banner-directions-360.avif 360w, /media/images/starter-stories/08-banner-directions-720.avif 720w, /media/images/starter-stories/08-banner-directions-1200.avif 1200w, /media/images/starter-stories/08-banner-directions-1600.avif 1600w, /media/images/starter-stories/08-banner-directions-1920.avif 1920w",
+    "webpSrcSet": "/media/images/starter-stories/08-banner-directions-360.webp 360w, /media/images/starter-stories/08-banner-directions-720.webp 720w, /media/images/starter-stories/08-banner-directions-1200.webp 1200w, /media/images/starter-stories/08-banner-directions-1600.webp 1600w, /media/images/starter-stories/08-banner-directions-1920.webp 1920w",
+    "placeholder": "data:image/webp;base64,UklGRloAAABXRUJQVlA4IE4AAACQAwCdASoYAA4APwFur0+rJqQiMAgBYCAJQBdgBDq5zOq+5h4AAP7rIdrNyLfBL6oRd2G4dpUzOQW/cFASgnglO8pjZaMScK1LGEWs0AA="
+  },
+  "starter-stories/09-banner-examples": {
+    "width": 1920,
+    "height": 1080,
+    "fallback": "/media/images/starter-stories/09-banner-examples-1920.webp",
+    "avifSrcSet": "/media/images/starter-stories/09-banner-examples-360.avif 360w, /media/images/starter-stories/09-banner-examples-720.avif 720w, /media/images/starter-stories/09-banner-examples-1200.avif 1200w, /media/images/starter-stories/09-banner-examples-1600.avif 1600w, /media/images/starter-stories/09-banner-examples-1920.avif 1920w",
+    "webpSrcSet": "/media/images/starter-stories/09-banner-examples-360.webp 360w, /media/images/starter-stories/09-banner-examples-720.webp 720w, /media/images/starter-stories/09-banner-examples-1200.webp 1200w, /media/images/starter-stories/09-banner-examples-1600.webp 1600w, /media/images/starter-stories/09-banner-examples-1920.webp 1920w",
+    "placeholder": "data:image/webp;base64,UklGRmwAAABXRUJQVlA4IGAAAACwAwCdASoYAA4APwFurU8rJqQiMAgBYCAJQBhQBDqNM4ggYB3VAAD+6rO8DSHMAstXiTc6PIb2CoF3pigcBZCKCE4U/twxscYhr4Y97KepC8DanMSSJoOj8ILUBMoAAAA="
+  },
+  "starter-stories/10-web-versions": {
+    "width": 1920,
+    "height": 1080,
+    "fallback": "/media/images/starter-stories/10-web-versions-1920.webp",
+    "avifSrcSet": "/media/images/starter-stories/10-web-versions-360.avif 360w, /media/images/starter-stories/10-web-versions-720.avif 720w, /media/images/starter-stories/10-web-versions-1200.avif 1200w, /media/images/starter-stories/10-web-versions-1600.avif 1600w, /media/images/starter-stories/10-web-versions-1920.avif 1920w",
+    "webpSrcSet": "/media/images/starter-stories/10-web-versions-360.webp 360w, /media/images/starter-stories/10-web-versions-720.webp 720w, /media/images/starter-stories/10-web-versions-1200.webp 1200w, /media/images/starter-stories/10-web-versions-1600.webp 1600w, /media/images/starter-stories/10-web-versions-1920.webp 1920w",
+    "placeholder": "data:image/webp;base64,UklGRmwAAABXRUJQVlA4IGAAAADwAwCdASoYAA4APwFwrk8rJqQiMAgBYCAJZQBVuYeiF+IrHd4k+CBMAPlSF4C4zS7WLyIhhXSXAsJ7sBKPoZ9W20JwcxH3zQazLe0xYNwQarxArGaSNmT3tFWpKqmZAAA="
+  },
+  "starter-stories/11-admin-references": {
+    "width": 1920,
+    "height": 1080,
+    "fallback": "/media/images/starter-stories/11-admin-references-1920.webp",
+    "avifSrcSet": "/media/images/starter-stories/11-admin-references-360.avif 360w, /media/images/starter-stories/11-admin-references-720.avif 720w, /media/images/starter-stories/11-admin-references-1200.avif 1200w, /media/images/starter-stories/11-admin-references-1600.avif 1600w, /media/images/starter-stories/11-admin-references-1920.avif 1920w",
+    "webpSrcSet": "/media/images/starter-stories/11-admin-references-360.webp 360w, /media/images/starter-stories/11-admin-references-720.webp 720w, /media/images/starter-stories/11-admin-references-1200.webp 1200w, /media/images/starter-stories/11-admin-references-1600.webp 1600w, /media/images/starter-stories/11-admin-references-1920.webp 1920w",
+    "placeholder": "data:image/webp;base64,UklGRkoAAABXRUJQVlA4ID4AAACQAwCdASoYAA4APwFusU8rJqUiMAgBYCAJaQAAW+s6JJbnNiEAAP7qcZrAyKnZnu2XgbPe9rOSwsbl7FwAAA=="
+  },
+  "starter-stories/12-admin-first-version": {
+    "width": 1920,
+    "height": 798,
+    "fallback": "/media/images/starter-stories/12-admin-first-version-1920.webp",
+    "avifSrcSet": "/media/images/starter-stories/12-admin-first-version-360.avif 360w, /media/images/starter-stories/12-admin-first-version-720.avif 720w, /media/images/starter-stories/12-admin-first-version-1200.avif 1200w, /media/images/starter-stories/12-admin-first-version-1600.avif 1600w, /media/images/starter-stories/12-admin-first-version-1920.avif 1920w",
+    "webpSrcSet": "/media/images/starter-stories/12-admin-first-version-360.webp 360w, /media/images/starter-stories/12-admin-first-version-720.webp 720w, /media/images/starter-stories/12-admin-first-version-1200.webp 1200w, /media/images/starter-stories/12-admin-first-version-1600.webp 1600w, /media/images/starter-stories/12-admin-first-version-1920.webp 1920w",
+    "placeholder": "data:image/webp;base64,UklGRkoAAABXRUJQVlA4ID4AAABQAwCdASoYAAoAPwFysU8rJ6UiMAgBYCAJZwAAUqP+jKgAAAD+50E5Kik6VhdlRpucllT79G609TbmCAAAAA=="
+  },
+  "starter-stories/13-admin-directions": {
+    "width": 1920,
+    "height": 1080,
+    "fallback": "/media/images/starter-stories/13-admin-directions-1920.webp",
+    "avifSrcSet": "/media/images/starter-stories/13-admin-directions-360.avif 360w, /media/images/starter-stories/13-admin-directions-720.avif 720w, /media/images/starter-stories/13-admin-directions-1200.avif 1200w, /media/images/starter-stories/13-admin-directions-1600.avif 1600w, /media/images/starter-stories/13-admin-directions-1920.avif 1920w",
+    "webpSrcSet": "/media/images/starter-stories/13-admin-directions-360.webp 360w, /media/images/starter-stories/13-admin-directions-720.webp 720w, /media/images/starter-stories/13-admin-directions-1200.webp 1200w, /media/images/starter-stories/13-admin-directions-1600.webp 1600w, /media/images/starter-stories/13-admin-directions-1920.webp 1920w",
+    "placeholder": "data:image/webp;base64,UklGRk4AAABXRUJQVlA4IEIAAACwAwCdASoYAA4APwF8sVErKKSisAgBYCAJZwAAQvb94CerW2h/AAD+7V+lf5YR/2P4udSJeq5y6MYQIhMc91xwAAA="
+  },
+  "starter-stories/14-admin-list": {
+    "width": 1920,
+    "height": 1080,
+    "fallback": "/media/images/starter-stories/14-admin-list-1920.webp",
+    "avifSrcSet": "/media/images/starter-stories/14-admin-list-360.avif 360w, /media/images/starter-stories/14-admin-list-720.avif 720w, /media/images/starter-stories/14-admin-list-1200.avif 1200w, /media/images/starter-stories/14-admin-list-1600.avif 1600w, /media/images/starter-stories/14-admin-list-1920.avif 1920w",
+    "webpSrcSet": "/media/images/starter-stories/14-admin-list-360.webp 360w, /media/images/starter-stories/14-admin-list-720.webp 720w, /media/images/starter-stories/14-admin-list-1200.webp 1200w, /media/images/starter-stories/14-admin-list-1600.webp 1600w, /media/images/starter-stories/14-admin-list-1920.webp 1920w",
+    "placeholder": "data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAAAQBACdASoYAA4APwFqrU8rJaQiMAgBYCAJZAC06CHfj6JtsZnJ56EbAAD+6yIW7dwNGLLEx1Vs5m2duhLVzNb1J+++2ZN4E74exC+vz8dMAAAA"
+  },
+  "starter-stories/15-admin-final": {
+    "width": 1920,
+    "height": 1080,
+    "fallback": "/media/images/starter-stories/15-admin-final-1920.webp",
+    "avifSrcSet": "/media/images/starter-stories/15-admin-final-360.avif 360w, /media/images/starter-stories/15-admin-final-720.avif 720w, /media/images/starter-stories/15-admin-final-1200.avif 1200w, /media/images/starter-stories/15-admin-final-1600.avif 1600w, /media/images/starter-stories/15-admin-final-1920.avif 1920w",
+    "webpSrcSet": "/media/images/starter-stories/15-admin-final-360.webp 360w, /media/images/starter-stories/15-admin-final-720.webp 720w, /media/images/starter-stories/15-admin-final-1200.webp 1200w, /media/images/starter-stories/15-admin-final-1600.webp 1600w, /media/images/starter-stories/15-admin-final-1920.webp 1920w",
+    "placeholder": "data:image/webp;base64,UklGRkgAAABXRUJQVlA4IDwAAABwAwCdASoYAA4APwFqrU8rJaQiMAgBYCAJaQAAW+snGvGSAAAA/usiF3814Csywl9QJ3wrLN4exLHAAAA="
+  },
+  "starter-stories/16-video-poster": {
+    "width": 1440,
+    "height": 1080,
+    "fallback": "/media/images/starter-stories/16-video-poster-1440.webp",
+    "avifSrcSet": "/media/images/starter-stories/16-video-poster-360.avif 360w, /media/images/starter-stories/16-video-poster-720.avif 720w, /media/images/starter-stories/16-video-poster-1200.avif 1200w, /media/images/starter-stories/16-video-poster-1440.avif 1440w",
+    "webpSrcSet": "/media/images/starter-stories/16-video-poster-360.webp 360w, /media/images/starter-stories/16-video-poster-720.webp 720w, /media/images/starter-stories/16-video-poster-1200.webp 1200w, /media/images/starter-stories/16-video-poster-1440.webp 1440w",
+    "placeholder": "data:image/webp;base64,UklGRm4AAABXRUJQVlA4IGIAAADQBACdASoYABIAPwFur1ErJiQisBgIAWAgCWIAxNgQ8CTK/LUd9dB60gptonzIAAD+sTp1IWPX4TbOrBr5+8wQy88DkXg0fhmC9XNMdUZnxZZUDcW765UA8ZyNYjby0sYAAA=="
+  },
   "yandex-eats-panel": {
     "width": 800,
     "height": 600,
