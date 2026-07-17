@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { NavigationShell } from "@/components/Navigation";
 import "../styles.css";
@@ -22,6 +22,42 @@ export const metadata: Metadata = {
   title: "Seva Kudryavtsev — Product Designer",
   description:
     "Product Designer who brings consumer-grade experience to complex products.",
+  alternates: { canonical: "/" },
+  icons: {
+    icon: {
+      url: "/media/images/sevakudrytavtsev-360.webp",
+      type: "image/webp",
+    },
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "/",
+    siteName: "Seva Kudryavtsev",
+    title: "Seva Kudryavtsev — Product Designer",
+    description:
+      "Product Designer who brings consumer-grade experience to complex products.",
+    images: [
+      {
+        url: "/media/images/sevakudrytavtsev-600.webp",
+        width: 600,
+        height: 600,
+        alt: "Seva Kudryavtsev",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "Seva Kudryavtsev — Product Designer",
+    description:
+      "Product Designer who brings consumer-grade experience to complex products.",
+    images: ["/media/images/sevakudrytavtsev-600.webp"],
+  },
+};
+
+export const viewport: Viewport = {
+  colorScheme: "dark",
+  themeColor: "#0F0F14",
 };
 
 export default function RootLayout({
@@ -30,6 +66,9 @@ export default function RootLayout({
   return (
     <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body className={`${inter.variable} ${interTight.variable}`}>
+        <a className="skip-link" href="#main-content">
+          Skip to content
+        </a>
         <script
           dangerouslySetInnerHTML={{
             __html: `try{document.documentElement.dataset.portfolioView=localStorage.getItem("portfolio-view")==="snakeview"?"snakeview":"birdview"}catch(e){document.documentElement.dataset.portfolioView="birdview"}`,

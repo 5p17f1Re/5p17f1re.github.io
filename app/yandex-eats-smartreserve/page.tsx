@@ -4,19 +4,49 @@ import { CaseMedia, CaseMediaPair } from "@/components/CaseMedia";
 
 const mediaRoot = "yandex-eats-smartreserve";
 const media = (name: string) => `${mediaRoot}/${name}`;
+const title = "Аналитика СмартРезерв для Яндекс Еды";
+const description =
+  "Как сервис бронирований стал аналитической платформой для ресторанов.";
+const cover =
+  "/media/images/yandex-eats-smartreserve/01-cover-1600.webp";
 
 export const metadata: Metadata = {
-  title: "Аналитика СмартРезерв для Яндекс Еды — Сева Кудрявцев",
-  description:
-    "Как сервис бронирований стал аналитической платформой для ресторанов.",
+  title: `${title} — Сева Кудрявцев`,
+  description,
+  alternates: { canonical: "/yandex-eats-smartreserve/" },
+  openGraph: {
+    type: "article",
+    locale: "ru_RU",
+    url: "/yandex-eats-smartreserve/",
+    title,
+    description,
+    images: [
+      {
+        url: cover,
+        width: 1600,
+        height: 1000,
+        alt: "Аналитика ресторана в СмартРезерв",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+    images: [cover],
+  },
 };
 
 export default function SmartReservePage() {
   return (
     <CaseAccessBoundary id="yandex-eats-smartreserve" scope="public">
-      <main className="case-page-shell case-page-shell--entering" lang="ru">
+      <main
+        id="main-content"
+        className="case-page-shell case-page-shell--entering"
+        lang="ru"
+      >
         <header className="case-title">
-          <h1>Аналитика СмартРезерв для Яндекс Еды</h1>
+          <h1>{title}</h1>
         </header>
 
         <CaseMedia

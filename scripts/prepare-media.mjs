@@ -9,6 +9,7 @@ const videosDir = path.join(originalsDir, "videos");
 const outputDir = path.join(root, "public", "media");
 const generatedDir = path.join(root, "generated");
 const widths = [360, 720, 1200, 1600];
+const placeholderWidth = 96;
 const publishedVideos = new Set([
   "samokat-cover.mp4",
   "starter-foodhalls/12-demo.mp4",
@@ -90,9 +91,9 @@ for (const file of imageFiles) {
 
   const placeholder = await sharp(source)
     .rotate()
-    .resize({ width: 24, withoutEnlargement: true })
-    .blur(1.2)
-    .webp({ quality: 34 })
+    .resize({ width: placeholderWidth, withoutEnlargement: true })
+    .blur(0.4)
+    .webp({ quality: 42 })
     .toBuffer();
 
   manifest[key] = {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import mediaManifest from "@/generated/media-manifest.json";
 
 export type MediaAsset = {
@@ -42,7 +42,7 @@ export function OptimizedImage({
   const imageRef = useRef<HTMLImageElement>(null);
   const [loaded, setLoaded] = useState(() => decodedAssets.has(assetKey));
 
-  async function reveal() {
+  const reveal = useCallback(async () => {
     const image = imageRef.current;
 
     if (!image) return;
@@ -57,13 +57,13 @@ export function OptimizedImage({
 
     decodedAssets.add(assetKey);
     setLoaded(true);
-  }
+  }, [assetKey]);
 
   useLayoutEffect(() => {
     const image = imageRef.current;
 
     if (image?.complete && image.naturalWidth > 0) void reveal();
-  }, [assetKey]);
+  }, [assetKey, reveal]);
 
   return (
     <picture

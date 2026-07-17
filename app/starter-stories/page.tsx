@@ -40,7 +40,11 @@ export const metadata: Metadata = {
 export default function StarterStoriesPage() {
   return (
     <CaseAccessBoundary id="starter-stories" scope="public">
-      <main className="case-page-shell case-page-shell--entering" lang="ru">
+      <main
+        id="main-content"
+        className="case-page-shell case-page-shell--entering"
+        lang="ru"
+      >
         <header className="case-title">
           <h1>{title}</h1>
         </header>

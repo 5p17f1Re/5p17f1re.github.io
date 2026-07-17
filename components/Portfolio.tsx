@@ -10,7 +10,8 @@ import {
 } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { projects, type Project } from "@/data/projects";
-import { getMediaAsset, OptimizedImage } from "./OptimizedImage";
+import { OptimizedImage } from "./OptimizedImage";
+import { OptimizedVideo } from "./OptimizedVideo";
 import {
   rememberPortfolioScrollPosition,
   useNavigationViewControls,
@@ -58,52 +59,6 @@ const aboutSevaDetails = [
   "Now I design restaurant-facing products at Yandex Eats. Before that, I led product design at STARTER, managed a team of designers and stayed hands-on with key flows. Earlier, I designed and launched digital products for Samokat, PYE, Auto.ru, Praktikum and Avgvst.",
 ];
 
-function ViewportVideo({
-  src,
-  posterKey,
-  title,
-}: {
-  src: string;
-  posterKey: string;
-  title: string;
-}) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const poster = getMediaAsset(posterKey);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          void video.play().catch(() => {});
-        } else {
-          video.pause();
-        }
-      },
-      { rootMargin: "200px 0px", threshold: 0.01 },
-    );
-
-    observer.observe(video);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <video
-      ref={videoRef}
-      className="project__img project__video"
-      src={src}
-      poster={poster.fallback}
-      aria-label={title}
-      muted
-      loop
-      playsInline
-      preload="metadata"
-    />
-  );
-}
-
 function ProjectMedia({
   project,
   eager = false,
@@ -118,12 +73,20 @@ function ProjectMedia({
   }
 
   if (project.mediaType === "video") {
+    const sizes =
+      view === "snakeview"
+        ? "(max-width: 800px) 100vw, 800px"
+        : "(max-width: 600px) 50vw, (max-width: 800px) 50vw, 33vw";
+
     return (
       <>
-        <ViewportVideo
+        <OptimizedVideo
+          className="project__img project__video"
           src={project.video}
           posterKey={project.poster}
           title={project.title}
+          sizes={sizes}
+          eager={eager}
         />
         {project.extraImages ? (
           <div className="project__imgs project__imgs--extra">
@@ -720,7 +683,10 @@ export function Portfolio() {
   };
 
   return (
-    <main className="page">
+    <main id="main-content" className="page">
+      <h1 className="visually-hidden">
+        Seva Kudryavtsev — Product Designer
+      </h1>
       <div
         className={`view-stage${nextView ? " view-stage--switching" : ""}`}
         data-view-ready={viewReady ? "true" : "false"}
