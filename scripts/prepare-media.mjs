@@ -11,6 +11,7 @@ const generatedDir = path.join(root, "generated");
 const widths = [360, 720, 1200, 1600];
 const publishedVideos = new Set([
   "samokat-cover.mp4",
+  "starter-foodhalls/12-demo.mp4",
   "starter-stories/16-web-demo.mp4",
 ]);
 

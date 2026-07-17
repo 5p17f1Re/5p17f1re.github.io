@@ -36,6 +36,8 @@ export const projects: Project[] = [
       "Designed partner analytics that help restaurants understand guest behavior, track retention and forecast revenue",
   },
   {
+    slug: "starter-foodhalls",
+    transitionId: "starter-foodhalls",
     mediaType: "image",
     tag: "b2b",
     title: "Starter Food Halls",

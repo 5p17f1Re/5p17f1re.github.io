@@ -79,6 +79,102 @@
     "webpSrcSet": "/media/images/starter-foodhalls-360.webp 360w, /media/images/starter-foodhalls-720.webp 720w, /media/images/starter-foodhalls-1200.webp 1200w, /media/images/starter-foodhalls-1600.webp 1600w",
     "placeholder": "data:image/webp;base64,UklGRo4AAABXRUJQVlA4IIIAAADQBACdASoYABgAPvlsp08qpiMiMAwBUB8JZgCdMoM3WDRme0OVfo3vOxRiDBGwAAD+r24fy9ttN15IEEN3Jh/ZIGcf7r80BnT07dhQsHtfw/OkiiVlCnvAIqgGVWjmAihzvwexQKYE2PUJjiWBilFI4BAR6gatw9GcABshBugJyAAA"
   },
+  "starter-foodhalls/01-cover": {
+    "width": 1920,
+    "height": 1080,
+    "fallback": "/media/images/starter-foodhalls/01-cover-1920.webp",
+    "avifSrcSet": "/media/images/starter-foodhalls/01-cover-360.avif 360w, /media/images/starter-foodhalls/01-cover-720.avif 720w, /media/images/starter-foodhalls/01-cover-1200.avif 1200w, /media/images/starter-foodhalls/01-cover-1600.avif 1600w, /media/images/starter-foodhalls/01-cover-1920.avif 1920w",
+    "webpSrcSet": "/media/images/starter-foodhalls/01-cover-360.webp 360w, /media/images/starter-foodhalls/01-cover-720.webp 720w, /media/images/starter-foodhalls/01-cover-1200.webp 1200w, /media/images/starter-foodhalls/01-cover-1600.webp 1600w, /media/images/starter-foodhalls/01-cover-1920.webp 1920w",
+    "placeholder": "data:image/webp;base64,UklGRmwAAABXRUJQVlA4IGAAAAAwBACdASoYAA4APwFsr0+rJiQiMAgBYCAJZACdMoMljEmWWaON/R6+gAAA/LILbSY98o7PrNoJd/QWdC3fAsohRYVglFyeb1WBCAOxzWGDBKjgZQw7tQ/iTRNngbCiwAA="
+  },
+  "starter-foodhalls/02-scenario-map": {
+    "width": 2788,
+    "height": 1562,
+    "fallback": "/media/images/starter-foodhalls/02-scenario-map-2788.webp",
+    "avifSrcSet": "/media/images/starter-foodhalls/02-scenario-map-360.avif 360w, /media/images/starter-foodhalls/02-scenario-map-720.avif 720w, /media/images/starter-foodhalls/02-scenario-map-1200.avif 1200w, /media/images/starter-foodhalls/02-scenario-map-1600.avif 1600w, /media/images/starter-foodhalls/02-scenario-map-2788.avif 2788w",
+    "webpSrcSet": "/media/images/starter-foodhalls/02-scenario-map-360.webp 360w, /media/images/starter-foodhalls/02-scenario-map-720.webp 720w, /media/images/starter-foodhalls/02-scenario-map-1200.webp 1200w, /media/images/starter-foodhalls/02-scenario-map-1600.webp 1600w, /media/images/starter-foodhalls/02-scenario-map-2788.webp 2788w",
+    "placeholder": "data:image/webp;base64,UklGRjYAAABXRUJQVlA4ICoAAACwAgCdASoYAA0APwFsrU8rJiQiMAgBYCAJaQAAeyAA/u/QjJouS2EAAAA="
+  },
+  "starter-foodhalls/03-storefront-directions": {
+    "width": 1920,
+    "height": 1200,
+    "fallback": "/media/images/starter-foodhalls/03-storefront-directions-1920.webp",
+    "avifSrcSet": "/media/images/starter-foodhalls/03-storefront-directions-360.avif 360w, /media/images/starter-foodhalls/03-storefront-directions-720.avif 720w, /media/images/starter-foodhalls/03-storefront-directions-1200.avif 1200w, /media/images/starter-foodhalls/03-storefront-directions-1600.avif 1600w, /media/images/starter-foodhalls/03-storefront-directions-1920.avif 1920w",
+    "webpSrcSet": "/media/images/starter-foodhalls/03-storefront-directions-360.webp 360w, /media/images/starter-foodhalls/03-storefront-directions-720.webp 720w, /media/images/starter-foodhalls/03-storefront-directions-1200.webp 1200w, /media/images/starter-foodhalls/03-storefront-directions-1600.webp 1600w, /media/images/starter-foodhalls/03-storefront-directions-1920.webp 1920w",
+    "placeholder": "data:image/webp;base64,UklGRmQAAABXRUJQVlA4IFgAAADQAwCdASoYAA8APwFqrU8rJaQiMAgBYCAJZwDLLCHcbFot0T67SAAA/sonPVd7d0GbnqPJmYnnea0SRo7dEfrT/YiPFx3+9B44zVPW0YwEsjoXGLEooAAA"
+  },
+  "starter-foodhalls/04-foodhall-home": {
+    "width": 1920,
+    "height": 1080,
+    "fallback": "/media/images/starter-foodhalls/04-foodhall-home-1920.webp",
+    "avifSrcSet": "/media/images/starter-foodhalls/04-foodhall-home-360.avif 360w, /media/images/starter-foodhalls/04-foodhall-home-720.avif 720w, /media/images/starter-foodhalls/04-foodhall-home-1200.avif 1200w, /media/images/starter-foodhalls/04-foodhall-home-1600.avif 1600w, /media/images/starter-foodhalls/04-foodhall-home-1920.avif 1920w",
+    "webpSrcSet": "/media/images/starter-foodhalls/04-foodhall-home-360.webp 360w, /media/images/starter-foodhalls/04-foodhall-home-720.webp 720w, /media/images/starter-foodhalls/04-foodhall-home-1200.webp 1200w, /media/images/starter-foodhalls/04-foodhall-home-1600.webp 1600w, /media/images/starter-foodhalls/04-foodhall-home-1920.webp 1920w",
+    "placeholder": "data:image/webp;base64,UklGRmIAAABXRUJQVlA4IFYAAAAQBACdASoYAA4APwFwsVArJqSisAgBYCAJZQCsACHXJySRCjdFQQCKAAD+trWcwpCPyVjudYGcRCeiaY04nwRLknYml9EK9wWLoRrQhMOdFGquXcAAAA=="
+  },
+  "starter-foodhalls/05-corner-cart": {
+    "width": 1920,
+    "height": 1080,
+    "fallback": "/media/images/starter-foodhalls/05-corner-cart-1920.webp",
+    "avifSrcSet": "/media/images/starter-foodhalls/05-corner-cart-360.avif 360w, /media/images/starter-foodhalls/05-corner-cart-720.avif 720w, /media/images/starter-foodhalls/05-corner-cart-1200.avif 1200w, /media/images/starter-foodhalls/05-corner-cart-1600.avif 1600w, /media/images/starter-foodhalls/05-corner-cart-1920.avif 1920w",
+    "webpSrcSet": "/media/images/starter-foodhalls/05-corner-cart-360.webp 360w, /media/images/starter-foodhalls/05-corner-cart-720.webp 720w, /media/images/starter-foodhalls/05-corner-cart-1200.webp 1200w, /media/images/starter-foodhalls/05-corner-cart-1600.webp 1600w, /media/images/starter-foodhalls/05-corner-cart-1920.webp 1920w",
+    "placeholder": "data:image/webp;base64,UklGRk4AAABXRUJQVlA4IEIAAACwAwCdASoYAA4APwFysU8rJ6UiMAgBYCAJZQAAUqgAh7Ez+zA4wAD+7WF1S5oZJH0kgpebJKXN2PSICiuKVQv5NgA="
+  },
+  "starter-foodhalls/06-order-directions": {
+    "width": 1920,
+    "height": 1080,
+    "fallback": "/media/images/starter-foodhalls/06-order-directions-1920.webp",
+    "avifSrcSet": "/media/images/starter-foodhalls/06-order-directions-360.avif 360w, /media/images/starter-foodhalls/06-order-directions-720.avif 720w, /media/images/starter-foodhalls/06-order-directions-1200.avif 1200w, /media/images/starter-foodhalls/06-order-directions-1600.avif 1600w, /media/images/starter-foodhalls/06-order-directions-1920.avif 1920w",
+    "webpSrcSet": "/media/images/starter-foodhalls/06-order-directions-360.webp 360w, /media/images/starter-foodhalls/06-order-directions-720.webp 720w, /media/images/starter-foodhalls/06-order-directions-1200.webp 1200w, /media/images/starter-foodhalls/06-order-directions-1600.webp 1600w, /media/images/starter-foodhalls/06-order-directions-1920.webp 1920w",
+    "placeholder": "data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAACwAwCdASoYAA4APwFqrU8rJaQiMAgBYCAJaQAAUqZX6PO6/BpbUAD+59aOUtG/1Zx6fLNnh6q5HEKenWjfVCAA"
+  },
+  "starter-foodhalls/07-order-flow": {
+    "width": 1920,
+    "height": 1080,
+    "fallback": "/media/images/starter-foodhalls/07-order-flow-1920.webp",
+    "avifSrcSet": "/media/images/starter-foodhalls/07-order-flow-360.avif 360w, /media/images/starter-foodhalls/07-order-flow-720.avif 720w, /media/images/starter-foodhalls/07-order-flow-1200.avif 1200w, /media/images/starter-foodhalls/07-order-flow-1600.avif 1600w, /media/images/starter-foodhalls/07-order-flow-1920.avif 1920w",
+    "webpSrcSet": "/media/images/starter-foodhalls/07-order-flow-360.webp 360w, /media/images/starter-foodhalls/07-order-flow-720.webp 720w, /media/images/starter-foodhalls/07-order-flow-1200.webp 1200w, /media/images/starter-foodhalls/07-order-flow-1600.webp 1600w, /media/images/starter-foodhalls/07-order-flow-1920.webp 1920w",
+    "placeholder": "data:image/webp;base64,UklGRkgAAABXRUJQVlA4IDwAAACwAwCdASoYAA4APwFsr0+rJiQiMAgBYCAJZwAAW+s31AG2AZu2gAD+57PLfxTZNDac3nIoDEd//WEYEAA="
+  },
+  "starter-foodhalls/08-notification-rules": {
+    "width": 1920,
+    "height": 1080,
+    "fallback": "/media/images/starter-foodhalls/08-notification-rules-1920.webp",
+    "avifSrcSet": "/media/images/starter-foodhalls/08-notification-rules-360.avif 360w, /media/images/starter-foodhalls/08-notification-rules-720.avif 720w, /media/images/starter-foodhalls/08-notification-rules-1200.avif 1200w, /media/images/starter-foodhalls/08-notification-rules-1600.avif 1600w, /media/images/starter-foodhalls/08-notification-rules-1920.avif 1920w",
+    "webpSrcSet": "/media/images/starter-foodhalls/08-notification-rules-360.webp 360w, /media/images/starter-foodhalls/08-notification-rules-720.webp 720w, /media/images/starter-foodhalls/08-notification-rules-1200.webp 1200w, /media/images/starter-foodhalls/08-notification-rules-1600.webp 1600w, /media/images/starter-foodhalls/08-notification-rules-1920.webp 1920w",
+    "placeholder": "data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACwAgCdASoYAA4APwFqrU8rJaQiMAgBYCAJaQAAeyAA/u+TFx2Mm2ScHyhKAAAA"
+  },
+  "starter-foodhalls/09-admin-settings": {
+    "width": 1920,
+    "height": 1080,
+    "fallback": "/media/images/starter-foodhalls/09-admin-settings-1920.webp",
+    "avifSrcSet": "/media/images/starter-foodhalls/09-admin-settings-360.avif 360w, /media/images/starter-foodhalls/09-admin-settings-720.avif 720w, /media/images/starter-foodhalls/09-admin-settings-1200.avif 1200w, /media/images/starter-foodhalls/09-admin-settings-1600.avif 1600w, /media/images/starter-foodhalls/09-admin-settings-1920.avif 1920w",
+    "webpSrcSet": "/media/images/starter-foodhalls/09-admin-settings-360.webp 360w, /media/images/starter-foodhalls/09-admin-settings-720.webp 720w, /media/images/starter-foodhalls/09-admin-settings-1200.webp 1200w, /media/images/starter-foodhalls/09-admin-settings-1600.webp 1600w, /media/images/starter-foodhalls/09-admin-settings-1920.webp 1920w",
+    "placeholder": "data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACwAgCdASoYAA4APwFsrU8rJiQjMAgBYCAJaQAAeyAA/u/372imvnvh5MRQAAAA"
+  },
+  "starter-foodhalls/10-order-management": {
+    "width": 1920,
+    "height": 1080,
+    "fallback": "/media/images/starter-foodhalls/10-order-management-1920.webp",
+    "avifSrcSet": "/media/images/starter-foodhalls/10-order-management-360.avif 360w, /media/images/starter-foodhalls/10-order-management-720.avif 720w, /media/images/starter-foodhalls/10-order-management-1200.avif 1200w, /media/images/starter-foodhalls/10-order-management-1600.avif 1600w, /media/images/starter-foodhalls/10-order-management-1920.avif 1920w",
+    "webpSrcSet": "/media/images/starter-foodhalls/10-order-management-360.webp 360w, /media/images/starter-foodhalls/10-order-management-720.webp 720w, /media/images/starter-foodhalls/10-order-management-1200.webp 1200w, /media/images/starter-foodhalls/10-order-management-1600.webp 1600w, /media/images/starter-foodhalls/10-order-management-1920.webp 1920w",
+    "placeholder": "data:image/webp;base64,UklGRkQAAABXRUJQVlA4IDgAAABwAwCdASoYAA4APwFwr0+rJqQiMAgBYCAJaQAAW7WbZ4f/RAAA/u1aW+YhT3s1iobZOSFz8ExQAA=="
+  },
+  "starter-foodhalls/11-cross-navigation": {
+    "width": 1920,
+    "height": 1080,
+    "fallback": "/media/images/starter-foodhalls/11-cross-navigation-1920.webp",
+    "avifSrcSet": "/media/images/starter-foodhalls/11-cross-navigation-360.avif 360w, /media/images/starter-foodhalls/11-cross-navigation-720.avif 720w, /media/images/starter-foodhalls/11-cross-navigation-1200.avif 1200w, /media/images/starter-foodhalls/11-cross-navigation-1600.avif 1600w, /media/images/starter-foodhalls/11-cross-navigation-1920.avif 1920w",
+    "webpSrcSet": "/media/images/starter-foodhalls/11-cross-navigation-360.webp 360w, /media/images/starter-foodhalls/11-cross-navigation-720.webp 720w, /media/images/starter-foodhalls/11-cross-navigation-1200.webp 1200w, /media/images/starter-foodhalls/11-cross-navigation-1600.webp 1600w, /media/images/starter-foodhalls/11-cross-navigation-1920.webp 1920w",
+    "placeholder": "data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAACwAwCdASoYAA4APwFwr0+rJqQiMAgBYCAJZwAAW+i4GKIc6L0uAAD+7U0tAExpqv2Q9xF9fgfhDaLb1zWZYOAA"
+  },
+  "starter-foodhalls/12-video-poster": {
+    "width": 1440,
+    "height": 960,
+    "fallback": "/media/images/starter-foodhalls/12-video-poster-1440.webp",
+    "avifSrcSet": "/media/images/starter-foodhalls/12-video-poster-360.avif 360w, /media/images/starter-foodhalls/12-video-poster-720.avif 720w, /media/images/starter-foodhalls/12-video-poster-1200.avif 1200w, /media/images/starter-foodhalls/12-video-poster-1440.avif 1440w",
+    "webpSrcSet": "/media/images/starter-foodhalls/12-video-poster-360.webp 360w, /media/images/starter-foodhalls/12-video-poster-720.webp 720w, /media/images/starter-foodhalls/12-video-poster-1200.webp 1200w, /media/images/starter-foodhalls/12-video-poster-1440.webp 1440w",
+    "placeholder": "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAADwAwCdASoYABAAPwFsrU8rJiQiMAgBYCAJQBfnAo6PiJH7o8LHKGgAAP0SyVQAxMU/uUNjk0lB1+L/PL6XCqTVT0YSW/mSZHVN4AAA"
+  },
   "starter-stories/01-cover": {
     "width": 1920,
     "height": 1080,
