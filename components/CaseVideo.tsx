@@ -2,6 +2,8 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
+import type { SiteLocale } from "@/data/locales";
+import { getUiText } from "@/data/ui-text";
 import type { CaseMediaWidth } from "./CaseMedia";
 import { getMediaAsset } from "./OptimizedImage";
 
@@ -12,6 +14,7 @@ export function CaseVideo({
   title,
   hasAudio = false,
   caption,
+  locale = "ru",
 }: {
   width: CaseMediaWidth;
   src: string;
@@ -19,10 +22,12 @@ export function CaseVideo({
   title: string;
   hasAudio?: boolean;
   caption?: ReactNode;
+  locale?: SiteLocale;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const poster = getMediaAsset(posterAssetKey);
   const [isPlaying, setIsPlaying] = useState(false);
+  const text = getUiText(locale);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -75,11 +80,11 @@ export function CaseVideo({
             <button
               className="case-video__toggle"
               type="button"
-              aria-label={isPlaying ? "Поставить видео на паузу" : "Воспроизвести видео"}
+              aria-label={isPlaying ? text.pauseVideo : text.playVideo}
               onClick={() => void toggleSilentVideo()}
             >
               <span className="case-video__control" aria-hidden="true">
-                {isPlaying ? "Пауза" : "Смотреть"}
+                {isPlaying ? text.pauseVideoLabel : text.playVideoLabel}
               </span>
             </button>
           ) : null}

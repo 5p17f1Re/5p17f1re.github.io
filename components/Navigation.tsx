@@ -17,6 +17,10 @@ import {
   useState,
 } from "react";
 import { EmailButton } from "./EmailButton";
+import { LocaleTextTransition } from "./LocaleTextTransition";
+import { getLanguageSwitchState } from "@/data/language-switch";
+import { getLocalizedPath, type SiteLocale } from "@/data/locales";
+import { getUiText } from "@/data/ui-text";
 
 export type PortfolioViewMode = "birdview" | "snakeview";
 
@@ -24,12 +28,18 @@ type HomeNavigationControls = {
   view: PortfolioViewMode;
   busy: boolean;
   toggleView?: () => void;
+  locale?: SiteLocale;
+  switchLocale?: (locale: SiteLocale) => void;
+  localeTextTransitionId?: number;
 };
 
 type NavigationViewControls = {
   view: PortfolioViewMode;
   busy: boolean;
   toggleView: () => void;
+  locale: SiteLocale;
+  switchLocale: (locale: SiteLocale) => void;
+  localeTextTransitionId: number;
 };
 
 type RegisterHomeNavigation = (
@@ -38,6 +48,7 @@ type RegisterHomeNavigation = (
 
 const portfolioScrollPositionKey = "portfolio-scroll-position";
 const navigationTransitionDurationMs = 200;
+const caseLocaleTransitionDurationMs = 180;
 const NavigationRegistrationContext =
   createContext<RegisterHomeNavigation | null>(null);
 
@@ -49,14 +60,6 @@ function writeSessionValue(key: string, value: string) {
   }
 }
 
-function readSessionValue(key: string) {
-  try {
-    return window.sessionStorage.getItem(key);
-  } catch {
-    return null;
-  }
-}
-
 export function rememberPortfolioScrollPosition() {
   writeSessionValue(portfolioScrollPositionKey, String(window.scrollY));
 }
@@ -65,9 +68,13 @@ export function useNavigationViewControls({
   view,
   busy,
   toggleView,
+  locale,
+  switchLocale,
+  localeTextTransitionId,
 }: NavigationViewControls) {
   const register = useContext(NavigationRegistrationContext);
   const toggleViewRef = useRef(toggleView);
+  const switchLocaleRef = useRef(switchLocale);
 
   if (!register) {
     throw new Error(
@@ -79,13 +86,36 @@ export function useNavigationViewControls({
     toggleViewRef.current = toggleView;
   }, [toggleView]);
 
+  useLayoutEffect(() => {
+    switchLocaleRef.current = switchLocale;
+  }, [switchLocale]);
+
   const handleToggleView = useCallback(() => {
     toggleViewRef.current();
   }, []);
 
+  const handleSwitchLocale = useCallback((nextLocale: SiteLocale) => {
+    switchLocaleRef.current(nextLocale);
+  }, []);
+
   useLayoutEffect(() => {
-    register({ view, busy, toggleView: handleToggleView });
-  }, [busy, handleToggleView, register, view]);
+    register({
+      view,
+      busy,
+      toggleView: handleToggleView,
+      locale,
+      switchLocale: handleSwitchLocale,
+      localeTextTransitionId,
+    });
+  }, [
+    busy,
+    handleSwitchLocale,
+    handleToggleView,
+    locale,
+    localeTextTransitionId,
+    register,
+    view,
+  ]);
 
   useEffect(
     () => () => {
@@ -105,15 +135,66 @@ function findNavigationItem(target: EventTarget | null) {
     : null;
 }
 
+function waitForImageDecode(image: HTMLImageElement) {
+  if (image.complete) {
+    return image.decode().catch(() => undefined);
+  }
+
+  return new Promise<void>((resolve) => {
+    image.addEventListener("load", () => resolve(), { once: true });
+    image.addEventListener("error", () => resolve(), { once: true });
+  });
+}
+
 function Navigation({ controls }: { controls: HomeNavigationControls }) {
   const pathname = usePathname();
   const router = useRouter();
-  const isHome = pathname === "/";
+  const isRussianPath = pathname === "/ru" || pathname.startsWith("/ru/");
+  const isHome = pathname === "/" || pathname === "/ru/";
+  const homeHref = isRussianPath ? "/ru/" : "/";
   const navigationRef = useRef<HTMLElement>(null);
+  const homeLabelRef = useRef<HTMLSpanElement>(null);
+  const caseLocaleOverlayRef = useRef<HTMLElement | null>(null);
+  const caseLocaleOverlayTargetLocaleRef = useRef<SiteLocale | null>(null);
+  const caseLocaleOverlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const caseLocaleOverlayFallbackTimerRef = useRef<
+    ReturnType<typeof setTimeout> | null
+  >(null);
   const cancelScrollAnimationRef = useRef<() => void>(() => undefined);
   const hoveredNavigationItemRef = useRef<HTMLElement | null>(null);
   const focusedNavigationItemRef = useRef<HTMLElement | null>(null);
   const [isAtPortfolioTop, setIsAtPortfolioTop] = useState(true);
+  const [isLanguageNoticeVisible, setIsLanguageNoticeVisible] =
+    useState(false);
+  const [homeLinkWidth, setHomeLinkWidth] = useState<number>();
+  const pathnameLanguageSwitch = getLanguageSwitchState(pathname);
+  const currentLocale =
+    isHome && controls.locale
+      ? controls.locale
+      : pathnameLanguageSwitch.currentLocale;
+  const targetLocale: SiteLocale = currentLocale === "en" ? "ru" : "en";
+  const languageSwitch = isHome
+    ? {
+        currentLocale,
+        targetLocale,
+        targetPath: getLocalizedPath({ locale: targetLocale }),
+        unavailableMessage: "",
+      }
+    : pathnameLanguageSwitch;
+  const text = getUiText(languageSwitch.currentLocale);
+  const languageNoticeId = "language-switch-notice";
+
+  useLayoutEffect(() => {
+    const homeLabel = homeLabelRef.current;
+    if (!homeLabel) return;
+
+    const backIconWidth = isHome ? 0 : 14;
+    setHomeLinkWidth(
+      Math.ceil(homeLabel.getBoundingClientRect().width) + 24 + backIconWidth,
+    );
+  }, [isHome, languageSwitch.currentLocale]);
 
   const showNavigationIndicator = useCallback(
     (navigationItem: HTMLElement | null) => {
@@ -207,9 +288,113 @@ function Navigation({ controls }: { controls: HomeNavigationControls }) {
   useEffect(
     () => () => {
       cancelScrollAnimationRef.current();
+      if (caseLocaleOverlayTimerRef.current) {
+        clearTimeout(caseLocaleOverlayTimerRef.current);
+      }
+      if (caseLocaleOverlayFallbackTimerRef.current) {
+        clearTimeout(caseLocaleOverlayFallbackTimerRef.current);
+      }
+      caseLocaleOverlayRef.current?.remove();
+      caseLocaleOverlayTargetLocaleRef.current = null;
+      document.documentElement.classList.remove("case-locale-transition-active");
     },
     [],
   );
+
+  useEffect(() => {
+    const overlay = caseLocaleOverlayRef.current;
+    if (!overlay) return;
+    const overlayElement = overlay;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      overlayElement.remove();
+      caseLocaleOverlayRef.current = null;
+      caseLocaleOverlayTargetLocaleRef.current = null;
+      document.documentElement.classList.remove("case-locale-transition-active");
+      return;
+    }
+
+    let cancelled = false;
+    let fadeStarted = false;
+    let animationFrame = 0;
+
+    function removeOverlay() {
+      const targetLocale = caseLocaleOverlayTargetLocaleRef.current;
+      const newCasePage = targetLocale
+        ? document.querySelector<HTMLElement>(
+            `.case-page-shell[lang="${targetLocale}"]:not(.case-locale-transition-overlay)`,
+          )
+        : null;
+
+      newCasePage?.classList.remove("case-page-shell--entering");
+      overlayElement.remove();
+      if (caseLocaleOverlayRef.current === overlayElement) {
+        caseLocaleOverlayRef.current = null;
+      }
+      caseLocaleOverlayTargetLocaleRef.current = null;
+      caseLocaleOverlayTimerRef.current = null;
+      document.documentElement.classList.remove("case-locale-transition-active");
+    }
+
+    function fadeOverlay() {
+      if (cancelled || fadeStarted) return;
+      fadeStarted = true;
+      if (caseLocaleOverlayFallbackTimerRef.current) {
+        clearTimeout(caseLocaleOverlayFallbackTimerRef.current);
+        caseLocaleOverlayFallbackTimerRef.current = null;
+      }
+      animationFrame = requestAnimationFrame(() => {
+        overlayElement.style.opacity = "0";
+      });
+      caseLocaleOverlayTimerRef.current = setTimeout(
+        removeOverlay,
+        caseLocaleTransitionDurationMs,
+      );
+    }
+
+    async function waitForTargetCasePage() {
+      const targetLocale = caseLocaleOverlayTargetLocaleRef.current;
+      const newCasePage = targetLocale
+        ? document.querySelector<HTMLElement>(
+            `.case-page-shell[lang="${targetLocale}"]:not(.case-locale-transition-overlay)`,
+          )
+        : null;
+
+      if (!newCasePage) {
+        animationFrame = requestAnimationFrame(() => {
+          void waitForTargetCasePage();
+        });
+        return;
+      }
+
+      const visibleImages = Array.from(
+        newCasePage.querySelectorAll("img"),
+      ).filter((image) => {
+        const bounds = image.getBoundingClientRect();
+        return bounds.top < window.innerHeight && bounds.bottom > 0;
+      });
+
+      await Promise.all(visibleImages.map(waitForImageDecode));
+      fadeOverlay();
+    }
+
+    animationFrame = requestAnimationFrame(() => {
+      void waitForTargetCasePage();
+    });
+    caseLocaleOverlayFallbackTimerRef.current = setTimeout(
+      fadeOverlay,
+      2500,
+    );
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(animationFrame);
+      if (caseLocaleOverlayFallbackTimerRef.current) {
+        clearTimeout(caseLocaleOverlayFallbackTimerRef.current);
+        caseLocaleOverlayFallbackTimerRef.current = null;
+      }
+    };
+  }, [pathname]);
 
   function scrollToPortfolioTop() {
     cancelScrollAnimationRef.current();
@@ -281,12 +466,6 @@ function Navigation({ controls }: { controls: HomeNavigationControls }) {
     if (isHome) {
       event.preventDefault();
       scrollToPortfolioTop();
-      return;
-    }
-
-    if (readSessionValue(portfolioScrollPositionKey) !== null) {
-      event.preventDefault();
-      router.back();
     }
   }
 
@@ -337,13 +516,73 @@ function Navigation({ controls }: { controls: HomeNavigationControls }) {
     refreshNavigationIndicator();
   }
 
+  function showLanguageNotice() {
+    if (!languageSwitch.targetPath) setIsLanguageNoticeVisible(true);
+  }
+
+  function hideLanguageNotice() {
+    setIsLanguageNoticeVisible(false);
+  }
+
+  function createCaseLocaleOverlay(targetLocale: SiteLocale) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const casePage = document.querySelector<HTMLElement>(".case-page-shell");
+    if (!casePage) return;
+
+    caseLocaleOverlayRef.current?.remove();
+    if (caseLocaleOverlayTimerRef.current) {
+      clearTimeout(caseLocaleOverlayTimerRef.current);
+    }
+    if (caseLocaleOverlayFallbackTimerRef.current) {
+      clearTimeout(caseLocaleOverlayFallbackTimerRef.current);
+    }
+
+    const bounds = casePage.getBoundingClientRect();
+    const overlay = casePage.cloneNode(true) as HTMLElement;
+
+    overlay.removeAttribute("id");
+    overlay.setAttribute("aria-hidden", "true");
+    overlay.classList.remove("case-page-shell--entering");
+    overlay.classList.add("case-locale-transition-overlay");
+    overlay.style.top = `${bounds.top}px`;
+    overlay.style.left = `${bounds.left}px`;
+    overlay.style.width = `${bounds.width}px`;
+    document.documentElement.classList.add("case-locale-transition-active");
+    document.body.append(overlay);
+    caseLocaleOverlayRef.current = overlay;
+    caseLocaleOverlayTargetLocaleRef.current = targetLocale;
+  }
+
+  function handleLanguageSwitch(event: MouseEvent<HTMLAnchorElement>) {
+    if (
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+
+    if (isHome && controls.switchLocale) {
+      event.preventDefault();
+      controls.switchLocale(languageSwitch.targetLocale);
+      return;
+    }
+
+    event.preventDefault();
+    createCaseLocaleOverlay(languageSwitch.targetLocale);
+    router.push(languageSwitch.targetPath!, { scroll: false });
+  }
+
   return (
     <nav
       ref={navigationRef}
       className={`nav${isHome ? " nav--home" : " nav--case"}`}
-      aria-label="Primary navigation"
+      aria-label={text.primaryNavigation}
       data-view={controls.view}
       data-indicator-visible="false"
+      data-nav-width-ready={homeLinkWidth !== undefined}
       onPointerOver={handleNavigationPointerOver}
       onPointerLeave={handleNavigationPointerLeave}
       onFocusCapture={handleNavigationFocus}
@@ -356,17 +595,28 @@ function Navigation({ controls }: { controls: HomeNavigationControls }) {
 
       <Link
         className="nav__link nav__home"
-        href="/"
+        href={homeHref}
         onClick={handleHomeClick}
         data-nav-item
         data-nav-home="true"
         data-scroll-target-active={!isHome || !isAtPortfolioTop}
         tabIndex={0}
+        style={
+          homeLinkWidth === undefined ? undefined : { width: homeLinkWidth }
+        }
       >
         <span className="nav__back-icon" aria-hidden="true">
           ←&nbsp;
         </span>
-        <span>Seva Kudryavtsev</span>
+        <span ref={homeLabelRef}>
+          <LocaleTextTransition
+            transitionId={controls.localeTextTransitionId ?? 0}
+          >
+            {languageSwitch.currentLocale === "ru"
+              ? "Сева Кудрявцев"
+              : "Seva Kudryavtsev"}
+          </LocaleTextTransition>
+        </span>
       </Link>
 
       <div
@@ -385,10 +635,55 @@ function Navigation({ controls }: { controls: HomeNavigationControls }) {
             data-nav-item
             tabIndex={0}
           >
-            {controls.view === "snakeview" ? "Snakeview" : "Birdview"}
+            <LocaleTextTransition
+              transitionId={controls.localeTextTransitionId ?? 0}
+            >
+              {controls.view === "snakeview" ? text.snakeview : text.birdview}
+            </LocaleTextTransition>
           </button>
         </div>
       </div>
+
+      {languageSwitch.targetPath ? (
+        <Link
+          className="nav__link nav__language-switch"
+          href={languageSwitch.targetPath}
+          lang={languageSwitch.targetLocale}
+          onClick={handleLanguageSwitch}
+          data-nav-item
+          tabIndex={0}
+        >
+          <LocaleTextTransition
+            transitionId={controls.localeTextTransitionId ?? 0}
+          >
+            {languageSwitch.targetLocale.toUpperCase()}
+          </LocaleTextTransition>
+        </Link>
+      ) : (
+        <button
+          className="nav__link nav__language-switch nav__language-switch--unavailable"
+          type="button"
+          aria-disabled="true"
+          aria-describedby={languageNoticeId}
+          data-language-notice-visible={isLanguageNoticeVisible}
+          data-nav-item
+          onClick={showLanguageNotice}
+          onFocus={showLanguageNotice}
+          onBlur={hideLanguageNotice}
+          onPointerEnter={showLanguageNotice}
+          onPointerLeave={hideLanguageNotice}
+          title={languageSwitch.unavailableMessage}
+        >
+          {languageSwitch.targetLocale.toUpperCase()}
+          <span
+            id={languageNoticeId}
+            className="nav__language-notice"
+            role="status"
+          >
+            {languageSwitch.unavailableMessage}
+          </span>
+        </button>
+      )}
 
       <a
         className="nav__link"
@@ -400,7 +695,10 @@ function Navigation({ controls }: { controls: HomeNavigationControls }) {
       >
         LinkedIn
       </a>
-      <EmailButton />
+      <EmailButton
+        locale={languageSwitch.currentLocale}
+        localeTextTransitionId={controls.localeTextTransitionId ?? 0}
+      />
     </nav>
   );
 }

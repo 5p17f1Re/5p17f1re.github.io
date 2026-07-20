@@ -4,19 +4,26 @@ import { CaseMedia, CaseMediaPair } from "@/components/CaseMedia";
 
 const mediaRoot = "yandex-eats-smartreserve";
 const media = (name: string) => `${mediaRoot}/${name}`;
-const title = "Аналитика СмартРезерв для Яндекс Еды";
+const title = "SmartReserve Analytics for Yandex Eats";
 const description =
-  "Как сервис бронирований стал аналитической платформой для ресторанов.";
+  "Launching the first analytics view and building the foundation for a restaurant analytics platform.";
 const cover =
   "/media/images/yandex-eats-smartreserve/01-cover-1600.webp";
 
 export const metadata: Metadata = {
-  title: `${title} — Сева Кудрявцев`,
+  title: `${title} — Seva Kudryavtsev`,
   description,
-  alternates: { canonical: "/yandex-eats-smartreserve/" },
+  alternates: {
+    canonical: "/yandex-eats-smartreserve/",
+    languages: {
+      en: "/yandex-eats-smartreserve/",
+      ru: "/ru/yandex-eats-smartreserve/",
+      "x-default": "/yandex-eats-smartreserve/",
+    },
+  },
   openGraph: {
     type: "article",
-    locale: "ru_RU",
+    locale: "en_US",
     url: "/yandex-eats-smartreserve/",
     title,
     description,
@@ -25,7 +32,7 @@ export const metadata: Metadata = {
         url: cover,
         width: 1600,
         height: 1000,
-        alt: "Аналитика ресторана в СмартРезерв",
+        alt: "Restaurant analytics in SmartReserve",
       },
     ],
   },
@@ -43,7 +50,7 @@ export default function SmartReservePage() {
       <main
         id="main-content"
         className="case-page-shell case-page-shell--entering"
-        lang="ru"
+        lang="en"
       >
         <header className="case-title">
           <h1>{title}</h1>
@@ -60,13 +67,13 @@ export default function SmartReservePage() {
         <article className="case-content">
           <section className="case-text case-text--intro">
             <h2>
-              Как мы превратили сервис бронирований в аналитическую платформу
-              для ресторанов
+              Launching the first analytics view and building the foundation
+              for a platform
             </h2>
             <p>
-              СмартРезерв — сервис Яндекс Еды для управления бронированиями в
-              ресторанах. Он появился после покупки LeClick и состоит из 2
-              частей:
+              SmartReserve is a Yandex Eats product for managing restaurant
+              reservations. It was built after the acquisition of LeClick and
+              has two parts:
             </p>
           </section>
 
@@ -75,25 +82,21 @@ export default function SmartReservePage() {
             items={[
               {
                 assetKey: media("02-platform-hostess"),
-                alt: "Схема сервиса СмартРезерв для хостес",
+                alt: "Diagram of SmartReserve for hostesses",
                 caption: (
                   <>
-                    <strong>СмартРезерв для хостес</strong>
-                    <span>
-                      управления посадкой гостей и бронированиями в ресторане
-                    </span>
+                    <strong>SmartReserve for hostesses</strong>
+                    <span>seating guests and managing reservations</span>
                   </>
                 ),
               },
               {
                 assetKey: media("02-platform-manager"),
-                alt: "Схема панели управляющего СмартРезерв",
+                alt: "Diagram of the SmartReserve admin panel",
                 caption: (
                   <>
-                    <strong>Панель управляющего</strong>
-                    <span>
-                      настройки графика, работа с гостями, отзывами и рассылками
-                    </span>
+                    <strong>Admin panel</strong>
+                    <span>schedules, guests, reviews, and campaigns</span>
                   </>
                 ),
               },
@@ -101,260 +104,247 @@ export default function SmartReservePage() {
           />
 
           <div className="case-text">
-            <p>Я работал над панелью управления.</p>
+            <p>I worked on the admin panel.</p>
           </div>
 
           <section className="case-text">
-            <h2>Проблема</h2>
+            <h2>The problem</h2>
             <p>
-              После покупки LeClick у Яндекс Еды появился работающий сервис
-              бронирований, но административная часть была не готова для
-              масштабирования. Многие изменения рестораны делали через поддержку
-              или менеджеров: настройки, права доступа, аналитика.
+              Yandex Eats had acquired a working reservation service, but its
+              administrative side was not ready to scale. Restaurants still
+              relied on support or account managers for many changes:
+              configuration, access rights, and analytics.
             </p>
             <p>
-              Нам нужно было быстро запустить первую версию панели управления:
-              продукт, в который партнёры будут возвращаться и которым смогут
-              пользоваться без помощи менеджера.
-            </p>
-            <p>
-              У нас уже были разделы «Гости» и «Бронирования», но без понятной
-              главной страницы продукт был не полноценным.
+              We needed to launch the first version of the admin panel quickly
+              — a product restaurant partners could use without a manager’s
+              help. The product already included Guests and Reservations, but
+              it had no clear home view.
             </p>
           </section>
 
           <CaseMedia
             width="wide"
             assetKey={media("03-version-navigation")}
-            alt="Состав разделов первой версии панели управления"
+            alt="Information architecture of the first admin panel release"
           />
 
           <section className="case-text">
-            <h2>Моя роль</h2>
+            <h2>My role</h2>
             <p>
-              Я участвовал в запуске панели управления СмартРезерв и отвечал за
-              дизайн ключевых разделов: аналитику, сегменты гостей, теги,
-              рассылки, отзывы, настройки залов, авторизацию и онбординг.
+              I contributed to the launch of the SmartReserve admin panel and
+              designed key areas including analytics, guest segments, tags,
+              campaigns, reviews, venue settings, authentication, and
+              onboarding.
             </p>
             <p>
-              В этом кейсе я сфокусируюсь на аналитике ресторана. Это была самая
-              сложная и системная часть панели: она должна была дать партнёрам
-              причину регулярно открывать кабинет и принимать решения на основе
-              данных.
+              This case focuses on restaurant analytics. The goal was to make
+              it a clear entry point into the panel and help partners make
+              decisions using their data.
             </p>
           </section>
 
           <section className="case-text">
-            <h2>С чего начали</h2>
+            <h2>Starting with the questions the product needed to answer</h2>
             <p>
-              Продакт-менеджер пришел с вопросами, которые волнуют менеджеров и
-              управляющих ресторанов:
+              The product manager brought a map of future directions, developed
+              with their lead. They then presented a table of metrics to the
+              team, grouped into reservation analytics, guest analytics, and
+              service-quality metrics. Once the team aligned on it, we moved
+              into implementation.
             </p>
           </section>
 
           <CaseMedia
             width="inline"
             assetKey={media("04-research-board")}
-            alt="Рабочая сессия с вопросами управляющих ресторанов"
+            alt="Map of questions restaurant managers needed analytics to answer"
           />
 
           <div className="case-text">
             <p>
-              Исходя их этих вопросов появилась таблица со списком графиков,
-              разбитая на 3 блока: аналитика бронирований, гостей и метриках
-              качества.
+              We used these questions to define the metrics and organise them
+              into three areas.
             </p>
           </div>
 
           <CaseMedia
             width="wide"
             assetKey={media("05-metrics-map")}
-            alt="Карта метрик будущей аналитической платформы"
+            alt="Map of metrics for the future analytics platform"
           />
 
           <div className="case-text">
             <p>
-              Вместе с продакт-менеджером мы определили структуру будущей
-              аналитической платформы: «Загрузка зала», «Портрет гостя» и
-              «Качество».
-            </p>
-            <p>
-              Запускать все разделы сразу было слишком долго. Поэтому мы решили
-              собрать ключевые показатели на общей странице «Сводка», которая
-              даст партнёру быстрый ответ на три вопроса:
+              We planned three future areas: Dining Room Occupancy, Guest
+              Profile, and Quality. Shipping all of them at once would have
+              taken too long, so we started with an Overview: one page of key
+              metrics that answered three questions:
             </p>
             <ul>
-              <li>Что сейчас происходит с рестораном</li>
-              <li>Где есть проблема или изменение</li>
-              <li>Куда стоит посмотреть дальше</li>
+              <li>What is happening in my restaurant right now?</li>
+              <li>Where is there a problem or a change?</li>
+              <li>What should I investigate next?</li>
             </ul>
             <p>
-              В первую версию вошли ключевые показатели ресторана, данные о
-              загрузке зала, источниках бронирований, сегментах гостей и тегах.
-            </p>
-            <p>
-              В первый экран добавили простой виджет-помощник: он подсвечивал
-              показатели, которым стоит уделить внимание, или сообщал, что всё в
-              норме.
+              The first release combined high-level restaurant metrics with
+              data on dining room occupancy, booking sources, guest segments,
+              and tags. A helper widget highlighted issues in the top metrics
+              or confirmed that everything looked normal. It was designed as
+              the first step toward a more capable assistant in the future.
             </p>
           </div>
 
           <CaseMedia
             width="wide"
             assetKey={media("06-summary-wireframe")}
-            alt="Первая версия страницы Сводка"
+            alt="The first Overview page"
           />
 
           <section className="case-text">
-            <h2>Задача: сделать данные читаемыми</h2>
+            <h2>Making data readable</h2>
             <p>
-              Большинство партнёров не работают с аналитикой профессионально.
-              Поэтому мы не стремились добавить на экран как можно больше
-              графиков. Каждый график должен был помогать заметить закономерность
-              и принять решение, а не просто показывать данные.
+              Most partners were not professional analysts. Adding more charts
+              would not make the product more useful. Each chart had to help a
+              restaurant manager notice a pattern and decide what to do next.
             </p>
             <p>
-              Моя зона ответственности включала визуализацию данных, систему
-              аналитических компонентов, цветовую систему, работу с периодами и
-              поиск подходящих форм графиков.
+              My scope covered data visualisation, the analytics component
+              system, colour, time ranges, and choosing the right chart form
+              for each metric.
             </p>
           </section>
 
           <section className="case-text">
-            <h2>Как искали форму для графиков</h2>
+            <h2>Finding the right chart form</h2>
             <p>
-              Сначала для каждой метрики я искал подходящую форму визуализации:
-              что лучше поможет увидеть динамику и проявить данные, сравнить
-              категории или заметить отклонение.
+              For each metric, I started by asking what the user needed to see:
+              a trend, a comparison between categories, or an outlier.
             </p>
           </section>
 
           <CaseMedia
             width="wide"
             assetKey={media("07-chart-forms")}
-            alt="Поиск форм визуализации для разных метрик"
+            alt="Chart forms explored for different metrics"
           />
 
           <div className="case-text">
             <p>
-              Определив общий список графиков, надо было примерить их на реальных
-              данных и зафиксировать функциональность. Компоненты должны были
-              работать с 2–5 значениями, поддерживать прогноз и оставаться
-              понятными для текущего дня.
+              Once the direction was clear, we tested the charts on real data
+              and defined the behaviour they needed to support. Components had
+              to work with two to five values, show forecasts, and remain
+              understandable for the current day.
+            </p>
+            <p>
+              One difficult decision was how to show parts of a whole. Pie
+              charts initially caused concern: some stakeholders saw them as
+              imprecise and too difficult for an untrained audience. I explored
+              several alternatives and argued for a pie chart in the specific
+              case of two to five values. It made the whole and each share
+              immediately legible, while values and trends remained visible
+              without requiring hover.
             </p>
           </div>
 
           <CaseMedia
             width="wide"
             assetKey={media("08-chart-states")}
-            alt="Варианты состояний аналитических графиков"
+            alt="Chart explorations and alternatives for the pie chart"
           />
 
           <div className="case-text">
             <p>
-              Параллельно искал цветовые сочетания. Цвета должны хорошо смотреться
-              вместе, работать в линейных и столбчатых графиках, не шуметь и быть
-              достаточно контрастными.
+              I also developed the colour system. The palette had to work in
+              line and bar charts, stay calm, and preserve contrast. I tested
+              adjacent colours and the ordering of segments.
             </p>
           </div>
 
           <CaseMedia
             width="wide"
             assetKey={media("09-color-search")}
-            alt="Поиск цветовых сочетаний для графиков"
+            alt="Colour exploration for analytics charts"
           />
 
           <div className="case-text">
             <p>
-              В итоге получилась базовая палитра цветов для линий, столбиков и
-              градиентов. А если данных было больше, в ход идёт расширенная
-              палитра:
+              When a segment had no data, other colours could unexpectedly
+              become neighbours, so I added one-pixel dividers between
+              segments. This kept the chart readable even when the visual order
+              changed.
             </p>
           </div>
 
           <CaseMedia
             width="inline"
             assetKey={media("10-color-system")}
-            alt="Базовая и расширенная палитра аналитики"
+            alt="Base and extended analytics colour palettes"
           />
 
           <div className="case-text">
             <p>
-              Мы проверяли и более уникальные подходы к визуализации. Например,
-              рассматривали тепловую карту загрузки зала. Карта показывает процент
-              занятых столов в каждый час. Например, карта подсветит пустые утро
-              и день, если у ресторана нет завтраков и обедов.
-            </p>
-            <p>
-              Но по исследованию продакта партнёры не увидели в ней потребности на
-              текущем этапе. Поэтому в первой версии решили собрать больше данных
-              и отложить карту на будущее.
+              We also explored a dining-room occupancy heatmap. It did not make
+              the first release: several important partners did not see a need
+              for it at that point. We postponed the idea and focused on
+              familiar chart forms.
             </p>
           </div>
 
           <CaseMedia
             width="wide"
             assetKey={media("11-heatmap")}
-            alt="Концепция тепловой карты загрузки зала"
+            alt="Dining-room occupancy heatmap concept"
           />
 
           <div className="case-text">
             <p>
-              В итоге выбрали спокойную систему: знакомые формы графиков, ясная
-              иерархия, минимум декоративных приёмов и достаточно контекста, чтобы
-              сравнивать показатели между собой.
+              The resulting approach used familiar charts, a clear hierarchy,
+              restrained colour, and enough context to compare metrics.
             </p>
           </div>
 
           <CaseMedia
             width="wide"
             assetKey={media("12-analytics-system")}
-            alt="Система графиков первой версии Сводки"
+            alt="Analytics chart system for the first Overview release"
           />
 
           <section className="case-text">
-            <h2>Работа со временем</h2>
+            <h2>Designing for time and growth</h2>
             <p>
-              Рестораны смотрят на данные на разных горизонтах: им важно
-              оперативно оценить сегодняшний день, сравнить недели или увидеть
-              изменения за месяц.
+              Restaurants work across different time horizons. A manager may
+              need to assess today, compare weeks, or understand a monthly
+              change. I made the time range a visible part of the interface
+              rather than an option hidden in a menu. Users could switch
+              between day, week, month, and a custom range, then move quickly to
+              adjacent periods.
             </p>
             <p>
-              Я предложил сделать выбор периода частью основного интерфейса, а не
-              прятать его в дополнительное меню. Пользователь может переключаться
-              между днём, неделей, месяцем и произвольным периодом, а также быстро
-              переходить к соседним интервалам.
-            </p>
-            <p>
-              Для дневной аналитики графики перестраиваются по рабочим часам
-              ресторана. На них отмечено текущее время: это помогает отличить уже
-              собранные данные от прогноза по будущим бронированиям.
+              For daily analytics, charts followed the restaurant’s opening
+              hours and marked the current time. This made it clear which data
+              had already been collected and which part was a forecast.
             </p>
           </section>
 
           <CaseMedia
             width="wide"
             assetKey={media("13-time-behavior")}
-            alt="Работа фильтра времени и дневного прогноза"
+            alt="Time filter and daily forecast"
           />
 
           <section className="case-text">
-            <h2>Система графиков</h2>
             <p>
-              «Сводка» была первой вкладкой аналитики, поэтому я проектировал не
-              отдельные карточки для одного экрана, а систему для дальнейшего
-              роста.
-            </p>
-            <p>
-              Мы проверяли, сколько столбцов и значений может выдержать график,
-              когда он остаётся читаемым, а когда превращается в шум:
+              Overview was the first analytics tab, so I designed a system
+              rather than a set of cards for one screen. We tested how many bars
+              and values a chart could hold before becoming noise.
             </p>
           </section>
 
           <CaseMedia
             width="wide"
             assetKey={media("14-graph-density")}
-            alt="Проверка графиков на разной плотности данных"
+            alt="Chart-density tests"
           />
 
           <CaseMediaPair
@@ -362,70 +352,76 @@ export default function SmartReservePage() {
             items={[
               {
                 assetKey: media("15-graph-comparison"),
-                alt: "Варианты сравнения показателей",
+                alt: "Patterns for comparing analytics values",
               },
               {
                 assetKey: media("15-graph-mobile"),
-                alt: "Мобильные размеры аналитических графиков",
+                alt: "Mobile analytics chart layouts",
               },
             ]}
           />
 
           <div className="case-text">
             <p>
-              Для графиков появились варианты во всю ширину, 1/2 и мобильные
-              версии, пустые состояния и правила для разной плотности данных. Это
-              позволило использовать знакомые паттерны в следующих разделах без
-              проектирования всего с нуля.
+              The resulting system included full-width and half-width layouts,
+              mobile versions, empty states, and rules for different data
+              densities. That gave later analytics sections a consistent
+              foundation instead of requiring each screen to be designed from
+              scratch.
             </p>
           </div>
 
           <section className="case-text">
-            <h2>Как Сводка стала базой для развития</h2>
+            <h2>Applying the system to Dining Room Occupancy</h2>
             <p>
-              После запуска «Сводки» мы начали развивать следующие разделы. При
-              работе над вкладкой «Загрузка зала» первоначальный набор метрик не
-              складывался в понятный для защиты рассказ: данные были, но не
-              отвечали на единый вопрос ресторатора.
+              When we started working on Dining Room Occupancy, the metrics did
+              not form a coherent story about how a restaurant was performing.
+              We involved an analyst and structured the page into three parts:
+              booking setup health, dynamics and sources, and occupancy
+              structure.
             </p>
             <p>
-              Мы подключили аналитика, ещё раз пересобрали картину, изменили набор
-              и расположение графиков и добавили круговую диаграмму. После этого
-              вкладку удалось защитить.
+              Even then, the first block still lacked a clear answer to one
+              question: “How is my dining room occupied right now?” We added a
+              pie chart that showed the dining room as a whole and the
+              relationship between walk-ins, reservations, and available seats.
+            </p>
+            <p>
+              This gave the page a clear top-level conclusion. The charts below
+              could then explain why occupancy looked the way it did.
             </p>
           </section>
 
           <CaseMedia
             width="wide"
             assetKey={media("16-hall-load")}
-            alt="Итоговая аналитика загрузки зала"
+            alt="Final Dining Room Occupancy analytics"
           />
 
           <section className="case-text">
-            <h2>Результат</h2>
+            <h2>Outcome</h2>
             <p>
-              Мы запустили первую версию аналитики — понятную точку входа в
-              кабинет и основу для дальнейшего развития аналитики.
+              We launched the first Overview: a clear entry point into the
+              admin panel and a foundation for the next analytics sections.
             </p>
-            <p>За период развития кабинета:</p>
-            <ul>
-              <li>
-                Появилась главная страница, с которой партнёр мог начать работу с
-                данными
-              </li>
-              <li>Количество поддерживаемых сценариев выросло примерно в 32 раза</li>
-              <li>Количество событий аналитики — примерно в 43 раза</li>
-              <li>
-                Появилась основа для разделов «Загрузка зала», «Портрет гостя» и
-                будущих метрик качества
-              </li>
-            </ul>
+            <p>
+              During the first six months of the panel’s development, the
+              number of supported scenarios grew by approximately 32 times and
+              the number of tracked events by approximately 43 times. These
+              figures describe the growth of the admin panel as a whole, not
+              the impact of Overview alone.
+            </p>
+            <p>
+              For me, the main outcome was not a single dashboard. It was a
+              system of decisions and components that could support the next
+              areas of restaurant analytics.
+            </p>
           </section>
 
           <CaseMedia
             width="wide"
             assetKey={media("17-result")}
-            alt="Команда проекта на встрече с партнёрами"
+            alt="Project team meeting restaurant partners"
           />
         </article>
       </main>

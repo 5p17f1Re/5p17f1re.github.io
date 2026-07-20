@@ -1,10 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { SiteLocale } from "@/data/locales";
+import { getUiText } from "@/data/ui-text";
+import { LocaleTextTransition } from "./LocaleTextTransition";
 
 const EMAIL = "vsevolod.k@outlook.com";
 
-export function EmailButton() {
+export function EmailButton({
+  locale,
+  localeTextTransitionId,
+}: {
+  locale: SiteLocale;
+  localeTextTransitionId: number;
+}) {
+  const text = getUiText(locale);
   const [copied, setCopied] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -43,7 +53,9 @@ export function EmailButton() {
         data-nav-item
         tabIndex={0}
       >
-        Email
+        <LocaleTextTransition transitionId={localeTextTransitionId}>
+          {text.email}
+        </LocaleTextTransition>
       </button>
       <div
         className={`nav__email-toast${copied ? " is-visible" : ""}`}
@@ -54,7 +66,7 @@ export function EmailButton() {
         <span>
           {EMAIL}
           <br />
-          copied to clipboard
+          {text.copiedToClipboard}
         </span>
       </div>
     </>

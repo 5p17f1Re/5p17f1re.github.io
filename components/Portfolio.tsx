@@ -3,15 +3,22 @@
 import Link from "next/link";
 import {
   type PointerEvent as ReactPointerEvent,
+  useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
 } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { projects, type Project } from "@/data/projects";
+import { getCasePath } from "@/data/cases";
+import { getAbout } from "@/data/about";
+import { getLocalizedPath } from "@/data/locales";
+import { getProjects, type Project } from "@/data/projects";
+import type { SiteLocale } from "@/data/locales";
+import { getUiText, type UiText } from "@/data/ui-text";
 import { OptimizedImage } from "./OptimizedImage";
 import { OptimizedVideo } from "./OptimizedVideo";
+import { LocaleTextTransition } from "./LocaleTextTransition";
 import {
   rememberPortfolioScrollPosition,
   useNavigationViewControls,
@@ -51,13 +58,6 @@ const initialCardVariants = {
     },
   }),
 };
-
-const aboutSevaFirstParagraph =
-  "Product designer with 11 years of experience in complex B2B and B2C products. I work where product logic, interface clarity and visual quality all matter.";
-const aboutSevaDetails = [
-  "My focus is analytics, operational tools and 0→1 products. I’m useful when a product is messy: many roles, edge cases, data states, business rules and unclear structure.",
-  "Now I design restaurant-facing products at Yandex Eats. Before that, I led product design at STARTER, managed a team of designers and stayed hands-on with key flows. Earlier, I designed and launched digital products for Samokat, PYE, Auto.ru, Praktikum and Avgvst.",
-];
 
 function ProjectMedia({
   project,
@@ -122,12 +122,18 @@ function ProjectMedia({
 
 function ProjectCard({
   project,
+  locale,
+  localeTextTransitionId,
+  text,
   row,
   column,
   eager = false,
   view,
 }: {
   project: Project;
+  locale: SiteLocale;
+  localeTextTransitionId: number;
+  text: UiText;
   row?: number;
   column?: number;
   eager?: boolean;
@@ -282,13 +288,23 @@ function ProjectCard({
   const content = (
     <>
       <div className="project__header">
-        <span className="project__title">{project.title}</span>
+        <span className="project__title">
+          <LocaleTextTransition transitionId={localeTextTransitionId}>
+            {project.title}
+          </LocaleTextTransition>
+        </span>
       </div>
       <ProjectMedia project={project} eager={eager} view={view} />
-      <p className="project__desc">{project.description}</p>
+      <p className="project__desc">
+        <LocaleTextTransition transitionId={localeTextTransitionId} block>
+          {project.description}
+        </LocaleTextTransition>
+      </p>
       {project.slug ? (
         <span ref={projectCaseLinkRef} className="project__case-link">
-          Read Case
+          <LocaleTextTransition transitionId={localeTextTransitionId}>
+            {text.readCase}
+          </LocaleTextTransition>
         </span>
       ) : null}
     </>
@@ -306,8 +322,8 @@ function ProjectCard({
       {...props}
       ref={interactiveCardRef}
       className="project project--link"
-      href={`/${project.slug}/`}
-      aria-label={`Open case study: ${project.title}`}
+      href={getCasePath({ locale, slug: project.slug })}
+      aria-label={text.openCaseStudy(project.title)}
       onClick={rememberPortfolioScrollPosition}
       onPointerEnter={showProjectCursor}
       onPointerMove={moveProjectCursor}
@@ -318,7 +334,9 @@ function ProjectCard({
         className="project__cursor-read-case"
         aria-hidden="true"
       >
-        Read Case
+        <LocaleTextTransition transitionId={localeTextTransitionId}>
+          {text.readCase}
+        </LocaleTextTransition>
       </span>
     </Link>
   ) : (
@@ -326,57 +344,109 @@ function ProjectCard({
   );
 }
 
+function getProjectIdentity(project: Project) {
+  if (project.transitionId) return project.transitionId;
+  if (project.slug) return project.slug;
+  if (project.mediaType === "image") return project.image;
+  if (project.mediaType === "video") return project.video;
+  return project.title;
+}
+
 function BirdView({
+  projects,
+  locale,
+  localeTextTransitionId,
+  isLocaleLayoutTransitionActive,
+  showAbout,
+  text,
+  about,
   viewReady,
   reduceMotion,
 }: {
+  projects: Project[];
+  locale: SiteLocale;
+  localeTextTransitionId: number;
+  isLocaleLayoutTransitionActive: boolean;
+  showAbout: boolean;
+  text: UiText;
+  about: ReturnType<typeof getAbout>;
   viewReady: boolean;
   reduceMotion: boolean;
 }) {
   return (
     <motion.section
       className="projects projects--birdview"
-      aria-label="Birdview"
+      aria-label={text.birdview}
       initial={false}
       animate={viewReady || reduceMotion ? "visible" : "hidden"}
     >
-      <motion.div
-        className="project-motion-cell"
-        variants={initialCardVariants}
-        custom={0}
-      >
-        <article
-          className="project about-seva"
-          data-row="0"
-          data-column="0"
+      {showAbout ? (
+        <motion.div
+          className="project-motion-cell"
+          layout="position"
+          transition={{
+            layout: {
+              duration: isLocaleLayoutTransitionActive ? 0.24 : 0,
+              ease: viewTransitionEase,
+            },
+          }}
+          variants={initialCardVariants}
+          custom={0}
         >
-          <div className="project__header">
-            <span className="project__title">Seva Kudryavtsev</span>
-          </div>
-          <OptimizedImage
-            className="project__img"
-            assetKey="sevakudrytavtsev"
-            alt="Seva Kudryavtsev"
-            sizes="(max-width: 800px) 50vw, 33vw"
-            eager
-          />
-          <p className="project__desc">{aboutSevaFirstParagraph}</p>
-        </article>
-      </motion.div>
+          <article
+            className="project about-seva"
+            data-row="0"
+            data-column="0"
+          >
+            <div className="project__header">
+              <span className="project__title">
+                <LocaleTextTransition transitionId={localeTextTransitionId}>
+                {about.name}
+                </LocaleTextTransition>
+              </span>
+            </div>
+            <OptimizedImage
+              className="project__img"
+              assetKey="sevakudrytavtsev"
+              alt={about.name}
+              sizes="(max-width: 800px) 50vw, 33vw"
+              eager
+            />
+            <p className="project__desc">
+              <LocaleTextTransition
+                transitionId={localeTextTransitionId}
+                block
+              >
+                {about.paragraphs[0]}
+              </LocaleTextTransition>
+            </p>
+          </article>
+        </motion.div>
+      ) : null}
 
       {projects.map((project, index) => {
-        const gridIndex = index + 1;
+        const gridIndex = index + (showAbout ? 1 : 0);
         const row = Math.floor(gridIndex / 3);
 
         return (
           <motion.div
-            key={project.title}
+            key={getProjectIdentity(project)}
             className="project-motion-cell"
+            layout="position"
+            transition={{
+              layout: {
+                duration: isLocaleLayoutTransitionActive ? 0.24 : 0,
+                ease: viewTransitionEase,
+              },
+            }}
             variants={initialCardVariants}
             custom={row}
           >
             <ProjectCard
               project={project}
+              locale={locale}
+              localeTextTransitionId={localeTextTransitionId}
+              text={text}
               row={row}
               column={gridIndex % 3}
               eager={index < 2}
@@ -390,70 +460,171 @@ function BirdView({
 }
 
 function SnakeView({
+  projects,
+  locale,
+  localeTextTransitionId,
+  isLocaleLayoutTransitionActive,
+  showAbout,
+  text,
+  about,
   viewReady,
   reduceMotion,
 }: {
+  projects: Project[];
+  locale: SiteLocale;
+  localeTextTransitionId: number;
+  isLocaleLayoutTransitionActive: boolean;
+  showAbout: boolean;
+  text: UiText;
+  about: ReturnType<typeof getAbout>;
   viewReady: boolean;
   reduceMotion: boolean;
 }) {
   return (
     <motion.section
       className="projects projects--snakeview"
-      aria-label="Snakeview"
+      aria-label={text.snakeview}
       initial={false}
       animate={viewReady || reduceMotion ? "visible" : "hidden"}
     >
-      <motion.article
-        className="project hero-about"
-        variants={initialCardVariants}
-        custom={0}
-      >
-        <OptimizedImage
-          className="hero-about__img"
-          assetKey="sevakudrytavtsev"
-          alt="Seva Kudryavtsev"
-          sizes="300px"
-          eager
-        />
-        <div className="hero-about__content">
-          <div className="hero-about__header">
-            <span className="hero-about__title">Seva Kudryavtsev</span>
-          </div>
-          <p className="hero-about__desc">{aboutSevaFirstParagraph}</p>
-          {aboutSevaDetails.map((paragraph) => (
-            <p className="hero-about__desc gray" key={paragraph}>
-              {paragraph}
+      {showAbout ? (
+        <motion.article
+          className="project hero-about"
+          layout="position"
+          transition={{
+            layout: {
+              duration: isLocaleLayoutTransitionActive ? 0.24 : 0,
+              ease: viewTransitionEase,
+            },
+          }}
+          variants={initialCardVariants}
+          custom={0}
+        >
+          <OptimizedImage
+            className="hero-about__img"
+            assetKey="sevakudrytavtsev"
+            alt={about.name}
+            sizes="300px"
+            eager
+          />
+          <div className="hero-about__content">
+            <div className="hero-about__header">
+              <span className="hero-about__title">
+                <LocaleTextTransition transitionId={localeTextTransitionId}>
+                {about.name}
+                </LocaleTextTransition>
+              </span>
+            </div>
+            <p className="hero-about__desc">
+              <LocaleTextTransition
+                transitionId={localeTextTransitionId}
+                block
+              >
+                {about.paragraphs[0]}
+              </LocaleTextTransition>
             </p>
-          ))}
-        </div>
-      </motion.article>
+            {about.paragraphs.slice(1).map((paragraph) => (
+              <p className="hero-about__desc gray" key={paragraph}>
+                <LocaleTextTransition
+                  transitionId={localeTextTransitionId}
+                  block
+                >
+                  {paragraph}
+                </LocaleTextTransition>
+              </p>
+            ))}
+          </div>
+        </motion.article>
+      ) : null}
 
       {projects.map((project, index) => (
         <motion.div
-          key={project.title}
+          key={getProjectIdentity(project)}
           className="project-motion-cell"
+          layout="position"
+          transition={{
+            layout: {
+              duration: isLocaleLayoutTransitionActive ? 0.24 : 0,
+              ease: viewTransitionEase,
+            },
+          }}
           variants={initialCardVariants}
           custom={index + 1}
         >
-          <ProjectCard project={project} view="snakeview" />
+          <ProjectCard
+            project={project}
+            locale={locale}
+            localeTextTransitionId={localeTextTransitionId}
+            text={text}
+            view="snakeview"
+          />
         </motion.div>
       ))}
     </motion.section>
   );
 }
 
-export function Portfolio() {
+export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
+  const [activeLocale, setActiveLocale] = useState<SiteLocale>(locale);
+  const projects = getProjects(activeLocale);
+  const about = getAbout(activeLocale);
+  const text = getUiText(activeLocale);
+  const showAbout = true;
   const [view, setView] = useState<ViewMode>("birdview");
   const [viewReady, setViewReady] = useState(false);
   const [nextView, setNextView] = useState<ViewMode | null>(null);
   const [containerHeight, setContainerHeight] = useState<number>();
+  const [localeTextTransitionId, setLocaleTextTransitionId] = useState(0);
+  const [isLocaleLayoutTransitionActive, setIsLocaleLayoutTransitionActive] =
+    useState(false);
   const reduceMotion = useReducedMotion();
   const switchingRef = useRef(false);
   const transitionIdRef = useRef(0);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const localeLayoutTransitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const birdviewLayerRef = useRef<HTMLDivElement>(null);
   const snakeviewLayerRef = useRef<HTMLDivElement>(null);
   const heightCacheRef = useRef<Partial<Record<ViewMode, number>>>({});
+
+  const startLocaleLayoutTransition = useCallback(() => {
+    if (localeLayoutTransitionTimerRef.current) {
+      clearTimeout(localeLayoutTransitionTimerRef.current);
+    }
+
+    setIsLocaleLayoutTransitionActive(true);
+    localeLayoutTransitionTimerRef.current = setTimeout(() => {
+      localeLayoutTransitionTimerRef.current = null;
+      setIsLocaleLayoutTransitionActive(false);
+    }, 260);
+  }, []);
+
+  const switchLocale = useCallback(
+    (nextLocale: SiteLocale) => {
+      if (nextLocale === activeLocale) return;
+
+      window.history.pushState(null, "", getLocalizedPath({ locale: nextLocale }));
+      document.documentElement.lang = nextLocale;
+      setActiveLocale(nextLocale);
+      setLocaleTextTransitionId((currentId) => currentId + 1);
+      startLocaleLayoutTransition();
+    },
+    [activeLocale, startLocaleLayoutTransition],
+  );
+
+  useEffect(() => {
+    function syncLocaleWithHistory() {
+      const nextLocale: SiteLocale = window.location.pathname.startsWith("/ru")
+        ? "ru"
+        : "en";
+      setActiveLocale(nextLocale);
+      document.documentElement.lang = nextLocale;
+      setLocaleTextTransitionId((currentId) => currentId + 1);
+      startLocaleLayoutTransition();
+    }
+
+    window.addEventListener("popstate", syncLocaleWithHistory);
+    return () => window.removeEventListener("popstate", syncLocaleWithHistory);
+  }, [startLocaleLayoutTransition]);
 
   function getLayer(mode: ViewMode) {
     return mode === "birdview"
@@ -504,6 +675,9 @@ export function Portfolio() {
     return () => {
       if (completionTimerRef.current) {
         clearTimeout(completionTimerRef.current);
+      }
+      if (localeLayoutTransitionTimerRef.current) {
+        clearTimeout(localeLayoutTransitionTimerRef.current);
       }
     };
   }, []);
@@ -616,6 +790,9 @@ export function Portfolio() {
     view: displayedView,
     busy: nextView !== null,
     toggleView,
+    locale: activeLocale,
+    switchLocale,
+    localeTextTransitionId,
   });
 
   function getViewLayerState(mode: ViewMode): ViewLayerState {
@@ -684,41 +861,53 @@ export function Portfolio() {
 
   return (
     <main id="main-content" className="page">
-      <h1 className="visually-hidden">
-        Seva Kudryavtsev — Product Designer
-      </h1>
+      <h1 className="visually-hidden">{text.portfolioHeading}</h1>
       <div
         className={`view-stage${nextView ? " view-stage--switching" : ""}`}
         data-view-ready={viewReady ? "true" : "false"}
         style={containerHeight ? { height: containerHeight } : undefined}
       >
-        <motion.div
-          ref={birdviewLayerRef}
-          className={`view-layer view-layer--birdview view-layer--${getViewLayerState("birdview")}`}
-          initial={false}
-          animate={layerAnimation("birdview") as Record<string, string | number>}
-          transition={viewLayerTransition}
-          aria-hidden={displayedView !== "birdview"}
-        >
-          <BirdView
-            viewReady={viewReady}
-            reduceMotion={Boolean(reduceMotion)}
-          />
-        </motion.div>
+            <motion.div
+              ref={birdviewLayerRef}
+              className={`view-layer view-layer--birdview view-layer--${getViewLayerState("birdview")}`}
+              initial={false}
+              animate={layerAnimation("birdview") as Record<string, string | number>}
+              transition={viewLayerTransition}
+              aria-hidden={displayedView !== "birdview"}
+            >
+              <BirdView
+                projects={projects}
+                locale={activeLocale}
+                localeTextTransitionId={localeTextTransitionId}
+                isLocaleLayoutTransitionActive={isLocaleLayoutTransitionActive}
+                showAbout={showAbout}
+                text={text}
+                about={about}
+                viewReady={viewReady}
+                reduceMotion={Boolean(reduceMotion)}
+              />
+            </motion.div>
 
-        <motion.div
-          ref={snakeviewLayerRef}
-          className={`view-layer view-layer--snakeview view-layer--${getViewLayerState("snakeview")}`}
-          initial={false}
-          animate={layerAnimation("snakeview") as Record<string, string | number>}
-          transition={viewLayerTransition}
-          aria-hidden={displayedView !== "snakeview"}
-        >
-          <SnakeView
-            viewReady={viewReady}
-            reduceMotion={Boolean(reduceMotion)}
-          />
-        </motion.div>
+            <motion.div
+              ref={snakeviewLayerRef}
+              className={`view-layer view-layer--snakeview view-layer--${getViewLayerState("snakeview")}`}
+              initial={false}
+              animate={layerAnimation("snakeview") as Record<string, string | number>}
+              transition={viewLayerTransition}
+              aria-hidden={displayedView !== "snakeview"}
+            >
+              <SnakeView
+                projects={projects}
+                locale={activeLocale}
+                localeTextTransitionId={localeTextTransitionId}
+                isLocaleLayoutTransitionActive={isLocaleLayoutTransitionActive}
+                showAbout={showAbout}
+                text={text}
+                about={about}
+                viewReady={viewReady}
+                reduceMotion={Boolean(reduceMotion)}
+              />
+            </motion.div>
       </div>
     </main>
   );
