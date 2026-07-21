@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getLanguageSwitchState } from "../data/language-switch";
-import { getCasePath } from "../data/cases";
+import { cases, getCasePath } from "../data/cases";
 import { getLocalizedPath } from "../data/locales";
 import { getAbout } from "../data/about";
 import { getProjects } from "../data/projects";
@@ -18,25 +18,36 @@ describe("localized paths", () => {
   });
 
   it("keeps Russian legacy cases reachable from the Russian homepage", () => {
-    expect(getCasePath({ locale: "ru", slug: "starter-foodhalls" })).toBe(
-      "/starter-foodhalls/",
+    expect(getCasePath({ locale: "ru", slug: "starter-stories" })).toBe(
+      "/starter-stories/",
     );
   });
 
-  it("publishes SmartReserve in English and Russian localized routes", () => {
-    expect(getCasePath({ locale: "en", slug: "yandex-eats-smartreserve" })).toBe(
-      "/yandex-eats-smartreserve/",
-    );
-    expect(getCasePath({ locale: "ru", slug: "yandex-eats-smartreserve" })).toBe(
-      "/ru/yandex-eats-smartreserve/",
+  it("publishes every bilingual case at paired English and Russian routes", () => {
+    const bilingualCases = cases.filter(
+      ({ availableLocales }) =>
+        availableLocales.includes("en") && availableLocales.includes("ru"),
     );
 
-    expect(getLanguageSwitchState("/yandex-eats-smartreserve/").targetPath).toBe(
-      "/ru/yandex-eats-smartreserve/",
-    );
-    expect(
-      getLanguageSwitchState("/ru/yandex-eats-smartreserve/").targetPath,
-    ).toBe("/yandex-eats-smartreserve/");
+    expect(bilingualCases.length).toBeGreaterThan(0);
+
+    for (const { slug } of bilingualCases) {
+      const englishPath = `/${slug}/`;
+      const russianPath = `/ru/${slug}/`;
+
+      expect(getCasePath({ locale: "en", slug })).toBe(englishPath);
+      expect(getCasePath({ locale: "ru", slug })).toBe(russianPath);
+      expect(getLanguageSwitchState(englishPath)).toMatchObject({
+        currentLocale: "en",
+        targetLocale: "ru",
+        targetPath: russianPath,
+      });
+      expect(getLanguageSwitchState(russianPath)).toMatchObject({
+        currentLocale: "ru",
+        targetLocale: "en",
+        targetPath: englishPath,
+      });
+    }
   });
 
   it("enables the language control for the published Russian homepage", () => {
@@ -49,13 +60,10 @@ describe("localized paths", () => {
     });
     expect(homepageSwitch.targetPath).toBe("/ru/");
     expect(caseSwitch).toMatchObject({
-      currentLocale: "ru",
-      targetLocale: "en",
+      currentLocale: "en",
+      targetLocale: "ru",
     });
-    expect(caseSwitch.targetPath).toBeUndefined();
-    expect(caseSwitch.unavailableMessage).toBe(
-      "Английская версия готовится",
-    );
+    expect(caseSwitch.targetPath).toBe("/ru/starter-foodhalls/");
   });
 
   it("uses approved Russian card copy when it is available", () => {

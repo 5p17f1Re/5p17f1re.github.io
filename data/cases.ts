@@ -22,8 +22,7 @@ export const cases: readonly CaseDefinition[] = [
     slug: "starter-foodhalls",
     transitionId: "starter-foodhalls",
     access: { scope: "public" },
-    availableLocales: [],
-    legacyLocale: "ru",
+    availableLocales: ["en", "ru"],
   },
   {
     slug: "starter-stories",

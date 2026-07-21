@@ -4,16 +4,20 @@ import { SiteShell } from "@/components/SiteShell";
 import "../styles.css";
 
 const inter = localFont({
-  src: "./fonts/inter-medium.ttf",
+  src: [
+    { path: "./fonts/inter-medium.ttf", weight: "500" },
+    { path: "./fonts/inter-bold.ttf", weight: "700" },
+  ],
   variable: "--font-inter",
-  weight: "500",
   display: "swap",
 });
 
 const interTight = localFont({
-  src: "./fonts/inter-tight-medium.ttf",
+  src: [
+    { path: "./fonts/inter-tight-medium.ttf", weight: "500" },
+    { path: "./fonts/inter-tight-bold.ttf", weight: "700" },
+  ],
   variable: "--font-inter-tight",
-  weight: "500",
   display: "swap",
 });
 

@@ -5,18 +5,25 @@ import { CaseVideo } from "@/components/CaseVideo";
 
 const mediaRoot = "starter-foodhalls";
 const media = (name: string) => `${mediaRoot}/${name}`;
-const title = "Стартер для фудхоллов";
+const title = "STARTER for Food Halls";
 const description =
-  "Как мы адаптировали ресторанную платформу для заказов из нескольких корнеров.";
+  "Designing a multi-vendor ordering flow for a restaurant platform.";
 const cover = "/media/images/starter-foodhalls/01-cover-1920.webp";
 
 export const metadata: Metadata = {
-  title: `${title} — Сева Кудрявцев`,
+  title: `${title} — Seva Kudryavtsev`,
   description,
-  alternates: { canonical: "/starter-foodhalls/" },
+  alternates: {
+    canonical: "/starter-foodhalls/",
+    languages: {
+      en: "/starter-foodhalls/",
+      ru: "/ru/starter-foodhalls/",
+      "x-default": "/starter-foodhalls/",
+    },
+  },
   openGraph: {
     type: "article",
-    locale: "ru_RU",
+    locale: "en_US",
     url: "/starter-foodhalls/",
     title,
     description,
@@ -25,7 +32,7 @@ export const metadata: Metadata = {
         url: cover,
         width: 1920,
         height: 1080,
-        alt: "Заказ из нескольких корнеров в приложении фудхолла",
+        alt: "A multi-vendor order in a food hall app",
       },
     ],
   },
@@ -43,7 +50,7 @@ export default function StarterFoodhallsPage() {
       <main
         id="main-content"
         className="case-page-shell case-page-shell--entering"
-        lang="ru"
+        lang="en"
       >
         <header className="case-title">
           <h1>{title}</h1>
@@ -59,279 +66,230 @@ export default function StarterFoodhallsPage() {
 
         <article className="case-content">
           <section className="case-text case-text--intro">
-            <h2>
-              Как мы адаптировали ресторанную платформу для заказов из
-              нескольких корнеров
-            </h2>
+            <h2>Designing a multi-vendor ordering flow for a restaurant platform</h2>
             <p>
-              Стартер — фудтех-платформа для ресторанов и ресторанных групп. Она
-              объединяет клиентские приложения и сайты, программу лояльности,
-              управление заказами и административные инструменты.
+              STARTER is a foodtech platform for restaurants and restaurant
+              groups. It combines customer-facing apps and websites, a loyalty
+              programme, order management, and administrative tools.
             </p>
             <p>
-              В 2024 году к нам обратился крупный фудхолл из Санкт-Петербурга.
-              Он хотел запустить собственное приложение, в котором гости могли
-              бы заказывать еду сразу из нескольких корнеров. Для Стартера это
-              была возможность адаптировать существующую платформу к новой
-              бизнес-модели и выйти в сегмент фудхоллов.
+              In 2024, a large food hall in St Petersburg approached us to
+              launch its own app. Customers needed to order food from several
+              vendors at once. For STARTER, the project was an opportunity to
+              adapt an existing restaurant platform to a new business model.
             </p>
             <p>
-              Моя задача как ведущего продуктового дизайнера — спроектировать
-              ключевой пользовательский сценарий мультизаказа: общую корзину
-              и получение заказа из нескольких корнеров с учётом разных
-              конфигураций ресторана и способов выдачи.
+              As Lead Product Designer, I was responsible for the core
+              multi-vendor ordering flow: the shared basket, order page, and
+              collection experience. My task was to keep the order simple for
+              customers even though the platform split it into several
+              sub-orders with different statuses and collection options.
             </p>
           </section>
 
           <section className="case-text">
-            <h2>Почему обычная модель заказа не подходила</h2>
+            <h2>One order, several operational flows</h2>
             <p>
-              В классическом ресторанном приложении гость выбирает блюда
-              из одного меню и получает один заказ. В фудхолле всё сложнее: блюда
-              относятся к разным корнерам, у каждого корнера своё меню и своя
-              интеграция с кассовой системой, а общий заказ внутри платформы
-              распадается на несколько подзаказов.
+              In a typical restaurant app, a customer chooses items from one
+              menu and receives one order. A food hall is different: items
+              belong to different vendors, each vendor has its own menu and
+              point-of-sale integration, and one customer order becomes several
+              sub-orders inside the platform.
             </p>
             <p>
-              Для гостя этот процесс должен был оставаться единым: выбрать блюда
-              из разных меню, положить их в общую корзину, оплатить вместе
-              и понять, где и когда получить каждую часть заказа.
+              For customers, the experience still needed to feel unified:
+              choose items from different menus, pay once, and understand when
+              and where to collect each part of the order.
             </p>
             <p>
-              Операционная сторона работала иначе. Каждый корнер должен был
-              получить только свои позиции, а управляющий фудхоллом — видеть
-              заказ целиком и контролировать его выполнение. При доставке
-              и самовывозе подзаказы дополнительно требовалось собрать перед
-              выдачей.
-            </p>
-            <p>
-              Исследование и сбор требований команда провела до начала
-              дизайн-этапа. Продакт-менеджеры и дизайнер изучили процессы клиента
-              и собрали карты сценариев для гостя, сотрудника корнера
-              и управляющего фудхоллом.
+              The operational model worked differently. Each vendor needed to
+              receive only its own items, while the food hall operator needed
+              to see the full order and track each sub-order. For delivery and
+              collection, food hall staff had to assemble the sub-orders before
+              handover.
             </p>
           </section>
 
           <CaseMedia
             width="full"
             assetKey={media("02-scenario-map")}
-            alt="Карта сценариев гостя, сотрудника корнера и управляющего фудхоллом"
+            alt="A scenario map for customers, vendor staff, and food hall operators"
           />
 
           <div className="case-text">
             <p>
-              К началу работы над интерфейсами у нас была общая модель, но ещё
-              не было прототипов и готовых решений. За полтора месяца предстояло
-              связать клиентское приложение, сайт, систему управления заказами
-              и административную панель. Состав MVP определял директор
-              по продукту, а я организовал дизайн-работу внутри выбранного объёма
-              и отвечал за целостность решения.
+              Product managers and designers researched the client’s processes
+              before the design stage and mapped scenarios for customers, vendor
+              staff, and food hall operators. The Product Director defined the
+              MVP scope. I organised the design work within that scope and was
+              responsible for keeping the solution coherent.
             </p>
             <p>
-              Над задачей одновременно работали три дизайнера из моей команды.
-              Один проектировал главную страницу и каталог, второй —
-              административные инструменты, а я сосредоточился на корзине,
-              странице заказа и сценариях получения. Для остальных частей
-              я проводил арт-дирекшн и проверял, чтобы решения подчинялись общей
-              логике.
+              Three designers worked on the project in parallel. One designed
+              the home page and catalogue; another worked on administrative
+              tools; I focused on the basket, order page, and collection flows.
+              I also art-directed the remaining parts of the product.
             </p>
           </div>
-
-          <section className="case-text">
-            <h2>Витрина из десятков ресторанов</h2>
-            <p>
-              Существующая витрина Стартера была рассчитана на пять–девять
-              заведений, а в фудхолле их могло быть больше двадцати. Дизайнер
-              проекта сохранил знакомые элементы — фотографию, логотип, название
-              и описание, — но собрал их в более компактную структуру. Так
-              на главной сохранилась общая айдентика фудхолла, а каждый корнер
-              остался узнаваемым.
-            </p>
-          </section>
 
           <CaseMedia
             width="wide"
             assetKey={media("03-storefront-directions")}
-            alt="Поиск компактного формата витрины для фудхолла"
+            alt="Exploration of a compact food hall storefront"
           />
 
           <CaseMedia
             width="wide"
             assetKey={media("04-foodhall-home")}
-            alt="Главная фудхолла на сайте и в мобильном приложении"
+            alt="The food hall home page on the website and in the mobile app"
           />
 
           <section className="case-text">
-            <h2>Одна корзина для нескольких корнеров</h2>
+            <h2>One basket across several vendors</h2>
             <p>
-              Корзина уже существовала в продукте. Нужно было определить, как
-              она будет работать, когда блюда принадлежат разным корнерам
-              и после оплаты превращаются в несколько подзаказов.
+              The basket already existed in the product. I needed to define how
+              it would work when items came from different vendors and became
+              separate sub-orders after payment.
             </p>
             <p>
-              Мы сохранили общую корзину и единый платёж, чтобы внутренняя
-              сложность системы не перекладывалась на гостя. Позиции
-              сгруппировали по корнерам с помощью компактных заголовков. Сначала
-              рядом с названиями хотели поставить логотипы, но отказались
-              от них: фотографии блюд уже хорошо разделяли группы,
-              а дополнительные знаки создавали визуальный шум.
+              I kept a shared basket and a single payment so that the platform’s
+              internal complexity would not become the customer’s problem. In
+              the basket, I grouped items under compact vendor headings. We
+              considered adding vendor logos next to the headings, but removed
+              them: food photography already separated the groups, while
+              additional marks created visual noise.
             </p>
             <p>
-              На странице корнера сохранили привычное меню Стартера. К нему
-              добавили название, логотип и короткое описание, чтобы пользователь
-              не терял контекст. Для заказа в зале также появилась ссылка
-              на карту фудхолла: после выбора блюд гостю нужно было физически
-              найти нужный корнер.
+              The vendor page kept STARTER’s familiar menu structure. We added
+              the vendor name, logo, and a short description to preserve
+              context. For eat-in orders, customers could also open the food
+              hall map after choosing their items.
             </p>
           </section>
 
           <CaseMedia
             width="wide"
             assetKey={media("05-corner-cart")}
-            alt="Страница корнера и общая корзина в мобильном приложении"
+            alt="A vendor page and shared basket in the mobile app"
           />
 
           <section className="case-text">
-            <h2>Получение заказа зависело от контекста</h2>
+            <h2>Collection depended on context</h2>
             <p>
-              Самой сложной частью стала страница заказа. Один интерфейс должен
-              был объяснять разные сценарии:
+              The order page was the most complex part of the experience. One
+              interface had to explain several scenarios:
             </p>
             <ul>
-              <li>заказ из одного или нескольких ресторанов;</li>
-              <li>доставка или самовывоз;</li>
-              <li>получение заказа целиком или по частям;</li>
-              <li>заказ в зале, где гость самостоятельно обходит корнеры.</li>
+              <li>one or several vendors;</li>
+              <li>delivery or collection;</li>
+              <li>collecting the full order or separate parts;</li>
+              <li>eat-in orders where customers collected food themselves.</li>
             </ul>
             <p>
-              При доставке и самовывозе раннеры фудхолла собирали подзаказы
-              вместе, поэтому для гостя процесс почти не отличался от обычного
-              заказа. В зале модель менялась: каждый корнер готовил свою часть,
-              а гость должен был понять, когда и куда подойти, что именно забрать
-              и какие позиции ещё готовятся.
+              For delivery and collection, food hall staff assembled the
+              sub-orders, so the customer experience stayed close to a standard
+              restaurant order. Eat-in worked differently. Each vendor prepared
+              its own part, and customers needed to understand what was ready,
+              where to go, and what was still being prepared.
             </p>
             <p>
-              Я подключился к этому сценарию, когда команда начала выбиваться
-              из графика. Параллельно с другим дизайнером собирал варианты
-              страницы заказа, обсуждал ограничения с продакт-менеджерами
-              и сводил готовые решения в единый сценарий.
+              When the team began to fall behind schedule, I joined another
+              designer to explore order-page options, discuss constraints with
+              product managers, and consolidate the work into one flow.
             </p>
           </section>
 
           <CaseMedia
             width="wide"
             assetKey={media("06-order-directions")}
-            alt="Поиск структуры заказа для получения в зале"
+            alt="Exploration of the eat-in collection order page"
           />
 
           <div className="case-text">
-            <p>
-              Мы определили информацию, необходимую для получения каждого
-              подзаказа:
-            </p>
+            <p>For each sub-order, we showed:</p>
             <ul>
+              <li>food photos to help customers recognise their order;</li>
+              <li>the vendor name and logo to show where to collect it;</li>
+              <li>a status to explain whether it was ready;</li>
+              <li>directions to the vendor;</li>
               <li>
-                фотографии блюд — помогают узнать заказ, даже если гость
-                не помнит название корнера;
-              </li>
-              <li>
-                логотип и название корнера — показывают, где забирать заказ;
-              </li>
-              <li>статус — объясняет, готова ли конкретная часть;</li>
-              <li>навигация — помогает найти корнер;</li>
-              <li>
-                инструкция по получению — выводит наверх главное действие для
-                текущего состояния.
+                a collection instruction that brought the next action to the
+                top.
               </li>
             </ul>
             <p>
-              В итоговом интерфейсе общий заказ оставался одной сущностью,
-              но состояние каждого корнера можно было проверить отдельно. Гость
-              видел не внутреннее устройство платформы, а понятный план действий:
-              что уже готово, чего ждать и куда идти дальше.
+              The resulting interface treated the purchase as one order while
+              making each vendor’s status visible. Customers saw a clear plan:
+              what was ready, what to wait for, and where to go next.
             </p>
           </div>
 
           <CaseMedia
             width="full"
             assetKey={media("07-order-flow")}
-            alt="Финальный сценарий получения мультизаказа в зале"
+            alt="The final multi-vendor eat-in collection flow"
           />
 
           <section className="case-text">
-            <h2>Шесть уведомлений вместо десяти</h2>
+            <h2>Six notifications instead of ten</h2>
             <p>
-              Старая модель отправляла уведомление при каждом изменении статуса
-              каждого заказа. Для мультизаказа из трёх корнеров это означало
-              десять уведомлений: телефон начинал отражать внутреннюю механику
-              системы вместо того, чтобы помогать гостю.
+              The previous notification model sent an update for every status
+              change in every order. For an order from three vendors, that meant
+              ten notifications. The phone reflected the platform’s internal
+              mechanics instead of helping the customer.
             </p>
             <p>
-              Я пересобрал правила и тексты уведомлений, связав их с важными для
-              пользователя моментами. Для того же сценария осталось шесть
-              сообщений. Они сообщали не о каждом техническом переходе,
-              а о том, когда пользователю действительно нужно обратить внимание
-              на заказ или совершить действие.
+              I redesigned the notification rules and copy around meaningful
+              customer moments. The same scenario required six messages rather
+              than ten. The messages focused on moments when customers needed
+              to pay attention or take action, not every technical transition.
             </p>
           </section>
 
           <CaseMedia
             width="wide"
             assetKey={media("08-notification-rules")}
-            alt="Правила и тексты уведомлений для мультизаказа"
+            alt="Notification rules and copy for a multi-vendor order"
           />
 
           <section className="case-text">
-            <h2>Одна логика на клиентской и операционной стороне</h2>
+            <h2>One model across customer and operational interfaces</h2>
             <p>
-              Параллельно два дизайнера адаптировали административную панель
-              и систему управления заказами. Корнеру требовалось показывать
-              только его позиции, а управляющему фудхоллом — весь заказ
-              и состояние составляющих его подзаказов.
+              In parallel, two designers adapted the admin panel and
+              order-management system. Vendors needed to see only their own
+              items, while food hall operators needed the complete order and the
+              status of each sub-order.
             </p>
             <p>
-              Я проводил арт-дирекшн административной части, проверял логику
-              и редактировал интерфейсные тексты. Это было важно для целостности
-              продукта: статусы и действия сотрудников должны были точно
-              соответствовать тому, что видел гость.
+              I art-directed the administrative work, checked the underlying
+              logic, and edited interface copy. This kept employee actions and
+              order statuses aligned with what customers saw.
             </p>
           </section>
 
           <CaseMedia
             width="wide"
             assetKey={media("09-admin-settings")}
-            alt="Настройки фудхолла и корнеров в административной панели"
+            alt="Food hall and vendor settings in the admin panel"
           />
 
           <CaseMedia
             width="wide"
             assetKey={media("10-order-management")}
-            alt="Общий заказ и подзаказы в системе управления заказами"
+            alt="A complete order and its sub-orders in the order-management system"
           />
 
           <section className="case-text">
-            <h2>Результат</h2>
+            <h2>Outcome</h2>
             <p>
-              За полтора месяца команда выпустила рабочее решение для фудхоллов
-              и ресторанных групп. Гости получили возможность заказывать
-              из нескольких меню через одну корзину, а платформа научилась
-              разделять заказ между корнерами, их кассовыми системами
-              и операционными инструментами.
+              Within six weeks, the team released a platform solution for food
+              halls and restaurant groups. It supported one basket across
+              several menus and split the order between vendors, their
+              point-of-sale systems, and operational tools.
             </p>
             <p>
-              Мы начали с мобильной версии как основного сценария, а затем
-              адаптировали и выпустили решение для компьютеров. Разработка прошла
-              по плану. После релиза у отдела продаж появился готовый продукт для
-              предложения новым клиентам; дальнейшие подключения зависели
-              от коммерческой работы и операционной готовности фудхоллов.
-            </p>
-            <p>
-              Первый клиент поставил собственный запуск на паузу из-за
-              операционной готовности: для работы решения ему требовалось
-              перестроить внутреннюю логистику и настроить процессы внутри
-              фудхолла. Это не остановило продуктовый релиз. У Стартера осталась
-              технически готовая возможность подключать фудхоллы и группы
-              ресторанов без перестройки ядра платформы.
+              After release, the sales team had a finished product to present to
+              prospective clients.
             </p>
           </section>
 
@@ -339,53 +297,24 @@ export default function StarterFoodhallsPage() {
             width="wide"
             src="/media/videos/starter-foodhalls/12-demo.mp4"
             posterAssetKey={media("12-video-poster")}
-            title="Демонстрация выпущенного решения для фудхоллов"
+            title="Demonstration of the released food hall solution"
             hasAudio
+            locale="en"
           />
 
           <section className="case-text">
-            <h2>Итерация после запуска</h2>
+            <h2>What I learned</h2>
             <p>
-              На заполненном демо-сайте мы обнаружили, что возвращаться
-              на главную для перехода между корнерами неудобно. На прототипе
-              проблема не проявилась, потому что решение не тестировали
-              на реальном объёме меню.
+              The challenge was not a single screen. It was coordinating several
+              systems and roles: an order had to remain unified for the customer,
+              split for vendors, and come back together for collection or
+              delivery.
             </p>
             <p>
-              В следующей итерации команда выпустила сквозную навигацию между
-              корнерами. Она пригодилась не только фудхоллам, но и другим
-              проектам с большим вложенным меню.
-            </p>
-          </section>
-
-          <CaseMedia
-            width="wide"
-            assetKey={media("11-cross-navigation")}
-            alt="Сквозная навигация между корнерами"
-          />
-
-          <section className="case-text">
-            <h2>Что я вынес из проекта</h2>
-            <p>
-              В этом проекте сложность находилась не в отдельном экране,
-              а в согласовании нескольких систем и ролей. Заказ должен был
-              выглядеть единым для гостя, разделяться для корнеров и снова
-              собираться для выдачи или доставки.
-            </p>
-            <p>
-              Главным дизайнерским решением стало сохранение простой
-              пользовательской модели поверх сложной операционной структуры:
-              одна корзина, один платёж и понятный сценарий получения, хотя
-              внутри система работала с несколькими меню, подзаказами
-              и кассовыми интеграциями.
-            </p>
-            <p>
-              Проект также показал слабое место процесса: без поведенческого
-              прототипа и контента, близкого к реальному, мы поздно заметили
-              проблему навигации. После релиза команда исправила её отдельной
-              итерацией. В следующих сложных сценариях я бы раньше проверял
-              не только отдельные экраны, но и переходы между ними на реальном
-              объёме данных.
+              The key design decision was to preserve a simple customer model
+              over a complex operational structure: one basket, one payment, and
+              a clear collection flow, even when the platform worked with
+              several menus, sub-orders, and point-of-sale integrations.
             </p>
           </section>
         </article>
