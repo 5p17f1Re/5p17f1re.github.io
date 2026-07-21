@@ -3,10 +3,34 @@ node_modules
 out
 .DS_Store
 public/media
+.turbo
+coverage
+.vercel
+
+# The repository contains only the published site and its operating docs.
+# Personal OS material and publication drafts stay outside this repository.
+raw/
+wiki/
+private/
+work/
+content-drafts/
+
+# Recreated by `pnpm dev` and `pnpm build` from media-originals/.
+generated/
+
+# Local editor and diagnostic output.
+.idea/
+.vscode/
+*.log
+
+# Secrets and credentials.
 .env
 .env.*
 !.env.example
 *.pem
 *.key
+*.p12
+*.pfx
+*.mobileprovision
 npm-debug.log*
 pnpm-debug.log*
