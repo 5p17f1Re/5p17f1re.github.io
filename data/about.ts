@@ -9,7 +9,7 @@ const aboutByLocale: Record<SiteLocale, AboutContent> = {
   en: {
     name: "Seva Kudryavtsev",
     paragraphs: [
-      "Designer with 11 years of experience. I combine the systems thinking behind complex B2B products with the quality of consumer interfaces.",
+      "Designer who combine the quality of consumer interfaces with the systems thinking behind complex products.",
       "I design digital products from early concepts to launch, shaping how they look, behave, and communicate. I care about visual quality, interaction, and product character—the details that make an experience feel coherent and worth returning to.",
       "Today I design products for restaurants at Yandex Eats. Before that, I led product design at STARTER. Earlier, I designed and launched websites and digital products for P·Y·E and AVGVST.",
     ],

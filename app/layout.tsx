@@ -1,7 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import Script from "next/script";
 import { SiteShell } from "@/components/SiteShell";
 import "../styles.css";
+
+const googleAnalyticsId = "G-TLZ88JYZQZ";
 
 const inter = localFont({
   src: [
@@ -23,9 +26,9 @@ const interTight = localFont({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://5p17f1re.github.io"),
-  title: "Seva Kudryavtsev — Product Designer",
+  title: "Seva Kudryavtsev",
   description:
-    "Product Designer who brings consumer-grade experience to complex products.",
+    "Designer who combine the quality of consumer interfaces with the systems thinking behind complex products.",
   alternates: { canonical: "/" },
   icons: {
     icon: {
@@ -38,9 +41,9 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "/",
     siteName: "Seva Kudryavtsev",
-    title: "Seva Kudryavtsev — Product Designer",
+    title: "Seva Kudryavtsev",
     description:
-      "Product Designer who brings consumer-grade experience to complex products.",
+      "Designer who combine the quality of consumer interfaces with the systems thinking behind complex products.",
     images: [
       {
         url: "/media/images/sevakudrytavtsev-600.webp",
@@ -52,9 +55,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "Seva Kudryavtsev — Product Designer",
+    title: "Seva Kudryavtsev",
     description:
-      "Product Designer who brings consumer-grade experience to complex products.",
+      "Designer who combine the quality of consumer interfaces with the systems thinking behind complex products.",
     images: ["/media/images/sevakudrytavtsev-600.webp"],
   },
 };
@@ -76,6 +79,16 @@ export default function RootLayout({
           }}
         />
         <SiteShell>{children}</SiteShell>
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag("js", new Date());
+gtag("config", "${googleAnalyticsId}");`}
+        </Script>
       </body>
     </html>
   );
