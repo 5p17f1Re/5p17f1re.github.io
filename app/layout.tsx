@@ -25,7 +25,7 @@ const interTight = localFont({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://5p17f1re.github.io"),
+  metadataBase: new URL("https://sevakudryavtsev.com"),
   title: "Seva Kudryavtsev",
   description:
     "Designer who combine the quality of consumer interfaces with the systems thinking behind complex products.",

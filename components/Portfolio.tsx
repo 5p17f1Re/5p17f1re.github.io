@@ -23,6 +23,7 @@ import {
   rememberPortfolioScrollPosition,
   useNavigationViewControls,
 } from "./Navigation";
+import { trackEvent } from "./analytics";
 
 type ViewMode = "birdview" | "snakeview";
 type ViewLayerState = "current" | "outgoing" | "incoming" | "hidden";
@@ -324,7 +325,14 @@ function ProjectCard({
       className="project project--link"
       href={getCasePath({ locale, slug: project.slug })}
       aria-label={text.openCaseStudy(project.title)}
-      onClick={rememberPortfolioScrollPosition}
+      onClick={() => {
+        rememberPortfolioScrollPosition();
+        trackEvent("case_opened", {
+          case_slug: project.slug,
+          locale,
+          portfolio_view: view,
+        });
+      }}
       onPointerEnter={showProjectCursor}
       onPointerMove={moveProjectCursor}
       onPointerLeave={hideProjectCursor}
@@ -738,6 +746,9 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
     const next: ViewMode =
       transitionSource === "birdview" ? "snakeview" : "birdview";
     persistView(next);
+    trackEvent("portfolio_view_changed", {
+      portfolio_view: next,
+    });
 
     if (reduceMotion) {
       setView(next);

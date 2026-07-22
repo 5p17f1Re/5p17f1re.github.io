@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { SiteLocale } from "@/data/locales";
 import { getUiText } from "@/data/ui-text";
 import { LocaleTextTransition } from "./LocaleTextTransition";
+import { trackContactIntent } from "./analytics";
 
 const EMAIL = "vsevolod.k@outlook.com";
 
@@ -41,6 +42,7 @@ export function EmailButton({
     }
 
     setCopied(true);
+    trackContactIntent("email", "navigation");
     timerRef.current = setTimeout(() => setCopied(false), 3000);
   }
 

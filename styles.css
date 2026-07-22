@@ -821,6 +821,118 @@ img { display: block; max-width: 100%; }
   color: rgba(255, 255, 255, 0.85);
 }
 
+.not-found-page {
+  min-height: 100vh;
+  background: #000;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.not-found-page__desktop-link,
+.not-found-page__mobile-content {
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+}
+
+.not-found-page__desktop-link {
+  display: flex;
+  color: inherit;
+  cursor: none;
+  text-decoration: none;
+}
+
+.not-found-page__content,
+.not-found-page__mobile-content {
+  width: min(684px, calc(100% - 32px));
+  text-align: center;
+}
+
+.not-found-page h1 {
+  margin: 0 0 12px;
+  font-family: var(--font-inter-tight), "Inter Tight", sans-serif;
+  font-size: 36px;
+  font-weight: 500;
+  line-height: 40px;
+  letter-spacing: -0.72px;
+  text-wrap: balance;
+}
+
+.not-found-page p {
+  margin: 0;
+  font-size: 17px;
+  line-height: 24px;
+  letter-spacing: -0.17px;
+  text-wrap: pretty;
+}
+
+.not-found-page__cursor,
+.not-found-page__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 32px;
+  background: #137547;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.13px;
+  white-space: nowrap;
+}
+
+.not-found-page__cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  height: 48px;
+  padding: 13px 12px 15px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(var(--not-found-cursor-x), var(--not-found-cursor-y), 0) translate(-50%, -50%) scale(0.8);
+  transition: opacity 160ms cubic-bezier(0.22, 1, 0.36, 1), transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.not-found-page__cursor[data-visible="true"] {
+  opacity: 1;
+  transform: translate3d(var(--not-found-cursor-x), var(--not-found-cursor-y), 0) translate(-50%, -50%) scale(1);
+}
+
+.not-found-page__mobile-content {
+  display: none;
+  flex-direction: column;
+}
+
+.not-found-page__button {
+  min-height: 48px;
+  margin-top: 24px;
+  padding: 13px 12px 15px;
+  text-decoration: none;
+}
+
+@media (max-width: 800px) {
+  .not-found-page__desktop-link {
+    display: none;
+  }
+
+  .not-found-page__mobile-content {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  .not-found-page h1 {
+    font-size: 27px;
+    line-height: 32px;
+    letter-spacing: -0.405px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .not-found-page__cursor {
+    display: none;
+  }
+}
+
 @keyframes case-page-enter {
   from {
     opacity: 0;

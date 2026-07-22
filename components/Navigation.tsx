@@ -21,6 +21,7 @@ import { LocaleTextTransition } from "./LocaleTextTransition";
 import { getLanguageSwitchState } from "@/data/language-switch";
 import { getLocalizedPath, type SiteLocale } from "@/data/locales";
 import { getUiText } from "@/data/ui-text";
+import { trackContactIntent, trackOutboundLink } from "./analytics";
 
 export type PortfolioViewMode = "birdview" | "snakeview";
 
@@ -690,6 +691,10 @@ function Navigation({ controls }: { controls: HomeNavigationControls }) {
         href="https://www.linkedin.com/in/5p17f1re/"
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => {
+          trackOutboundLink("linkedin", "navigation");
+          trackContactIntent("linkedin", "navigation");
+        }}
         data-nav-item
         tabIndex={0}
       >
