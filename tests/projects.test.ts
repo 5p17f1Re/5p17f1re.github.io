@@ -1,8 +1,26 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import mediaManifest from "../generated/media-manifest.json";
+import publishedMedia from "../data/published-media.json";
 import { projects, type Project } from "../data/projects";
 
 const availableAssets = new Set(Object.keys(mediaManifest));
+const projectRoot = path.resolve(import.meta.dirname, "..");
+type MediaManifestAsset =
+  (typeof mediaManifest)[keyof typeof mediaManifest];
+
+function getPublicFilePath(publicUrl: string) {
+  return path.join(projectRoot, "public", publicUrl.replace(/^\//, ""));
+}
+
+function getManifestUrls(asset: MediaManifestAsset) {
+  const srcSetUrls = [asset.avifSrcSet, asset.webpSrcSet].flatMap((srcSet) =>
+    srcSet.split(", ").map((candidate) => candidate.split(" ")[0]),
+  );
+
+  return [asset.fallback, ...srcSetUrls];
+}
 
 function getProjectAssetKeys(project: Project) {
   if (project.mediaType === "image") {
@@ -34,5 +52,22 @@ describe("projects", () => {
     };
 
     expect(getProjectAssetKeys(textProject)).toEqual([]);
+  });
+
+  it("keeps every generated manifest file in public media", () => {
+    const missingFiles = Object.values(mediaManifest)
+      .flatMap(getManifestUrls)
+      .filter((publicUrl) => !existsSync(getPublicFilePath(publicUrl)));
+
+    expect(missingFiles).toEqual([]);
+  });
+
+  it("keeps every published video in public media", () => {
+    const missingVideos = publishedMedia.videos.filter(
+      (video) =>
+        !existsSync(path.join(projectRoot, "public", "media", "videos", video)),
+    );
+
+    expect(missingVideos).toEqual([]);
   });
 });

@@ -2,10 +2,14 @@ node_modules
 .next
 out
 .DS_Store
-public/media
 .turbo
 coverage
 .vercel
+
+# Originals stay in the local iCloud workspace. Git stores only publishable
+# optimized media from public/media/.
+media-originals/*
+!media-originals/README.md
 
 # The repository contains only the published site and its operating docs.
 # Personal OS material and publication drafts stay outside this repository.
@@ -15,8 +19,9 @@ private/
 work/
 content-drafts/
 
-# Recreated by `pnpm dev` and `pnpm build` from media-originals/.
-generated/
+# The public manifest is committed; local incremental-build state is not.
+generated/*
+!generated/media-manifest.json
 
 # Local editor and diagnostic output.
 .idea/

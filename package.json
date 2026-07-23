@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "prepare-media": "node scripts/prepare-media.mjs",
-    "dev": "node scripts/prepare-media.mjs && next dev",
-    "build": "node scripts/prepare-media.mjs && next build",
+    "prepare-media:force": "node scripts/prepare-media.mjs --force",
+    "dev": "next dev",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit --incremental false",

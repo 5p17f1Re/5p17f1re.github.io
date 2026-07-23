@@ -40,6 +40,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
+      - name: Verify public media
+        run: pnpm test
+
       - name: Build Next.js site
         run: pnpm build
 
