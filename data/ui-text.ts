@@ -15,6 +15,10 @@ export type UiText = {
   playVideo: string;
   pauseVideoLabel: string;
   playVideoLabel: string;
+  telegramChannelTitle: string;
+  telegramChannelDescription: string;
+  telegramChannelHoverDescription: string;
+  telegramChannelLinkLabel: string;
   footerContactBeforeTelegram: string;
   footerContactBetweenLinks: string;
   footerLastUpdated: string;
@@ -40,6 +44,11 @@ export const uiText: Record<SiteLocale, UiText> = {
     playVideo: "Play video",
     pauseVideoLabel: "Pause",
     playVideoLabel: "Watch",
+    telegramChannelTitle: "Héraut du Sevrage",
+    telegramChannelDescription:
+      "Blog about profession, craft and the internet",
+    telegramChannelHoverDescription: "Open @mybeautifulheaven on Telegram",
+    telegramChannelLinkLabel: "Open Héraut du Sevrage on Telegram",
     footerContactBeforeTelegram: "Reach me on",
     footerContactBetweenLinks: "or",
     footerLastUpdated: "Last Update",
@@ -63,6 +72,11 @@ export const uiText: Record<SiteLocale, UiText> = {
     playVideo: "Воспроизвести видео",
     pauseVideoLabel: "Пауза",
     playVideoLabel: "Смотреть",
+    telegramChannelTitle: "Héraut du Sevrage",
+    telegramChannelDescription: "Блог о профессии, ремесле и интернете",
+    telegramChannelHoverDescription:
+      "Открыть @mybeautifulheaven в Telegram",
+    telegramChannelLinkLabel: "Открыть Héraut du Sevrage в Telegram",
     footerContactBeforeTelegram: "Связаться со мной в",
     footerContactBetweenLinks: "или",
     footerLastUpdated: "Последнее обновление",

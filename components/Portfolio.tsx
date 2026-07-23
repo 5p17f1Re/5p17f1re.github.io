@@ -23,7 +23,7 @@ import {
   rememberPortfolioScrollPosition,
   useNavigationViewControls,
 } from "./Navigation";
-import { trackEvent } from "./analytics";
+import { trackEvent, trackOutboundLink } from "./analytics";
 
 type ViewMode = "birdview" | "snakeview";
 type ViewLayerState = "current" | "outgoing" | "incoming" | "hidden";
@@ -46,6 +46,8 @@ const viewTransitions = {
   duration: 0.5,
   totalDurationMs: 500,
 } as const;
+
+const telegramChannelUrl = "https://t.me/mybeautifulheaven";
 
 const initialCardVariants = {
   hidden: { opacity: 0, y: 18 },
@@ -491,6 +493,139 @@ function SnakeView({
   viewReady: boolean;
   reduceMotion: boolean;
 }) {
+  const telegramCtaRef = useRef<HTMLAnchorElement>(null);
+  const telegramCursorAnimationFrameRef = useRef<number | null>(null);
+  const telegramCursorPositionRef = useRef<{ x: number; y: number } | null>(
+    null,
+  );
+  const telegramCursorTargetRef = useRef<{ x: number; y: number } | null>(
+    null,
+  );
+  const telegramCursorIsReturningRef = useRef(false);
+
+  function setTelegramCursorPosition(x: number, y: number) {
+    const telegramCta = telegramCtaRef.current;
+
+    if (!telegramCta) return;
+
+    telegramCta.style.setProperty("--telegram-cursor-x", `${x}px`);
+    telegramCta.style.setProperty("--telegram-cursor-y", `${y}px`);
+  }
+
+  function cancelTelegramCursorAnimation() {
+    if (telegramCursorAnimationFrameRef.current !== null) {
+      cancelAnimationFrame(telegramCursorAnimationFrameRef.current);
+      telegramCursorAnimationFrameRef.current = null;
+    }
+  }
+
+  function animateTelegramCursor() {
+    const cursorPosition = telegramCursorPositionRef.current;
+    const cursorTarget = telegramCursorTargetRef.current;
+
+    if (!cursorPosition || !cursorTarget) {
+      cancelTelegramCursorAnimation();
+      return;
+    }
+
+    const easing = telegramCursorIsReturningRef.current ? 0.18 : 0.35;
+    cursorPosition.x += (cursorTarget.x - cursorPosition.x) * easing;
+    cursorPosition.y += (cursorTarget.y - cursorPosition.y) * easing;
+    setTelegramCursorPosition(cursorPosition.x, cursorPosition.y);
+
+    if (
+      Math.hypot(cursorTarget.x - cursorPosition.x, cursorTarget.y - cursorPosition.y) <
+      0.5
+    ) {
+      setTelegramCursorPosition(cursorTarget.x, cursorTarget.y);
+      if (telegramCursorIsReturningRef.current) {
+        const telegramCta = telegramCtaRef.current;
+        delete telegramCta?.dataset.cursorState;
+        telegramCta?.style.removeProperty("--telegram-cursor-x");
+        telegramCta?.style.removeProperty("--telegram-cursor-y");
+        telegramCursorPositionRef.current = null;
+        telegramCursorTargetRef.current = null;
+      }
+      telegramCursorAnimationFrameRef.current = null;
+      return;
+    }
+
+    telegramCursorAnimationFrameRef.current = requestAnimationFrame(
+      animateTelegramCursor,
+    );
+  }
+
+  function startTelegramCursorAnimation() {
+    if (telegramCursorAnimationFrameRef.current !== null) return;
+
+    telegramCursorAnimationFrameRef.current = requestAnimationFrame(
+      animateTelegramCursor,
+    );
+  }
+
+  function showTelegramCursor(event: ReactPointerEvent<HTMLAnchorElement>) {
+    if (
+      event.pointerType !== "mouse" ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+
+    const telegramCta = telegramCtaRef.current;
+
+    if (!telegramCta) return;
+
+    const bounds = telegramCta.getBoundingClientRect();
+    const targetPosition = {
+      x: event.clientX - bounds.left,
+      y: event.clientY - bounds.top,
+    };
+
+    cancelTelegramCursorAnimation();
+    telegramCursorPositionRef.current = {
+      x: bounds.width / 2,
+      y: bounds.height / 2,
+    };
+    telegramCursorTargetRef.current = targetPosition;
+    telegramCursorIsReturningRef.current = false;
+    setTelegramCursorPosition(bounds.width / 2, bounds.height / 2);
+    telegramCta.dataset.cursorState = "active";
+    startTelegramCursorAnimation();
+  }
+
+  function moveTelegramCursor(event: ReactPointerEvent<HTMLAnchorElement>) {
+    if (event.pointerType !== "mouse") return;
+
+    const telegramCta = telegramCtaRef.current;
+
+    if (!telegramCta) return;
+
+    const bounds = telegramCta.getBoundingClientRect();
+    telegramCursorTargetRef.current = {
+      x: event.clientX - bounds.left,
+      y: event.clientY - bounds.top,
+    };
+    telegramCursorIsReturningRef.current = false;
+    startTelegramCursorAnimation();
+  }
+
+  function hideTelegramCursor() {
+    const telegramCta = telegramCtaRef.current;
+    const cursorPosition = telegramCursorPositionRef.current;
+
+    if (!telegramCta || !cursorPosition) return;
+
+    const bounds = telegramCta.getBoundingClientRect();
+    telegramCursorTargetRef.current = {
+      x: bounds.width / 2,
+      y: bounds.height / 2,
+    };
+    telegramCursorIsReturningRef.current = true;
+    startTelegramCursorAnimation();
+  }
+
+  useEffect(() => cancelTelegramCursorAnimation, []);
+
   return (
     <motion.section
       className="projects projects--snakeview"
@@ -536,10 +671,56 @@ function SnakeView({
                   transitionId={localeTextTransitionId}
                   block
                 >
-                  {paragraph}
-                </LocaleTextTransition>
-              </p>
+                {paragraph}
+              </LocaleTextTransition>
+            </p>
             ))}
+            <a
+              ref={telegramCtaRef}
+              className="hero-about__telegram"
+              href={telegramChannelUrl}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={text.telegramChannelLinkLabel}
+              onClick={() =>
+                trackOutboundLink("telegram", "snakeview_about_cta")
+              }
+              onPointerEnter={showTelegramCursor}
+              onPointerMove={moveTelegramCursor}
+              onPointerLeave={hideTelegramCursor}
+            >
+              <span className="hero-about__telegram-inner">
+                <img
+                  className="hero-about__telegram-logo"
+                  src="/assets/telegram/mybeautifulheaven-logo.png"
+                  alt=""
+                />
+                <span className="hero-about__telegram-copy">
+                  <span className="hero-about__telegram-title">
+                    <LocaleTextTransition transitionId={localeTextTransitionId}>
+                      {text.telegramChannelTitle}
+                    </LocaleTextTransition>
+                  </span>
+                  <span className="hero-about__telegram-description">
+                    <span className="hero-about__telegram-description-default">
+                      <LocaleTextTransition transitionId={localeTextTransitionId}>
+                        {text.telegramChannelDescription}
+                      </LocaleTextTransition>
+                    </span>
+                    <span className="hero-about__telegram-description-hover">
+                      <LocaleTextTransition transitionId={localeTextTransitionId}>
+                        {text.telegramChannelHoverDescription}
+                      </LocaleTextTransition>
+                    </span>
+                  </span>
+                </span>
+                <img
+                  className="hero-about__telegram-arrow"
+                  src="/assets/telegram/external-arrow.svg"
+                  alt=""
+                />
+              </span>
+            </a>
           </div>
         </motion.article>
       ) : null}
