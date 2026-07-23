@@ -66,15 +66,15 @@ describe("localized paths", () => {
     expect(caseSwitch.targetPath).toBe("/ru/starter-foodhalls/");
   });
 
-  it("uses approved Russian card copy when it is available", () => {
+  it("uses approved localized card copy when it is available", () => {
     const [englishProject] = getProjects("en");
     const [russianProject] = getProjects("ru");
 
     expect(englishProject.description).toBe(
-      "Designed partner analytics that help restaurants understand guest behavior, track retention and forecast revenue",
+      "Analytics for Yandex Eats restaurants: a partner workspace with guest, hall and forecast data",
     );
     expect(russianProject.description).toBe(
-      "Аналитика для ресторанов в Яндекс Еде: рабочий кабинет с данными о гостях, зале и прогнозах",
+      "Аналитика для ресторанов в Яндекс Еде: рабочий кабинет с данными о гостях, зале и прогнозах",
     );
     expect(russianProject.title).toBe("Аналитика в Яндекс Еде");
   });

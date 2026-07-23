@@ -148,3 +148,17 @@ https://sevakudryavtsev.com/<страница>?utm_source=<source>&utm_medium=<m
 - Сравнение целей: `Session campaign`.
 - Сравнение конкретных размещений: `Session manual ad content`.
 - Для оценки качества трафика сопоставлять эти поля с событиями `case_opened`, `case_viewed`, `case_read_depth`, `contact_intent` и `outbound_link_clicked`.
+
+## Граница UTM и событий сайта
+
+- Добавлять UTM только во входящие ссылки на `sevakudryavtsev.com`, которые
+  размещаются за пределами сайта.
+- Не добавлять UTM во внутренние ссылки между страницами портфолио: они
+  перезапишут исходный источник сессии и исказят атрибуцию.
+- Переходы с карточек в кейсы отслеживать событием `case_opened`, открытие кейса
+  — `case_viewed`, чтение — `case_read_depth`.
+- Клики по внешним контактам отслеживать через `contact_intent`; переходы во
+  внешние сервисы дополнительно через `outbound_link_clicked` с параметрами
+  `destination` и `placement`.
+- Не добавлять UTM к `t.me`, LinkedIn и `mailto:` для аналитики этого сайта:
+  такие параметры не попадут в GA4 портфолио.

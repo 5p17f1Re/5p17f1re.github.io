@@ -15,6 +15,10 @@ export type UiText = {
   playVideo: string;
   pauseVideoLabel: string;
   playVideoLabel: string;
+  footerContactBeforeTelegram: string;
+  footerContactBetweenLinks: string;
+  footerLastUpdated: string;
+  footerVersion: string;
 };
 
 export const uiText: Record<SiteLocale, UiText> = {
@@ -36,6 +40,10 @@ export const uiText: Record<SiteLocale, UiText> = {
     playVideo: "Play video",
     pauseVideoLabel: "Pause",
     playVideoLabel: "Watch",
+    footerContactBeforeTelegram: "Reach me on",
+    footerContactBetweenLinks: "or",
+    footerLastUpdated: "Last Update",
+    footerVersion: "Version",
   },
   ru: {
     portfolioHeading: "Сева Кудрявцев — продуктовый дизайнер",
@@ -55,6 +63,10 @@ export const uiText: Record<SiteLocale, UiText> = {
     playVideo: "Воспроизвести видео",
     pauseVideoLabel: "Пауза",
     playVideoLabel: "Смотреть",
+    footerContactBeforeTelegram: "Связаться со мной в",
+    footerContactBetweenLinks: "или",
+    footerLastUpdated: "Последнее обновление",
+    footerVersion: "Версия",
   },
 };
 

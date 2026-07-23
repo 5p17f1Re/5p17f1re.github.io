@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { contactDetails } from "@/data/contacts";
 import type { SiteLocale } from "@/data/locales";
 import { getUiText } from "@/data/ui-text";
 import { LocaleTextTransition } from "./LocaleTextTransition";
 import { trackContactIntent } from "./analytics";
-
-const EMAIL = "vsevolod.k@outlook.com";
 
 export function EmailButton({
   locale,
@@ -30,10 +29,10 @@ export function EmailButton({
     if (timerRef.current) clearTimeout(timerRef.current);
 
     try {
-      await navigator.clipboard.writeText(EMAIL);
+      await navigator.clipboard.writeText(contactDetails.email);
     } catch {
       const textarea = document.createElement("textarea");
-      textarea.value = EMAIL;
+      textarea.value = contactDetails.email;
       textarea.style.cssText = "position:fixed;opacity:0";
       document.body.appendChild(textarea);
       textarea.select();
@@ -66,7 +65,7 @@ export function EmailButton({
         aria-hidden={!copied}
       >
         <span>
-          {EMAIL}
+          {contactDetails.email}
           <br />
           {text.copiedToClipboard}
         </span>

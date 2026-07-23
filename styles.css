@@ -478,7 +478,7 @@ img { display: block; max-width: 100%; }
   flex-wrap: wrap;
   gap: var(--project-row-gap, 120px) 20px;
   align-items: flex-start;
-  padding-bottom: 120px;
+  padding-bottom: 0;
   transform-origin: top center;
 }
 
@@ -515,11 +515,12 @@ img { display: block; max-width: 100%; }
 
 /* ─── Snakeview: 1-column view ──────────────────────────────────────────── */
 .projects--snakeview {
+  --snakeview-text-column-width: 458px;
   max-width: 934px;
   margin-left: auto;
   margin-right: auto;
   margin-top: 144px;
-  padding-bottom: 144px;
+  padding-bottom: 0;
   flex-direction: column;
   gap: var(--project-row-gap, 120px);
 }
@@ -540,6 +541,13 @@ img { display: block; max-width: 100%; }
 
 .projects--snakeview .project__imgs {
   width: 100%;
+}
+
+.projects--snakeview .project__header,
+.projects--snakeview .project__desc {
+  width: 100%;
+  max-width: var(--snakeview-text-column-width);
+  align-self: center;
 }
 
 /* In birdview (3 columns), hide the extra images on Samokat */
@@ -577,8 +585,8 @@ img { display: block; max-width: 100%; }
 .projects--snakeview .hero-about {
   align-items: flex-start;
   align-self: center;
-  width: 458px;
-  max-width: 458px;
+  width: var(--snakeview-text-column-width);
+  max-width: var(--snakeview-text-column-width);
   margin: 0;
 }
 
@@ -625,6 +633,56 @@ img { display: block; max-width: 100%; }
 }
 .hero-about__desc.gray {
   color: var(--color-text-caption);
+}
+
+/* ─── Site footer ──────────────────────────────────────────────────────── */
+.site-footer {
+  width: 100%;
+  padding: 164px 0 24px;
+  background: var(--color-background);
+}
+
+.site-footer--dark {
+  background: #000;
+}
+
+.site-footer__content {
+  width: 100%;
+  max-width: 458px;
+  margin: 0 auto;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--color-text-caption);
+  text-align: left;
+}
+
+.site-footer__contact {
+  color: var(--color-text-primary);
+  margin-bottom: 12px;
+}
+
+.site-footer__link {
+  text-decoration-line: underline;
+  text-decoration-color: var(--color-text-caption);
+  text-underline-position: from-font;
+  text-decoration-skip-ink: auto;
+  transition:
+    color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    text-decoration-color 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.site-footer__link:focus-visible {
+  outline: 2px solid var(--color-text-white);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+@media (hover: hover) {
+  .site-footer__link:hover {
+    color: rgba(240, 75, 25, 0.85);
+    text-decoration-color: rgba(240, 75, 25, 0.4);
+  }
 }
 
 /* ─── Project header ────────────────────────────────────────────────────── */
@@ -1019,7 +1077,7 @@ html.case-locale-transition-active .case-page-shell--entering > .case-media--ful
   display: flex;
   flex-direction: column;
   gap: var(--case-content-gap);
-  padding: 80px 0;
+  padding: 80px 0 0;
 }
 
 .case-text {
@@ -1272,12 +1330,12 @@ html.case-locale-transition-active .case-page-shell--entering > .case-media--ful
     flex-wrap: wrap;
     gap: 80px 20px;
     margin-top: 80px;
-    padding-bottom: 80px;
+    padding-bottom: 0;
   }
 
   .projects--birdview {
     margin-top: 120px;
-    padding-bottom: 120px;
+    padding-bottom: 0;
   }
 
   /* snakeview: keep 1 column on mobile */
@@ -1285,12 +1343,17 @@ html.case-locale-transition-active .case-page-shell--entering > .case-media--ful
     flex-direction: column;
     gap: 80px !important;
     margin-top: 120px;
-    padding-bottom: 120px;
+    padding-bottom: 0;
   }
 
   .projects--snakeview .hero-about {
     width: calc(100% - 64px);
     margin: 0 32px;
+  }
+
+  .site-footer__content {
+    width: calc(100% - 64px);
+    max-width: 458px;
   }
 
   .projects .project {

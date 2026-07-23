@@ -35,6 +35,29 @@ function getProjectAssetKeys(project: Project) {
 }
 
 describe("projects", () => {
+  it("keeps short function words attached in localized descriptions", () => {
+    const englishDescriptions = projects.map((project) => project.description);
+    const russianDescriptions = projects.flatMap((project) => {
+      const description = project.localizedContent?.ru?.description;
+      return description ? [description] : [];
+    });
+    const breakableEnglishFunctionWord =
+      /(?<!-)\b(?:a|an|the|and|or|to|of|in|on|at|for|with|from|by|as|is|that|I) /;
+    const breakableRussianFunctionWord =
+      /(?:^|[ (])(?:а|в|во|и|к|ко|о|об|от|по|с|со|у|из|за|на|для) /iu;
+
+    expect(
+      englishDescriptions.filter((description) =>
+        breakableEnglishFunctionWord.test(description),
+      ),
+    ).toEqual([]);
+    expect(
+      russianDescriptions.filter((description) =>
+        breakableRussianFunctionWord.test(description),
+      ),
+    ).toEqual([]);
+  });
+
   it("references assets present in the generated media manifest", () => {
     const missingAssets = projects
       .flatMap(getProjectAssetKeys)
