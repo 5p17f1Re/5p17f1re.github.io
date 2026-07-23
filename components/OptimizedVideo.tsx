@@ -100,6 +100,7 @@ export function OptimizedVideo({
         className="optimized-video__media"
         data-rendered-frame={hasRenderedVideoFrame ? "true" : undefined}
         src={src}
+        poster={poster.fallback}
         aria-label={title}
         muted
         loop

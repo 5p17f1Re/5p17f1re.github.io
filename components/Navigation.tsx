@@ -583,7 +583,7 @@ function Navigation({ controls }: { controls: HomeNavigationControls }) {
       aria-label={text.primaryNavigation}
       data-view={controls.view}
       data-indicator-visible="false"
-      data-nav-width-ready={homeLinkWidth !== undefined}
+      data-nav-width-ready={isHome || homeLinkWidth !== undefined}
       onPointerOver={handleNavigationPointerOver}
       onPointerLeave={handleNavigationPointerLeave}
       onFocusCapture={handleNavigationFocus}
@@ -594,31 +594,33 @@ function Navigation({ controls }: { controls: HomeNavigationControls }) {
     >
       <span className="nav__indicator" aria-hidden="true" />
 
-      <Link
-        className="nav__link nav__home"
-        href={homeHref}
-        onClick={handleHomeClick}
-        data-nav-item
-        data-nav-home="true"
-        data-scroll-target-active={!isHome || !isAtPortfolioTop}
-        tabIndex={0}
-        style={
-          homeLinkWidth === undefined ? undefined : { width: homeLinkWidth }
-        }
-      >
-        <span className="nav__back-icon" aria-hidden="true">
-          ←&nbsp;
-        </span>
-        <span ref={homeLabelRef}>
-          <LocaleTextTransition
-            transitionId={controls.localeTextTransitionId ?? 0}
-          >
-            {languageSwitch.currentLocale === "ru"
-              ? "Сева Кудрявцев"
-              : "Seva Kudryavtsev"}
-          </LocaleTextTransition>
-        </span>
-      </Link>
+      {!isHome ? (
+        <Link
+          className="nav__link nav__home"
+          href={homeHref}
+          onClick={handleHomeClick}
+          data-nav-item
+          data-nav-home="true"
+          data-scroll-target-active="true"
+          tabIndex={0}
+          style={
+            homeLinkWidth === undefined ? undefined : { width: homeLinkWidth }
+          }
+        >
+          <span className="nav__back-icon" aria-hidden="true">
+            ←&nbsp;
+          </span>
+          <span ref={homeLabelRef}>
+            <LocaleTextTransition
+              transitionId={controls.localeTextTransitionId ?? 0}
+            >
+              {languageSwitch.currentLocale === "ru"
+                ? "Сева Кудрявцев"
+                : "Seva Kudryavtsev"}
+            </LocaleTextTransition>
+          </span>
+        </Link>
+      ) : null}
 
       <div
         className="nav__view-slot"

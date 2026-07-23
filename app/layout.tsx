@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://sevakudryavtsev.com"),
   title: "Seva Kudryavtsev",
   description:
-    "Designer who combine the quality of consumer interfaces with the systems thinking behind complex products.",
+    "Designer who combines the quality of consumer interfaces with the systems thinking behind complex products.",
   alternates: { canonical: "/" },
   icons: {
     icon: {
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     siteName: "Seva Kudryavtsev",
     title: "Seva Kudryavtsev",
     description:
-      "Designer who combine the quality of consumer interfaces with the systems thinking behind complex products.",
+      "Designer who combines the quality of consumer interfaces with the systems thinking behind complex products.",
     images: [
       {
         url: "/media/images/sevakudrytavtsev-600.webp",
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Seva Kudryavtsev",
     description:
-      "Designer who combine the quality of consumer interfaces with the systems thinking behind complex products.",
+      "Designer who combines the quality of consumer interfaces with the systems thinking behind complex products.",
     images: ["/media/images/sevakudrytavtsev-600.webp"],
   },
 };

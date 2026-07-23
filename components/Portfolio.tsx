@@ -41,7 +41,7 @@ const viewTransitions = {
     birdviewExitScale: 1.1,
     snakeviewEnterScale: 0.9,
     snakeviewRowGapFrom: "44px",
-    snakeviewRowGapTo: "80px",
+    snakeviewRowGapTo: "120px",
   },
   duration: 0.5,
   totalDurationMs: 500,
@@ -76,7 +76,7 @@ function ProjectMedia({
   if (project.mediaType === "video") {
     const sizes =
       view === "snakeview"
-        ? "(max-width: 800px) 100vw, 800px"
+        ? "(max-width: 800px) 100vw, 934px"
         : "(max-width: 600px) 50vw, (max-width: 800px) 50vw, 33vw";
 
     return (
@@ -97,7 +97,7 @@ function ProjectMedia({
                 key={src}
                 assetKey={src}
                 alt={project.title}
-                sizes="(max-width: 800px) 50vw, 400px"
+                sizes="(max-width: 800px) 50vw, 465px"
               />
             ))}
           </div>
@@ -113,7 +113,7 @@ function ProjectMedia({
       alt={project.title}
       sizes={
         view === "snakeview"
-          ? "(max-width: 800px) 100vw, 800px"
+          ? "(max-width: 800px) 100vw, 934px"
           : "(max-width: 600px) 50vw, (max-width: 800px) 50vw, 33vw"
       }
       eager={eager}
@@ -289,11 +289,11 @@ function ProjectCard({
   const content = (
     <>
       <div className="project__header">
-        <span className="project__title">
+        <h3 className="project__title">
           <LocaleTextTransition transitionId={localeTextTransitionId}>
             {project.title}
           </LocaleTextTransition>
-        </span>
+        </h3>
       </div>
       <ProjectMedia project={project} eager={eager} view={view} />
       <p className="project__desc">
@@ -384,10 +384,13 @@ function BirdView({
   return (
     <motion.section
       className="projects projects--birdview"
-      aria-label={text.birdview}
+      aria-labelledby="birdview-heading"
       initial={false}
       animate={viewReady || reduceMotion ? "visible" : "hidden"}
     >
+      <h2 id="birdview-heading" className="visually-hidden">
+        {text.birdview}
+      </h2>
       {showAbout ? (
         <motion.div
           className="project-motion-cell"
@@ -407,11 +410,11 @@ function BirdView({
             data-column="0"
           >
             <div className="project__header">
-              <span className="project__title">
+              <h3 className="project__title">
                 <LocaleTextTransition transitionId={localeTextTransitionId}>
-                {about.name}
+                  {about.name}
                 </LocaleTextTransition>
-              </span>
+              </h3>
             </div>
             <OptimizedImage
               className="project__img"
@@ -491,10 +494,13 @@ function SnakeView({
   return (
     <motion.section
       className="projects projects--snakeview"
-      aria-label={text.snakeview}
+      aria-labelledby="snakeview-heading"
       initial={false}
       animate={viewReady || reduceMotion ? "visible" : "hidden"}
     >
+      <h2 id="snakeview-heading" className="visually-hidden">
+        {text.snakeview}
+      </h2>
       {showAbout ? (
         <motion.article
           className="project hero-about"
@@ -508,20 +514,13 @@ function SnakeView({
           variants={initialCardVariants}
           custom={0}
         >
-          <OptimizedImage
-            className="hero-about__img"
-            assetKey="sevakudrytavtsev"
-            alt={about.name}
-            sizes="300px"
-            eager
-          />
           <div className="hero-about__content">
             <div className="hero-about__header">
-              <span className="hero-about__title">
+              <h3 className="hero-about__title">
                 <LocaleTextTransition transitionId={localeTextTransitionId}>
-                {about.name}
+                  {about.name}
                 </LocaleTextTransition>
-              </span>
+              </h3>
             </div>
             <p className="hero-about__desc">
               <LocaleTextTransition

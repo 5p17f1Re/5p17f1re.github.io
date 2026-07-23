@@ -2,16 +2,17 @@ import type { SiteLocale } from "./locales";
 
 export type AboutContent = {
   name: string;
-  paragraphs: [string, string, string];
+  paragraphs: string[];
 };
 
 const aboutByLocale: Record<SiteLocale, AboutContent> = {
   en: {
     name: "Seva Kudryavtsev",
     paragraphs: [
-      "Designer who combine the quality of consumer interfaces with the systems thinking behind complex products.",
-      "I design digital products from early concepts to launch, shaping how they look, behave, and communicate. I care about visual quality, interaction, and product character—the details that make an experience feel coherent and worth returning to.",
-      "Today I design products for restaurants at Yandex Eats. Before that, I led product design at STARTER. Earlier, I designed and launched websites and digital products for P·Y·E and AVGVST.",
+      "Designer who combines the quality of consumer interfaces with the systems thinking behind complex products.",
+      "I design digital products from early concepts to launch, shaping how they look, behave, and communicate.",
+      "Currently I design products for restaurants at Yandex Eats.",
+      "Before that, I led product design at STARTER. Earlier, I designed and launched digital products for P·Y·E, AVGVST, Samokat and Auto.ru.",
     ],
   },
   ru: {
