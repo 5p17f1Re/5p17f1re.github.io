@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: "https://5p17f1re.github.io/sitemap.xml",
-    host: "https://5p17f1re.github.io",
+    sitemap: "https://sevakudryavtsev.com/sitemap.xml",
+    host: "https://sevakudryavtsev.com",
   };
 }

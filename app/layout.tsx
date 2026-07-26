@@ -2,9 +2,11 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import Script from "next/script";
 import { SiteShell } from "@/components/SiteShell";
+import { YandexMetrica } from "@/components/YandexMetrica";
 import "../styles.css";
 
 const googleAnalyticsId = "G-TLZ88JYZQZ";
+const yandexMetricaId = 110991707;
 
 const inter = localFont({
   src: [
@@ -77,6 +79,7 @@ export default function RootLayout({
           {`try{document.documentElement.dataset.portfolioView=localStorage.getItem("portfolio-view")==="snakeview"?"snakeview":"birdview"}catch(e){document.documentElement.dataset.portfolioView="birdview"}`}
         </Script>
         <SiteShell>{children}</SiteShell>
+        <YandexMetrica />
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
           strategy="afterInteractive"
@@ -95,6 +98,24 @@ try {
 gtag("js", new Date());
 gtag("config", "${googleAnalyticsId}", analyticsDebugMode ? { debug_mode: true } : undefined);`}
         </Script>
+        <Script id="yandex-metrica" strategy="afterInteractive">
+          {`(function(m,e,t,r,i,k,a){
+m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+m[i].l=Date.now();
+for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return}}
+k=e.createElement(t);a=e.getElementsByTagName(t)[0];k.async=1;k.src=r;a.parentNode.insertBefore(k,a)
+})(window,document,"script","https://mc.yandex.ru/metrika/tag.js?id=${yandexMetricaId}","ym");
+ym(${yandexMetricaId},"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvisor:true,defer:true});
+window.dispatchEvent(new Event("yandex-metrica-ready"));`}
+        </Script>
+        <noscript>
+          {/* eslint-disable-next-line @next/next/no-img-element -- Yandex Metrica fallback for visitors without JavaScript. */}
+          <img
+            src={`https://mc.yandex.ru/watch/${yandexMetricaId}`}
+            alt=""
+            style={{ position: "absolute", left: "-9999px" }}
+          />
+        </noscript>
       </body>
     </html>
   );

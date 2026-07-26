@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const baseUrl = "https://5p17f1re.github.io";
+const baseUrl = "https://sevakudryavtsev.com";
 
 export const dynamic = "force-static";
 
@@ -22,9 +22,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      url: `${baseUrl}/ru/yandex-eats-smartreserve/`,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
       url: `${baseUrl}/starter-foodhalls/`,
       changeFrequency: "monthly",
       priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/ru/starter-foodhalls/`,
+      changeFrequency: "monthly",
+      priority: 0.8,
     },
     {
       url: `${baseUrl}/starter-stories/`,
