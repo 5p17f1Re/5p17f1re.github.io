@@ -70,9 +70,11 @@ export function CaseMedia({
 export function CaseMediaPair({
   width,
   items,
+  className,
 }: {
   width: CaseMediaWidth;
   items: [CaseMediaItem, CaseMediaItem];
+  className?: string;
 }) {
   const sizes =
     width === "inline"
@@ -82,7 +84,9 @@ export function CaseMediaPair({
         : "(max-width: 800px) 100vw, 50vw";
 
   return (
-    <div className={`case-media case-media--${width} case-media--pair`}>
+    <div
+      className={`case-media case-media--${width} case-media--pair${className ? ` ${className}` : ""}`}
+    >
       {items.map((item) => (
         <CaseFigure key={item.assetKey} item={item} sizes={sizes} />
       ))}

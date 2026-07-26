@@ -57,7 +57,7 @@ export default function SmartReservePage() {
         </header>
 
         <CaseMedia
-          width="full"
+          width="wide"
           assetKey={media("01-cover")}
           alt=""
           eager
@@ -79,6 +79,7 @@ export default function SmartReservePage() {
 
           <CaseMediaPair
             width="inline"
+            className="case-media--platform-pair"
             items={[
               {
                 assetKey: media("02-platform-hostess"),
@@ -86,7 +87,7 @@ export default function SmartReservePage() {
                 caption: (
                   <>
                     <strong>SmartReserve for hostesses</strong>
-                    <span>seating guests and managing reservations</span>
+                    <span>Seating guests and managing reservations</span>
                   </>
                 ),
               },
@@ -96,7 +97,7 @@ export default function SmartReservePage() {
                 caption: (
                   <>
                     <strong>Admin panel</strong>
-                    <span>schedules, guests, reviews, and campaigns</span>
+                    <span>Schedules, guests, reviews, and campaigns</span>
                   </>
                 ),
               },
@@ -331,6 +332,20 @@ export default function SmartReservePage() {
             width="wide"
             assetKey={media("13-time-behavior")}
             alt="Time filter and daily forecast"
+          />
+
+          <CaseMediaPair
+            width="wide"
+            items={[
+              {
+                assetKey: media("1311-time-behavior"),
+                alt: "Analytics interface with time-period controls",
+              },
+              {
+                assetKey: media("1312-time-behavior"),
+                alt: "Analytics interface with a daily forecast",
+              },
+            ]}
           />
 
           <section className="case-text">

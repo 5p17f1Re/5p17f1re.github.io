@@ -1392,7 +1392,13 @@ html.case-locale-transition-active .case-page-shell--entering > .case-media--ful
 }
 
 .case-content > .case-media + .case-media {
-  margin-top: calc(12px - var(--case-content-gap));
+  margin-top: calc(16px - var(--case-content-gap));
+}
+
+/* Keep the heading and its text together; only reduce the gap between
+   separate adjacent text blocks. */
+.case-content > .case-text + .case-text {
+  margin-top: calc(64px - var(--case-content-gap));
 }
 
 .case-media--inline {
@@ -1410,7 +1416,7 @@ html.case-locale-transition-active .case-page-shell--entering > .case-media--ful
 .case-media--pair {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: 4px;
 }
 
 .case-media__figure {
@@ -1479,6 +1485,19 @@ html.case-locale-transition-active .case-page-shell--entering > .case-media--ful
 
 .case-media__caption span {
   color: rgba(255, 255, 255, 0.55);
+}
+
+.case-media--platform-pair .case-media__caption {
+  font-size: 17px;
+  line-height: 22px;
+}
+
+.case-media--platform-pair .case-media__caption strong {
+  line-height: 22px;
+}
+
+.case-media--platform-pair .case-media__caption span {
+  margin-top: 4px;
 }
 
 @media (hover: hover) {
@@ -1595,7 +1614,7 @@ html.case-locale-transition-active .case-page-shell--entering > .case-media--ful
 
   .case-media--pair {
     grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
+    gap: 16px;
   }
 
   .case-text h2 {
