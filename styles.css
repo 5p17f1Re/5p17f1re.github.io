@@ -576,6 +576,10 @@ img { display: block; max-width: 100%; }
   visibility: hidden;
 }
 
+html[data-portfolio-view="snakeview"] .view-stage[data-view-ready="false"] {
+  visibility: visible;
+}
+
 .view-stage--switching {
   overflow: hidden;
 }

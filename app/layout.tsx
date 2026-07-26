@@ -74,7 +74,7 @@ export default function RootLayout({
     <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body className={`${inter.variable} ${interTight.variable}`}>
         <Script id="portfolio-view" strategy="beforeInteractive">
-          {`try{document.documentElement.dataset.portfolioView=localStorage.getItem("portfolio-view")==="snakeview"?"snakeview":"birdview"}catch(e){document.documentElement.dataset.portfolioView="birdview"}`}
+          {`try{document.documentElement.dataset.portfolioView=localStorage.getItem("portfolio-view")==="birdview"?"birdview":"snakeview"}catch(e){document.documentElement.dataset.portfolioView="snakeview"}`}
         </Script>
         <SiteShell>{children}</SiteShell>
         <YandexMetrica />

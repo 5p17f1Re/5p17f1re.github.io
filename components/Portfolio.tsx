@@ -759,7 +759,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
   const about = getAbout(activeLocale);
   const text = getUiText(activeLocale);
   const showAbout = true;
-  const [view, setView] = useState<ViewMode>("birdview");
+  const [view, setView] = useState<ViewMode>("snakeview");
   const [viewReady, setViewReady] = useState(false);
   const [alternateViewPrepared, setAlternateViewPrepared] = useState(false);
   const [nextView, setNextView] = useState<ViewMode | null>(null);
@@ -831,7 +831,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
       document.documentElement.dataset.portfolioView ??
       window.localStorage.getItem("portfolio-view");
     /* eslint-disable react-hooks/set-state-in-effect -- The client-only preference is applied after hydration. */
-    setView(storedView === "snakeview" ? "snakeview" : "birdview");
+    setView(storedView === "birdview" ? "birdview" : "snakeview");
     setViewReady(true);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, []);

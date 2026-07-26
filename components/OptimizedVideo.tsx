@@ -26,6 +26,23 @@ export function OptimizedVideo({
 
   useEffect(() => {
     const video = videoRef.current;
+    const hiddenLayer = video?.closest(".view-layer--hidden");
+
+    if (hiddenLayer) {
+      const layerObserver = new MutationObserver(() => {
+        if (!hiddenLayer.classList.contains("view-layer--hidden")) {
+          setShouldLoadVideo(true);
+        }
+      });
+
+      layerObserver.observe(hiddenLayer, {
+        attributeFilter: ["class"],
+        attributes: true,
+      });
+
+      return () => layerObserver.disconnect();
+    }
+
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
@@ -106,7 +123,6 @@ export function OptimizedVideo({
         className="optimized-video__media"
         data-rendered-frame={hasRenderedVideoFrame ? "true" : undefined}
         src={shouldLoadVideo ? src : undefined}
-        poster={poster.fallback}
         aria-label={title}
         muted
         loop
