@@ -152,6 +152,7 @@ function Navigation({ controls }: { controls: HomeNavigationControls }) {
   const router = useRouter();
   const isRussianPath = pathname === "/ru" || pathname.startsWith("/ru/");
   const isHome = pathname === "/" || pathname === "/ru/";
+  const isUtilityPage = pathname === "/c" || pathname === "/c/";
   const homeHref = isRussianPath ? "/ru/" : "/";
   const navigationRef = useRef<HTMLElement>(null);
   const homeLabelRef = useRef<HTMLSpanElement>(null);
@@ -647,7 +648,7 @@ function Navigation({ controls }: { controls: HomeNavigationControls }) {
         </div>
       </div>
 
-      {languageSwitch.targetPath ? (
+      {isUtilityPage ? null : languageSwitch.targetPath ? (
         <Link
           className="nav__link nav__language-switch"
           href={languageSwitch.targetPath}
