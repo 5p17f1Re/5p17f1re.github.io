@@ -16,8 +16,10 @@ import sharp from "sharp";
 
 const root = process.cwd();
 const originalsDir = path.join(root, "media-originals");
-const imagesDir = path.join(originalsDir, "images");
-const videosDir = path.join(originalsDir, "videos");
+const mediaSourceDirectories = [
+  path.join(originalsDir, "cases"),
+  path.join(originalsDir, "site"),
+];
 const outputDir = path.join(root, "public", "media");
 const generatedDir = path.join(root, "generated");
 const manifestPath = path.join(generatedDir, "media-manifest.json");
@@ -50,9 +52,16 @@ function toPosixPath(filePath) {
 }
 
 async function listFilesRecursively(directory, relativeDirectory = "") {
-  const entries = await readdir(path.join(directory, relativeDirectory), {
-    withFileTypes: true,
-  });
+  let entries;
+
+  try {
+    entries = await readdir(path.join(directory, relativeDirectory), {
+      withFileTypes: true,
+    });
+  } catch (error) {
+    if (error.code === "ENOENT") return [];
+    throw error;
+  }
 
   const files = await Promise.all(
     entries.map(async (entry) => {
@@ -65,6 +74,29 @@ async function listFilesRecursively(directory, relativeDirectory = "") {
   );
 
   return files.flat();
+}
+
+async function listMediaFiles(extensionPattern) {
+  const files = await Promise.all(
+    mediaSourceDirectories.map(async (directory) =>
+      (await listFilesRecursively(directory))
+        .filter((file) => extensionPattern.test(file))
+        .map((file) => ({ file, source: path.join(directory, file) })),
+    ),
+  );
+  const mediaFiles = files.flat().sort((left, right) =>
+    left.file.localeCompare(right.file),
+  );
+
+  for (let index = 1; index < mediaFiles.length; index += 1) {
+    if (mediaFiles[index].file === mediaFiles[index - 1].file) {
+      throw new Error(
+        `Duplicate media path in cases/ and site/: ${mediaFiles[index].file}`,
+      );
+    }
+  }
+
+  return mediaFiles;
 }
 
 async function hashFile(filePath) {
@@ -191,12 +223,9 @@ let reusedImageCount = 0;
 let copiedVideoCount = 0;
 let reusedVideoCount = 0;
 
-const imageFiles = (await listFilesRecursively(imagesDir))
-  .filter((file) => /\.(png|jpe?g|webp|avif)$/i.test(file))
-  .sort();
+const imageFiles = await listMediaFiles(/\.(png|jpe?g|webp|avif)$/i);
 
-for (const file of imageFiles) {
-  const source = path.join(imagesDir, file);
+for (const { file, source } of imageFiles) {
   const parsedFile = path.parse(file);
   const relativeDirectory = parsedFile.dir;
   const key = toPosixPath(path.join(relativeDirectory, parsedFile.name));
@@ -294,17 +323,12 @@ for (const [key, previousImage] of Object.entries(previousState.images)) {
   if (!nextState.images[key]) await removeOutputs(previousImage.outputs);
 }
 
-const videoFiles = (await listFilesRecursively(videosDir))
-  .filter(
-    (file) =>
-      /\.(mp4|webm)$/i.test(file) &&
-      publishedVideos.has(toPosixPath(file)),
-  )
-  .sort();
+const videoFiles = (await listMediaFiles(/\.(mp4|webm)$/i)).filter(({ file }) =>
+  publishedVideos.has(toPosixPath(file)),
+);
 
-for (const file of videoFiles) {
+for (const { file, source } of videoFiles) {
   const normalizedFile = toPosixPath(file);
-  const source = path.join(videosDir, file);
   const destination = path.join(outputDir, "videos", file);
   const output = toPosixPath(path.relative(root, destination));
   const sourceHash = await hashFile(source);

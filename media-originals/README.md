@@ -1,7 +1,10 @@
 # Media originals
 
-Add source images to `images/` and source videos to `videos/`. These originals
-stay in the local iCloud workspace and are not committed to Git.
+Keep every case's source images, videos, and posters together in
+`cases/<slug>/`. Put homepage material that does not belong to one case in
+`site/`. File extensions determine processing: images are optimized, while
+approved MP4/WebM files are copied as videos. These originals stay in the local
+iCloud workspace and are not committed to Git.
 
 Run:
 
