@@ -713,7 +713,7 @@ function Navigation({ controls }: { controls: HomeNavigationControls }) {
 
 export function NavigationShell({ children }: { children: ReactNode }) {
   const [controls, setControls] = useState<HomeNavigationControls>({
-    view: "birdview",
+    view: "snakeview",
     busy: false,
   });
 
