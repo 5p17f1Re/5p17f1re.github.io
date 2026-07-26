@@ -84,8 +84,16 @@ export default function RootLayout({
         <Script id="google-analytics" strategy="afterInteractive">
           {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
+var analyticsDebugKey = "portfolio-analytics-debug";
+var analyticsDebugMode = false;
+try {
+  var analyticsDebugValue = new URLSearchParams(window.location.search).get("analytics_debug");
+  if (analyticsDebugValue === "1") sessionStorage.setItem(analyticsDebugKey, "1");
+  if (analyticsDebugValue === "0") sessionStorage.removeItem(analyticsDebugKey);
+  analyticsDebugMode = sessionStorage.getItem(analyticsDebugKey) === "1";
+} catch (error) {}
 gtag("js", new Date());
-gtag("config", "${googleAnalyticsId}");`}
+gtag("config", "${googleAnalyticsId}", analyticsDebugMode ? { debug_mode: true } : undefined);`}
         </Script>
       </body>
     </html>
