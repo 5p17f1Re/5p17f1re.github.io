@@ -22,6 +22,7 @@ export function OptimizedVideo({
   const frameRequestRef = useRef<number | null>(null);
   const poster = getMediaAsset(posterKey);
   const [hasRenderedVideoFrame, setHasRenderedVideoFrame] = useState(false);
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(eager);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -55,6 +56,11 @@ export function OptimizedVideo({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
+        if (entry.isIntersecting && !shouldLoadVideo) {
+          setShouldLoadVideo(true);
+          return;
+        }
+
         if (entry.isIntersecting) {
           void video.play().then(revealAfterRenderedFrame).catch(() => {});
         } else {
@@ -79,7 +85,7 @@ export function OptimizedVideo({
         cancelVideoFrameCallback.call(video, frameRequestRef.current);
       }
     };
-  }, [src]);
+  }, [shouldLoadVideo, src]);
 
   return (
     <div
@@ -99,13 +105,13 @@ export function OptimizedVideo({
         ref={videoRef}
         className="optimized-video__media"
         data-rendered-frame={hasRenderedVideoFrame ? "true" : undefined}
-        src={src}
+        src={shouldLoadVideo ? src : undefined}
         poster={poster.fallback}
         aria-label={title}
         muted
         loop
         playsInline
-        preload="metadata"
+        preload={shouldLoadVideo ? "metadata" : "none"}
         onError={() => setHasRenderedVideoFrame(false)}
       />
     </div>

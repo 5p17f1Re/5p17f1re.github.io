@@ -10,8 +10,7 @@ const yandexMetricaId = 110991707;
 
 const inter = localFont({
   src: [
-    { path: "./fonts/inter-medium.ttf", weight: "500" },
-    { path: "./fonts/inter-bold.ttf", weight: "700" },
+    { path: "./fonts/inter-variable.woff2", weight: "500 700" },
   ],
   variable: "--font-inter",
   display: "swap",
@@ -19,8 +18,7 @@ const inter = localFont({
 
 const interTight = localFont({
   src: [
-    { path: "./fonts/inter-tight-medium.ttf", weight: "500" },
-    { path: "./fonts/inter-tight-bold.ttf", weight: "700" },
+    { path: "./fonts/inter-tight-variable.woff2", weight: "500 700" },
   ],
   variable: "--font-inter-tight",
   display: "swap",
@@ -82,9 +80,9 @@ export default function RootLayout({
         <YandexMetrica />
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
-        <Script id="google-analytics" strategy="afterInteractive">
+        <Script id="google-analytics" strategy="lazyOnload">
           {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 var analyticsDebugKey = "portfolio-analytics-debug";
@@ -98,7 +96,7 @@ try {
 gtag("js", new Date());
 gtag("config", "${googleAnalyticsId}", analyticsDebugMode ? { debug_mode: true } : undefined);`}
         </Script>
-        <Script id="yandex-metrica" strategy="afterInteractive">
+        <Script id="yandex-metrica" strategy="lazyOnload">
           {`(function(m,e,t,r,i,k,a){
 m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
 m[i].l=Date.now();

@@ -31,12 +31,14 @@ export function OptimizedImage({
   className = "",
   sizes,
   eager = false,
+  prefetch = false,
 }: {
   assetKey: string;
   alt: string;
   className?: string;
   sizes: string;
   eager?: boolean;
+  prefetch?: boolean;
 }) {
   const asset = getMediaAsset(assetKey);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -83,7 +85,7 @@ export function OptimizedImage({
         width={asset.width}
         height={asset.height}
         alt={alt}
-        loading={eager ? "eager" : "lazy"}
+        loading={eager || prefetch ? "eager" : "lazy"}
         fetchPriority={eager ? "high" : "auto"}
         decoding="async"
         onLoad={() => void reveal()}

@@ -761,6 +761,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
   const showAbout = true;
   const [view, setView] = useState<ViewMode>("birdview");
   const [viewReady, setViewReady] = useState(false);
+  const [alternateViewPrepared, setAlternateViewPrepared] = useState(false);
   const [nextView, setNextView] = useState<ViewMode | null>(null);
   const [containerHeight, setContainerHeight] = useState<number>();
   const [localeTextTransitionId, setLocaleTextTransitionId] = useState(0);
@@ -834,6 +835,30 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
     setViewReady(true);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
+
+  useEffect(() => {
+    if (!viewReady || alternateViewPrepared) return;
+
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const prepareAlternateView = () => {
+      timer = setTimeout(() => {
+        if (!cancelled) setAlternateViewPrepared(true);
+      }, 600);
+    };
+
+    if (document.readyState === "complete") {
+      prepareAlternateView();
+    } else {
+      window.addEventListener("load", prepareAlternateView, { once: true });
+    }
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+      window.removeEventListener("load", prepareAlternateView);
+    };
+  }, [alternateViewPrepared, viewReady]);
 
   useEffect(() => {
     let animationFrame = 0;
@@ -930,6 +955,10 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
     trackEvent("portfolio_view_changed", {
       portfolio_view: next,
     });
+
+    if (!alternateViewPrepared) {
+      setAlternateViewPrepared(true);
+    }
 
     if (reduceMotion) {
       setView(next);
@@ -1059,7 +1088,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
         data-view-ready={viewReady ? "true" : "false"}
         style={containerHeight ? { height: containerHeight } : undefined}
       >
-            <motion.div
+            {((view === "birdview") || nextView === "birdview" || alternateViewPrepared) ? <motion.div
               ref={birdviewLayerRef}
               className={`view-layer view-layer--birdview view-layer--${getViewLayerState("birdview")}`}
               initial={false}
@@ -1078,9 +1107,9 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
                 viewReady={viewReady}
                 reduceMotion={Boolean(reduceMotion)}
               />
-            </motion.div>
+            </motion.div> : null}
 
-            <motion.div
+            {((view === "snakeview") || nextView === "snakeview" || alternateViewPrepared) ? <motion.div
               ref={snakeviewLayerRef}
               className={`view-layer view-layer--snakeview view-layer--${getViewLayerState("snakeview")}`}
               initial={false}
@@ -1099,7 +1128,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
                 viewReady={viewReady}
                 reduceMotion={Boolean(reduceMotion)}
               />
-            </motion.div>
+            </motion.div> : null}
       </div>
     </main>
   );
