@@ -31,6 +31,7 @@ export const cases: readonly CaseDefinition[] = [
     availableLocales: [],
     legacyLocale: "ru",
   },
+  { slug: "pye-try-on-app", transitionId: "pye-try-on-app", access: { scope: "public" }, availableLocales: [], legacyLocale: "en" },
 ];
 
 const casesBySlug = new Map(

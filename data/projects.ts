@@ -106,6 +106,24 @@ export const projects: Project[] = [
     },
   },
   {
+    slug: "pye-try-on-app",
+    transitionId: "pye-try-on-app",
+    mediaType: "video",
+    tag: "app",
+    title: "PYE Home Try-On",
+    video: "/media/videos/pye-tryon-app/cover-1156.mp4",
+    poster: "pye-home-tryon",
+    description:
+      "An app for choosing and trying on glasses: AR try-on, saved frames and home try-on orders",
+    localizedContent: {
+      ru: {
+        title: "Приложение PYE",
+        description:
+          "Приложение для выбора и примерки очков: AR-примерка, избранное и заказ оправ домой",
+      },
+    },
+  },
+  {
     mediaType: "video",
     tag: "promo",
     title: "Samokat",
@@ -119,21 +137,6 @@ export const projects: Project[] = [
         title: "Самокат",
         description:
           "Промосайт Самоката о ценности сервиса, ассортименте и городах, где уже работает быстрая доставка",
-      },
-    },
-  },
-  {
-    mediaType: "image",
-    tag: "platform",
-    title: "Arxel",
-    image: "arxl",
-    description:
-      "A platform for architects, developers and construction teams, showing the roles and contributions behind a built project",
-    localizedContent: {
-      ru: {
-        title: "Arxel",
-        description:
-          "Платформа для архитекторов, девелоперов и строительных команд, где видны роли и вклад каждого участника",
       },
     },
   },
@@ -154,16 +157,16 @@ export const projects: Project[] = [
   },
   {
     mediaType: "image",
-    tag: "app",
-    title: "PYE Home Try-On",
-    image: "pye-home-tryon",
+    tag: "platform",
+    title: "Arxel",
+    image: "arxl",
     description:
-      "An app for choosing and trying on glasses: AR try-on, saved frames and home try-on orders",
+      "A platform for architects, developers and construction teams, showing the roles and contributions behind a built project",
     localizedContent: {
       ru: {
-        title: "Приложение PYE",
+        title: "Arxel",
         description:
-          "Приложение для выбора и примерки очков: AR-примерка, избранное и заказ оправ домой",
+          "Платформа для архитекторов, девелоперов и строительных команд, где видны роли и вклад каждого участника",
       },
     },
   },

@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import Script from "next/script";
 import { SiteShell } from "@/components/SiteShell";
 import { YandexMetrica } from "@/components/YandexMetrica";
+import { SquircleNoScript } from "@/components/Squircle";
 import "../styles.css";
 
 const googleAnalyticsId = "G-TLZ88JYZQZ";
@@ -73,6 +74,7 @@ export default function RootLayout({
   return (
     <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body className={`${inter.variable} ${interTight.variable}`}>
+        <SquircleNoScript />
         <Script id="portfolio-view" strategy="beforeInteractive">
           {`try{document.documentElement.dataset.portfolioView=localStorage.getItem("portfolio-view")==="birdview"?"birdview":"snakeview"}catch(e){document.documentElement.dataset.portfolioView="snakeview"}`}
         </Script>

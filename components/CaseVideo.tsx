@@ -15,6 +15,8 @@ export function CaseVideo({
   hasAudio = false,
   caption,
   locale = "ru",
+  aspectRatio,
+  showToggle = true,
 }: {
   width: CaseMediaWidth;
   src: string;
@@ -23,6 +25,8 @@ export function CaseVideo({
   hasAudio?: boolean;
   caption?: ReactNode;
   locale?: SiteLocale;
+  aspectRatio?: string;
+  showToggle?: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const poster = getMediaAsset(posterAssetKey);
@@ -72,11 +76,11 @@ export function CaseVideo({
             loop={!hasAudio}
             playsInline
             preload="metadata"
-            style={{ aspectRatio: `${poster.width} / ${poster.height}` }}
+            style={{ aspectRatio: aspectRatio ?? `${poster.width} / ${poster.height}` }}
             onPause={() => setIsPlaying(false)}
             onPlay={() => setIsPlaying(true)}
           />
-          {!hasAudio ? (
+          {!hasAudio && showToggle ? (
             <button
               className="case-video__toggle"
               type="button"
