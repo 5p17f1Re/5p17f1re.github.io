@@ -23,7 +23,7 @@ import {
   rememberPortfolioScrollPosition,
   useNavigationViewControls,
 } from "./Navigation";
-import { trackEvent, trackOutboundLink } from "./analytics";
+import { trackContactIntent, trackEvent, trackOutboundLink } from "./analytics";
 
 type ViewMode = "birdview" | "snakeview";
 type ViewLayerState = "current" | "outgoing" | "incoming" | "hidden";
@@ -682,9 +682,10 @@ function SnakeView({
               target="_blank"
               rel="noreferrer"
               aria-label={text.telegramChannelLinkLabel}
-              onClick={() =>
-                trackOutboundLink("telegram", "snakeview_about_cta")
-              }
+              onClick={() => {
+                trackOutboundLink("telegram", "snakeview_about_cta");
+                trackContactIntent("telegram", "snakeview_about_cta");
+              }}
               onPointerEnter={showTelegramCursor}
               onPointerMove={moveTelegramCursor}
               onPointerLeave={hideTelegramCursor}

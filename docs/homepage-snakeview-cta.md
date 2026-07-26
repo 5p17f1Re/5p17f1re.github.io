@@ -4,8 +4,10 @@
 
 CTA ведёт на Telegram-канал `@mybeautifulheaven`. Он находится только в блоке
 «Обо мне» режима Snakeview и открывает `https://t.me/mybeautifulheaven` в новой
-вкладке. Клик отправляет GA4-событие `outbound_link_clicked` с
-`destination: telegram` и `placement: snakeview_about_cta`.
+вкладке. Клик отправляет GA4-события `outbound_link_clicked` и
+`contact_intent` с `destination: telegram` и `placement: snakeview_about_cta`.
+`contact_intent` включает переход в ключевую воронку портфолио, а
+`outbound_link_clicked` оставляет техническую диагностику внешнего клика.
 
 UTM-параметры к ссылке `t.me` не добавляются: они не передаются в GA4 сайта.
 
