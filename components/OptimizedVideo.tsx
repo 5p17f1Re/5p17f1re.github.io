@@ -107,17 +107,16 @@ export function OptimizedVideo({
   return (
     <div
       className={`optimized-video ${className}`.trim()}
+      data-rendered-frame={hasRenderedVideoFrame ? "true" : undefined}
       style={{ aspectRatio: `${poster.width} / ${poster.height}` }}
     >
-      {!hasRenderedVideoFrame ? (
-        <OptimizedImage
-          assetKey={posterKey}
-          alt=""
-          className="optimized-video__poster"
-          sizes={sizes}
-          eager={eager}
-        />
-      ) : null}
+      <OptimizedImage
+        assetKey={posterKey}
+        alt=""
+        className="optimized-video__poster"
+        sizes={sizes}
+        eager={eager}
+      />
       <video
         ref={videoRef}
         className="optimized-video__media"

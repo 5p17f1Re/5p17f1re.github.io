@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { OptimizedImage } from "./OptimizedImage";
+import { SharedCaseCover } from "./CaseCoverMotion";
 
 export type CaseMediaWidth = "inline" | "wide" | "full";
 
@@ -54,16 +55,16 @@ export function CaseMedia({
         : "100vw";
 
   return (
-    <div
+    <SharedCaseCover
       className={`case-media case-media--${width}`}
-      data-transition-project={transitionId}
+      transitionId={transitionId}
     >
       <CaseFigure
         item={{ assetKey, alt, caption }}
         sizes={sizes}
         eager={eager}
       />
-    </div>
+    </SharedCaseCover>
   );
 }
 

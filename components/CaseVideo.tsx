@@ -5,7 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import type { SiteLocale } from "@/data/locales";
 import { getUiText } from "@/data/ui-text";
 import type { CaseMediaWidth } from "./CaseMedia";
-import { getMediaAsset } from "./OptimizedImage";
+import { getMediaAsset, OptimizedImage } from "./OptimizedImage";
+import { SharedCaseCover } from "./CaseCoverMotion";
 
 export function CaseVideo({
   width,
@@ -17,6 +18,7 @@ export function CaseVideo({
   locale = "ru",
   aspectRatio,
   showToggle = true,
+  transitionId,
 }: {
   width: CaseMediaWidth;
   src: string;
@@ -27,10 +29,13 @@ export function CaseVideo({
   locale?: SiteLocale;
   aspectRatio?: string;
   showToggle?: boolean;
+  transitionId?: string;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const frameRequestRef = useRef<number | null>(null);
   const poster = getMediaAsset(posterAssetKey);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [hasRenderedVideoFrame, setHasRenderedVideoFrame] = useState(false);
   const text = getUiText(locale);
 
   useEffect(() => {
@@ -41,7 +46,34 @@ export function CaseVideo({
 
     if (!video || hasAudio || prefersReducedMotion) return;
 
-    void video.play().then(() => setIsPlaying(true)).catch(() => {});
+    const revealAfterRenderedFrame = () => {
+      if (frameRequestRef.current !== null) return;
+      if (video.requestVideoFrameCallback) {
+        frameRequestRef.current = video.requestVideoFrameCallback(() => {
+          frameRequestRef.current = null;
+          setHasRenderedVideoFrame(true);
+        });
+      } else if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+        setHasRenderedVideoFrame(true);
+      }
+    };
+
+    void video
+      .play()
+      .then(() => {
+        setIsPlaying(true);
+        revealAfterRenderedFrame();
+      })
+      .catch(() => {});
+
+    return () => {
+      if (
+        frameRequestRef.current !== null &&
+        video.cancelVideoFrameCallback
+      ) {
+        video.cancelVideoFrameCallback(frameRequestRef.current);
+      }
+    };
   }, [hasAudio]);
 
   async function toggleSilentVideo() {
@@ -60,9 +92,30 @@ export function CaseVideo({
   }
 
   return (
-    <div className={`case-media case-media--${width}`}>
+    <SharedCaseCover
+      className={`case-media case-media--${width}`}
+      transitionId={transitionId}
+    >
       <figure className="case-media__figure">
-        <div className="case-video">
+        <div
+          className="case-video"
+          data-rendered-frame={hasRenderedVideoFrame ? "true" : undefined}
+        >
+          {!hasAudio ? (
+            <OptimizedImage
+              assetKey={posterAssetKey}
+              alt=""
+              className="case-video__poster"
+              sizes={
+                width === "inline"
+                  ? "(max-width: 800px) calc(100vw - 32px), 684px"
+                  : width === "wide"
+                    ? "(max-width: 800px) 100vw, 1156px"
+                    : "100vw"
+              }
+              eager
+            />
+          ) : null}
           <video
             ref={videoRef}
             className="case-media__video"
@@ -77,6 +130,7 @@ export function CaseVideo({
             playsInline
             preload="metadata"
             style={{ aspectRatio: aspectRatio ?? `${poster.width} / ${poster.height}` }}
+            onError={() => setHasRenderedVideoFrame(false)}
             onPause={() => setIsPlaying(false)}
             onPlay={() => setIsPlaying(true)}
           />
@@ -97,6 +151,6 @@ export function CaseVideo({
           <figcaption className="case-media__caption">{caption}</figcaption>
         ) : null}
       </figure>
-    </div>
+    </SharedCaseCover>
   );
 }

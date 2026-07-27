@@ -7,6 +7,10 @@ import { getCase } from "@/data/cases";
 import { getUiText } from "@/data/ui-text";
 import { NavigationShell } from "./Navigation";
 import { SiteFooter } from "./SiteFooter";
+import {
+  CaseCoverMotionProvider,
+  CaseMotionRoutes,
+} from "./CaseCoverMotion";
 import { trackEvent } from "./analytics";
 
 export function SiteShell({ children }: { children: React.ReactNode }) {
@@ -47,7 +51,11 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       <a className="skip-link" href="#main-content">
         {text.skipToContent}
       </a>
-      <NavigationShell>{children}</NavigationShell>
+      <CaseCoverMotionProvider>
+        <NavigationShell>
+          <CaseMotionRoutes>{children}</CaseMotionRoutes>
+        </NavigationShell>
+      </CaseCoverMotionProvider>
       <SiteFooter />
     </>
   );

@@ -49,7 +49,7 @@ export default function StarterFoodhallsPage() {
     <CaseAccessBoundary id="starter-foodhalls" scope="public">
       <main
         id="main-content"
-        className="case-page-shell case-page-shell--entering"
+        className="case-page-shell"
         lang="en"
       >
         <header className="case-title">

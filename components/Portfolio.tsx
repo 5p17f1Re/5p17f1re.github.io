@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import {
+  type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
   useCallback,
   useEffect,
@@ -19,6 +20,7 @@ import { getUiText, type UiText } from "@/data/ui-text";
 import { OptimizedImage } from "./OptimizedImage";
 import { OptimizedVideo } from "./OptimizedVideo";
 import { LocaleTextTransition } from "./LocaleTextTransition";
+import { SharedCaseCover, useCaseCoverMotion } from "./CaseCoverMotion";
 import {
   rememberPortfolioScrollPosition,
   useNavigationViewControls,
@@ -66,10 +68,12 @@ function ProjectMedia({
   project,
   eager = false,
   view,
+  sharedCoverEnabled,
 }: {
   project: Project;
   eager?: boolean;
   view: ViewMode;
+  sharedCoverEnabled: boolean;
 }) {
   if (project.mediaType === "text") {
     return null;
@@ -83,14 +87,20 @@ function ProjectMedia({
 
     return (
       <>
-        <OptimizedVideo
-          className="project__img project__video"
-          src={project.video}
-          posterKey={project.poster}
-          title={project.title}
-          sizes={sizes}
-          eager={eager}
-        />
+        <SharedCaseCover
+          transitionId={project.transitionId}
+          enabled={sharedCoverEnabled}
+          className="shared-case-cover"
+        >
+          <OptimizedVideo
+            className="project__img project__video"
+            src={project.video}
+            posterKey={project.poster}
+            title={project.title}
+            sizes={sizes}
+            eager={eager}
+          />
+        </SharedCaseCover>
         {project.extraImages ? (
           <div className="project__imgs project__imgs--extra">
             {project.extraImages.map((src) => (
@@ -109,17 +119,23 @@ function ProjectMedia({
   }
 
   return (
-    <OptimizedImage
-      className="project__img"
-      assetKey={project.image}
-      alt={project.title}
-      sizes={
-        view === "snakeview"
-          ? "(max-width: 800px) 100vw, 934px"
-          : "(max-width: 600px) 50vw, (max-width: 800px) 50vw, 33vw"
-      }
-      eager={eager}
-    />
+    <SharedCaseCover
+      transitionId={project.transitionId}
+      enabled={sharedCoverEnabled}
+      className="shared-case-cover"
+    >
+      <OptimizedImage
+        className="project__img"
+        assetKey={project.image}
+        alt={project.title}
+        sizes={
+          view === "snakeview"
+            ? "(max-width: 800px) 100vw, 934px"
+            : "(max-width: 600px) 50vw, (max-width: 800px) 50vw, 33vw"
+        }
+        eager={eager}
+      />
+    </SharedCaseCover>
   );
 }
 
@@ -132,6 +148,7 @@ function ProjectCard({
   column,
   eager = false,
   view,
+  sharedCoverEnabled,
 }: {
   project: Project;
   locale: SiteLocale;
@@ -141,7 +158,9 @@ function ProjectCard({
   column?: number;
   eager?: boolean;
   view: ViewMode;
+  sharedCoverEnabled: boolean;
 }) {
+  const { active: activeCoverMotion, openCase } = useCaseCoverMotion();
   const interactiveCardRef = useRef<HTMLAnchorElement>(null);
   const projectCaseLinkRef = useRef<HTMLSpanElement>(null);
   const cursorAnimationFrameRef = useRef<number | null>(null);
@@ -297,7 +316,12 @@ function ProjectCard({
           </LocaleTextTransition>
         </h3>
       </div>
-      <ProjectMedia project={project} eager={eager} view={view} />
+      <ProjectMedia
+        project={project}
+        eager={eager}
+        view={view}
+        sharedCoverEnabled={sharedCoverEnabled}
+      />
       <p className="project__desc">
         <LocaleTextTransition transitionId={localeTextTransitionId} block>
           {project.description}
@@ -318,23 +342,46 @@ function ProjectCard({
     "data-row": row,
     "data-column": column,
     "data-transition-project": project.transitionId,
+    "data-case-cover-active":
+      activeCoverMotion?.transitionId === project.transitionId
+        ? "true"
+        : undefined,
   };
+
+  const casePath = project.slug
+    ? getCasePath({ locale, slug: project.slug })
+    : null;
+
+  function handleCaseOpen(event: ReactMouseEvent<HTMLAnchorElement>) {
+    if (!project.slug || !project.transitionId || !casePath) return;
+
+    rememberPortfolioScrollPosition();
+    trackEvent("case_opened", {
+      case_slug: project.slug,
+      locale,
+      portfolio_view: view,
+    });
+
+    if (
+      openCase(event, {
+        transitionId: project.transitionId,
+        casePath,
+        homePath: locale === "ru" ? "/ru/" : "/",
+        view,
+      })
+    ) {
+      event.preventDefault();
+    }
+  }
 
   return project.slug ? (
     <Link
       {...props}
       ref={interactiveCardRef}
       className="project project--link"
-      href={getCasePath({ locale, slug: project.slug })}
+      href={casePath!}
       aria-label={text.openCaseStudy(project.title)}
-      onClick={() => {
-        rememberPortfolioScrollPosition();
-        trackEvent("case_opened", {
-          case_slug: project.slug,
-          locale,
-          portfolio_view: view,
-        });
-      }}
+      onClick={handleCaseOpen}
       onPointerEnter={showProjectCursor}
       onPointerMove={moveProjectCursor}
       onPointerLeave={hideProjectCursor}
@@ -372,6 +419,7 @@ function BirdView({
   about,
   viewReady,
   reduceMotion,
+  sharedCoverEnabled,
 }: {
   projects: Project[];
   locale: SiteLocale;
@@ -382,6 +430,7 @@ function BirdView({
   about: ReturnType<typeof getAbout>;
   viewReady: boolean;
   reduceMotion: boolean;
+  sharedCoverEnabled: boolean;
 }) {
   return (
     <motion.section
@@ -464,6 +513,7 @@ function BirdView({
               column={gridIndex % 3}
               eager={index < 2}
               view="birdview"
+              sharedCoverEnabled={sharedCoverEnabled}
             />
           </motion.div>
         );
@@ -482,6 +532,7 @@ function SnakeView({
   about,
   viewReady,
   reduceMotion,
+  sharedCoverEnabled,
 }: {
   projects: Project[];
   locale: SiteLocale;
@@ -492,6 +543,7 @@ function SnakeView({
   about: ReturnType<typeof getAbout>;
   viewReady: boolean;
   reduceMotion: boolean;
+  sharedCoverEnabled: boolean;
 }) {
   const telegramCtaRef = useRef<HTMLAnchorElement>(null);
   const telegramCursorAnimationFrameRef = useRef<number | null>(null);
@@ -746,6 +798,7 @@ function SnakeView({
             localeTextTransitionId={localeTextTransitionId}
             text={text}
             view="snakeview"
+            sharedCoverEnabled={sharedCoverEnabled}
           />
         </motion.div>
       ))}
@@ -754,6 +807,7 @@ function SnakeView({
 }
 
 export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
+  const { active: activeCoverMotion } = useCaseCoverMotion();
   const [activeLocale, setActiveLocale] = useState<SiteLocale>(locale);
   const projects = getProjects(activeLocale);
   const about = getAbout(activeLocale);
@@ -1104,8 +1158,11 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
                 showAbout={showAbout}
                 text={text}
                 about={about}
-                viewReady={viewReady}
+                viewReady={
+                  viewReady || activeCoverMotion?.direction === "return"
+                }
                 reduceMotion={Boolean(reduceMotion)}
+                sharedCoverEnabled={displayedView === "birdview"}
               />
             </motion.div> : null}
 
@@ -1125,8 +1182,11 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
                 showAbout={showAbout}
                 text={text}
                 about={about}
-                viewReady={viewReady}
+                viewReady={
+                  viewReady || activeCoverMotion?.direction === "return"
+                }
                 reduceMotion={Boolean(reduceMotion)}
+                sharedCoverEnabled={displayedView === "snakeview"}
               />
             </motion.div> : null}
       </div>

@@ -112,7 +112,7 @@ export const projects: Project[] = [
     tag: "app",
     title: "PYE Home Try-On",
     video: "/media/videos/pye-tryon-app/cover-1156.mp4",
-    poster: "pye-home-tryon",
+    poster: "pye-tryon-app/01-cover-poster",
     description:
       "An app for choosing and trying on glasses: AR try-on, saved frames and home try-on orders",
     localizedContent: {
