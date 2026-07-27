@@ -12,36 +12,45 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  AnimatePresence,
-  LayoutGroup,
-  motion,
-  useReducedMotion,
-} from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 
 type ViewMode = "birdview" | "snakeview";
 type Direction = "forward" | "return";
+type TransitionPhase = "takeoff" | "landing";
 type TransitionSnapshot = {
   transitionId: string;
   casePath: string;
   homePath: string;
   scrollY: number;
   view: ViewMode;
+  travelX?: number;
+  travelY?: number;
+  travelScale?: number;
 };
 type ActiveTransition = TransitionSnapshot & {
   direction: Direction;
+  phase: TransitionPhase;
   offscreenReturn?: boolean;
 };
 
 const storageKey = "case-cover-motion-snapshot";
-const durationSeconds = 0.575;
-const ease = [0.16, 1, 0.3, 1] as const;
-
+const birdviewNavigationMs = 200;
+const snakeviewNavigationMs = 250;
+const positionAnimationMs = 300;
+const landingMs = 350;
+const returnLandingMs = 500;
+const totalMs = snakeviewNavigationMs + landingMs;
+const landingEase = [0.12, 1, 0.2, 1] as const;
+const landingOpacityEase = [0.4, 0, 0.2, 1] as const;
+const takeoffEase = [0.45, 0, 0.75, 0.65] as const;
 type CaseCoverMotionContextValue = {
   active: ActiveTransition | null;
   openCase: (
     event: ReactMouseEvent<HTMLAnchorElement>,
-    snapshot: Omit<TransitionSnapshot, "scrollY">,
+    snapshot: Omit<
+      TransitionSnapshot,
+      "scrollY" | "travelX" | "travelY" | "travelScale"
+    >,
   ) => boolean;
   returnHome: () => boolean;
 };
@@ -81,6 +90,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
   const reduceMotion = useReducedMotion();
   const [active, setActive] = useState<ActiveTransition | null>(null);
   const activeRef = useRef<ActiveTransition | null>(null);
+  const navigationTimerRef = useRef<number | null>(null);
   const completionTimerRef = useRef<number | null>(null);
 
   const setTransition = useCallback((next: ActiveTransition | null) => {
@@ -93,6 +103,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     if (next) {
       document.documentElement.dataset.caseCoverMotionDirection = next.direction;
       document.documentElement.dataset.caseCoverMotionId = next.transitionId;
+      document.documentElement.dataset.caseCoverMotionPhase = next.phase;
       document.documentElement.toggleAttribute(
         "data-case-cover-motion-offscreen",
         Boolean(next.offscreenReturn),
@@ -100,6 +111,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     } else {
       delete document.documentElement.dataset.caseCoverMotionDirection;
       delete document.documentElement.dataset.caseCoverMotionId;
+      delete document.documentElement.dataset.caseCoverMotionPhase;
       document.documentElement.removeAttribute(
         "data-case-cover-motion-offscreen",
       );
@@ -116,20 +128,33 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     if (completed?.direction === "return") removeSnapshot();
   }, [setTransition]);
 
-  const armFallback = useCallback(() => {
+  const armNavigation = useCallback(
+    (navigate: () => void, delayMs: number) => {
+      navigationTimerRef.current = window.setTimeout(() => {
+        if (!activeRef.current) return;
+        navigate();
+      }, delayMs);
+    },
+    [],
+  );
+
+  const armFallback = useCallback((durationMs = totalMs) => {
     if (completionTimerRef.current !== null) {
       window.clearTimeout(completionTimerRef.current);
     }
     completionTimerRef.current = window.setTimeout(
       complete,
-      reduceMotion ? 50 : 850,
+      reduceMotion ? 50 : durationMs,
     );
   }, [complete, reduceMotion]);
 
   const openCase = useCallback(
     (
       event: ReactMouseEvent<HTMLAnchorElement>,
-      snapshot: Omit<TransitionSnapshot, "scrollY">,
+      snapshot: Omit<
+        TransitionSnapshot,
+        "scrollY" | "travelX" | "travelY" | "travelScale"
+      >,
     ) => {
       const isPlainPrimaryClick =
         event.button === 0 &&
@@ -140,14 +165,57 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       if (!isPlainPrimaryClick || reduceMotion) return false;
       if (activeRef.current) return true;
 
-      const nextSnapshot = { ...snapshot, scrollY: window.scrollY };
+      const cover = event.currentTarget.querySelector<HTMLElement>(
+        `[data-case-cover-motion="${CSS.escape(snapshot.transitionId)}"]`,
+      );
+      const coverRect = cover?.getBoundingClientRect();
+      const targetWidth = Math.min(window.innerWidth, 1156);
+      const targetTop = window.innerWidth <= 800 ? 140 : 232;
+      const aspectRatio = coverRect
+        ? coverRect.width / coverRect.height
+        : 1;
+      const targetHeight = targetWidth / aspectRatio;
+      const travelProgress = 1.1;
+      const travelX = coverRect
+        ? (window.innerWidth / 2 - (coverRect.left + coverRect.width / 2)) *
+          travelProgress
+        : 0;
+      const travelY = coverRect
+        ? (targetTop + targetHeight / 2 -
+            (coverRect.top + coverRect.height / 2)) *
+          travelProgress
+        : 0;
+      const fullScale = coverRect ? targetWidth / coverRect.width : 1;
+      const travelScale =
+        snapshot.view === "birdview"
+          ? 1.35
+          : Math.min(
+              1.07,
+              1 + Math.min(Math.max(fullScale - 1, 0), 0.22) * 0.5,
+            );
+      const nextSnapshot = {
+        ...snapshot,
+        scrollY: window.scrollY,
+        travelX,
+        travelY,
+        travelScale,
+      };
       writeSnapshot(nextSnapshot);
-      setTransition({ ...nextSnapshot, direction: "forward" });
+      setTransition({
+        ...nextSnapshot,
+        direction: "forward",
+        phase: "takeoff",
+      });
       armFallback();
-      router.push(snapshot.casePath, { scroll: false });
+      armNavigation(
+        () => router.push(snapshot.casePath, { scroll: false }),
+        snapshot.view === "birdview"
+          ? birdviewNavigationMs
+          : snakeviewNavigationMs,
+      );
       return true;
     },
-    [armFallback, reduceMotion, router, setTransition],
+    [armFallback, armNavigation, reduceMotion, router, setTransition],
   );
 
   const returnHome = useCallback(() => {
@@ -168,11 +236,26 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     } catch {
       // The in-memory snapshot still restores the current transition.
     }
-    setTransition({ ...snapshot, direction: "return", offscreenReturn });
-    armFallback();
-    router.push(snapshot.homePath, { scroll: false });
+    const phase = offscreenReturn ? "landing" : "takeoff";
+    setTransition({
+      ...snapshot,
+      direction: "return",
+      phase,
+      offscreenReturn,
+    });
+    armFallback(phase === "landing" ? returnLandingMs : totalMs);
+    if (offscreenReturn) {
+      router.push(snapshot.homePath, { scroll: false });
+    } else {
+      armNavigation(
+        () => router.push(snapshot.homePath, { scroll: false }),
+        snapshot.view === "birdview"
+          ? birdviewNavigationMs
+          : snakeviewNavigationMs,
+      );
+    }
     return true;
-  }, [armFallback, reduceMotion, router, setTransition]);
+  }, [armFallback, armNavigation, reduceMotion, router, setTransition]);
 
   useEffect(() => {
     const handlePopState = () => {
@@ -192,12 +275,13 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       setTransition({
         ...snapshot,
         direction: "return",
+        phase: "landing",
         offscreenReturn: Boolean(
           coverRect &&
             (coverRect.bottom < 0 || coverRect.top > window.innerHeight),
         ),
       });
-      armFallback();
+      armFallback(returnLandingMs);
     };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
@@ -212,23 +296,35 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       normalizedPath === current.casePath.replace(/\/$/, "")
     ) {
       window.scrollTo({ top: 0, behavior: "instant" });
+      if (current.phase === "takeoff") {
+        setTransition({ ...current, phase: "landing" });
+        armFallback(landingMs);
+      }
     }
     if (
       current.direction === "return" &&
       normalizedPath === current.homePath.replace(/\/$/, "")
     ) {
       window.scrollTo({ top: current.scrollY, behavior: "instant" });
+      if (current.phase === "takeoff") {
+        setTransition({ ...current, phase: "landing" });
+        armFallback(returnLandingMs);
+      }
     }
-  }, [pathname]);
+  }, [armFallback, pathname, setTransition]);
 
   useEffect(
     () => () => {
       if (completionTimerRef.current !== null) {
         window.clearTimeout(completionTimerRef.current);
       }
+      if (navigationTimerRef.current !== null) {
+        window.clearTimeout(navigationTimerRef.current);
+      }
       document.documentElement.removeAttribute("data-case-cover-motion-active");
       delete document.documentElement.dataset.caseCoverMotionDirection;
       delete document.documentElement.dataset.caseCoverMotionId;
+      delete document.documentElement.dataset.caseCoverMotionPhase;
       document.documentElement.removeAttribute(
         "data-case-cover-motion-offscreen",
       );
@@ -240,59 +336,125 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     <CaseCoverMotionContext.Provider
       value={{ active, openCase, returnHome }}
     >
-      <LayoutGroup id="case-cover-motion">{children}</LayoutGroup>
+      {children}
     </CaseCoverMotionContext.Provider>
   );
 }
 
 export function CaseMotionRoutes({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
-
-  return (
-    <AnimatePresence initial={false} mode="popLayout">
-      <motion.div
-        key={pathname}
-        className="case-motion-route"
-        initial={false}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: durationSeconds, ease }}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
-  );
+  return <div className="case-motion-route">{children}</div>;
 }
 
 export function SharedCaseCover({
   transitionId,
   enabled = true,
+  target = false,
   className,
   children,
 }: {
   transitionId?: string;
   enabled?: boolean;
+  target?: boolean;
   className?: string;
   children: ReactNode;
 }) {
   const { active } = useCaseCoverMotion();
-  const reduceMotion = useReducedMotion();
-  const participates =
-    Boolean(transitionId) &&
-    enabled &&
-    !(active?.direction === "return" && active.offscreenReturn) &&
-    (!active || active.transitionId === transitionId);
+  const isActiveCover = active?.transitionId === transitionId;
+  const participates = Boolean(transitionId) && enabled && isActiveCover;
+  const travelX = active?.travelX ?? 0;
+  const travelY = active?.travelY ?? 0;
+  const travelScale = active?.travelScale ?? 1.2;
+
+  let coverAnimation = { opacity: 1, scale: 1 };
+  let coverPosition = { x: 0, y: 0 };
+  if (isActiveCover && active?.direction === "forward") {
+    if (active.phase === "takeoff" && !target) {
+      coverAnimation = { opacity: 1, scale: travelScale };
+      coverPosition = { x: travelX, y: travelY };
+    } else if (active.phase === "takeoff" && target) {
+      coverAnimation = { opacity: 0, scale: 0.9 };
+      coverPosition = { x: 0, y: 48 };
+    } else if (active.phase === "landing") {
+      coverAnimation = target
+        ? { opacity: 1, scale: 1 }
+        : { opacity: 0, scale: 1 };
+    }
+  }
+  if (isActiveCover && active?.direction === "return") {
+    if (active.phase === "takeoff") {
+      coverAnimation = target
+        ? { opacity: 1, scale: 0.9 }
+        : { opacity: 0, scale: 1.2 };
+      if (target) coverPosition = { x: 0, y: 48 };
+    } else {
+      coverAnimation = target
+        ? { opacity: 0, scale: 0.9 }
+        : { opacity: 1, scale: 1 };
+      coverPosition = target
+        ? { x: 0, y: 48 }
+        : { x: 0, y: 0 };
+    }
+  }
+  const isLandingDestination = Boolean(
+    participates &&
+      active?.phase === "landing" &&
+      ((active.direction === "forward" && target) ||
+        (active.direction === "return" && !target)),
+  );
+  const landingInitial =
+    active?.direction === "return"
+      ? {
+          opacity: 0,
+          scale: travelScale,
+          x: travelX,
+          y: travelY,
+        }
+      : { opacity: 0, scale: 0.9, x: 0, y: 48 };
 
   return (
     <motion.div
       className={className}
       data-case-cover-motion={transitionId}
-      layoutId={
-        participates && !reduceMotion
-          ? `case-cover-${transitionId}`
-          : undefined
-      }
-      transition={{ layout: { duration: durationSeconds, ease } }}
+      data-case-cover-role={target ? "target" : "source"}
+      initial={isLandingDestination ? landingInitial : false}
+      animate={{ ...coverAnimation, ...coverPosition }}
+      style={{ transformOrigin: "50% 50%" }}
+      transition={{
+        opacity: {
+          duration: landingMs / 1000,
+          ease: landingOpacityEase,
+        },
+        scale: {
+          duration:
+            active?.phase === "takeoff"
+              ? active.direction === "return" && target
+                ? positionAnimationMs / 1000
+                : positionAnimationMs / 1000
+              : landingMs / 1000,
+          ease:
+            active?.phase === "takeoff"
+              ? active.direction === "return" && target
+                ? takeoffEase
+                : takeoffEase
+              : landingEase,
+        },
+        x: {
+          duration:
+            active?.phase === "takeoff"
+              ? positionAnimationMs / 1000
+              : landingMs / 1000,
+          ease:
+            active?.phase === "takeoff" ? takeoffEase : landingEase,
+        },
+        y: {
+          duration:
+            active?.phase === "takeoff"
+              ? positionAnimationMs / 1000
+              : landingMs / 1000,
+          ease:
+            active?.phase === "takeoff" ? takeoffEase : landingEase,
+        },
+      }}
     >
       {children}
     </motion.div>

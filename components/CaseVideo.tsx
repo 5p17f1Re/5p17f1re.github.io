@@ -95,6 +95,7 @@ export function CaseVideo({
     <SharedCaseCover
       className={`case-media case-media--${width}`}
       transitionId={transitionId}
+      target
     >
       <figure className="case-media__figure">
         <div

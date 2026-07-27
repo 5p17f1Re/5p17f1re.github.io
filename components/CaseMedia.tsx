@@ -58,6 +58,7 @@ export function CaseMedia({
     <SharedCaseCover
       className={`case-media case-media--${width}`}
       transitionId={transitionId}
+      target
     >
       <CaseFigure
         item={{ assetKey, alt, caption }}

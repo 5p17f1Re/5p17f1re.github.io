@@ -45,8 +45,8 @@ const viewTransitions = {
     snakeviewRowGapFrom: "44px",
     snakeviewRowGapTo: "120px",
   },
-  duration: 0.5,
-  totalDurationMs: 500,
+  duration: 0.32,
+  totalDurationMs: 320,
 } as const;
 
 const telegramChannelUrl = "https://t.me/mybeautifulheaven";
@@ -839,7 +839,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
     localeLayoutTransitionTimerRef.current = setTimeout(() => {
       localeLayoutTransitionTimerRef.current = null;
       setIsLocaleLayoutTransitionActive(false);
-    }, 260);
+    }, 180);
   }, []);
 
   const switchLocale = useCallback(
