@@ -49,7 +49,7 @@ export default function SmartReservePage() {
     <CaseAccessBoundary id="yandex-eats-smartreserve" scope="public">
       <main
         id="main-content"
-        className="case-page-shell case-page-shell--entering"
+        className="case-page-shell"
         lang="en"
       >
         <header className="case-title">

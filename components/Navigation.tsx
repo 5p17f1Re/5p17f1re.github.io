@@ -22,6 +22,7 @@ import { getLanguageSwitchState } from "@/data/language-switch";
 import { getLocalizedPath, type SiteLocale } from "@/data/locales";
 import { getUiText } from "@/data/ui-text";
 import { trackContactIntent, trackOutboundLink } from "./analytics";
+import { requestCaseCoverReturn } from "./CaseCoverTransition";
 
 export type PortfolioViewMode = "birdview" | "snakeview";
 
@@ -321,14 +322,6 @@ function Navigation({ controls }: { controls: HomeNavigationControls }) {
     let animationFrame = 0;
 
     function removeOverlay() {
-      const targetLocale = caseLocaleOverlayTargetLocaleRef.current;
-      const newCasePage = targetLocale
-        ? document.querySelector<HTMLElement>(
-            `.case-page-shell[lang="${targetLocale}"]:not(.case-locale-transition-overlay)`,
-          )
-        : null;
-
-      newCasePage?.classList.remove("case-page-shell--entering");
       overlayElement.remove();
       if (caseLocaleOverlayRef.current === overlayElement) {
         caseLocaleOverlayRef.current = null;
@@ -468,6 +461,11 @@ function Navigation({ controls }: { controls: HomeNavigationControls }) {
     if (isHome) {
       event.preventDefault();
       scrollToPortfolioTop();
+      return;
+    }
+
+    if (requestCaseCoverReturn()) {
+      event.preventDefault();
     }
   }
 
@@ -545,7 +543,6 @@ function Navigation({ controls }: { controls: HomeNavigationControls }) {
 
     overlay.removeAttribute("id");
     overlay.setAttribute("aria-hidden", "true");
-    overlay.classList.remove("case-page-shell--entering");
     overlay.classList.add("case-locale-transition-overlay");
     overlay.style.top = `${bounds.top}px`;
     overlay.style.left = `${bounds.left}px`;

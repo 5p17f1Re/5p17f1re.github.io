@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
+  type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
   useCallback,
   useEffect,
@@ -19,6 +21,7 @@ import { getUiText, type UiText } from "@/data/ui-text";
 import { OptimizedImage } from "./OptimizedImage";
 import { OptimizedVideo } from "./OptimizedVideo";
 import { LocaleTextTransition } from "./LocaleTextTransition";
+import { startCaseCoverTransition } from "./CaseCoverTransition";
 import {
   rememberPortfolioScrollPosition,
   useNavigationViewControls,
@@ -142,6 +145,7 @@ function ProjectCard({
   eager?: boolean;
   view: ViewMode;
 }) {
+  const router = useRouter();
   const interactiveCardRef = useRef<HTMLAnchorElement>(null);
   const projectCaseLinkRef = useRef<HTMLSpanElement>(null);
   const cursorAnimationFrameRef = useRef<number | null>(null);
@@ -320,22 +324,56 @@ function ProjectCard({
     "data-transition-project": project.transitionId,
   };
 
+  const casePath = project.slug
+    ? getCasePath({ locale, slug: project.slug })
+    : null;
+
+  function handleCaseOpen(event: ReactMouseEvent<HTMLAnchorElement>) {
+    if (!project.slug || !casePath) return;
+
+    rememberPortfolioScrollPosition();
+    trackEvent("case_opened", {
+      case_slug: project.slug,
+      locale,
+      portfolio_view: view,
+    });
+
+    const isPlainPrimaryClick =
+      event.button === 0 &&
+      !event.metaKey &&
+      !event.ctrlKey &&
+      !event.shiftKey &&
+      !event.altKey;
+    const source = event.currentTarget.querySelector<HTMLElement>(".project__img");
+
+    if (
+      project.transitionId &&
+      source &&
+      isPlainPrimaryClick &&
+      startCaseCoverTransition({
+        transitionId: project.transitionId,
+        source,
+        href: casePath,
+        homePath: locale === "ru" ? "/ru/" : "/",
+        view,
+      })
+    ) {
+      event.preventDefault();
+    }
+  }
+
   return project.slug ? (
     <Link
       {...props}
       ref={interactiveCardRef}
       className="project project--link"
-      href={getCasePath({ locale, slug: project.slug })}
+      href={casePath!}
       aria-label={text.openCaseStudy(project.title)}
-      onClick={() => {
-        rememberPortfolioScrollPosition();
-        trackEvent("case_opened", {
-          case_slug: project.slug,
-          locale,
-          portfolio_view: view,
-        });
+      onClick={handleCaseOpen}
+      onPointerEnter={(event) => {
+        showProjectCursor(event);
+        router.prefetch(casePath!);
       }}
-      onPointerEnter={showProjectCursor}
       onPointerMove={moveProjectCursor}
       onPointerLeave={hideProjectCursor}
     >

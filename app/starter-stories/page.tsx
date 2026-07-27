@@ -42,7 +42,7 @@ export default function StarterStoriesPage() {
     <CaseAccessBoundary id="starter-stories" scope="public">
       <main
         id="main-content"
-        className="case-page-shell case-page-shell--entering"
+        className="case-page-shell"
         lang="ru"
       >
         <header className="case-title">

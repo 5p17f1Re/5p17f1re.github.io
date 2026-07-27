@@ -7,6 +7,7 @@ import { getCase } from "@/data/cases";
 import { getUiText } from "@/data/ui-text";
 import { NavigationShell } from "./Navigation";
 import { SiteFooter } from "./SiteFooter";
+import { CaseCoverTransitionController } from "./CaseCoverTransition";
 import { trackEvent } from "./analytics";
 
 export function SiteShell({ children }: { children: React.ReactNode }) {
@@ -48,6 +49,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
         {text.skipToContent}
       </a>
       <NavigationShell>{children}</NavigationShell>
+      <CaseCoverTransitionController />
       <SiteFooter />
     </>
   );

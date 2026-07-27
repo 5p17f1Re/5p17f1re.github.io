@@ -56,7 +56,7 @@ export function CaseMedia({
   return (
     <div
       className={`case-media case-media--${width}`}
-      data-transition-project={transitionId}
+      data-case-cover-transition-target={transitionId}
     >
       <CaseFigure
         item={{ assetKey, alt, caption }}

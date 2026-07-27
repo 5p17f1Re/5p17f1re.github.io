@@ -17,6 +17,7 @@ export function CaseVideo({
   locale = "ru",
   aspectRatio,
   showToggle = true,
+  transitionId,
 }: {
   width: CaseMediaWidth;
   src: string;
@@ -27,6 +28,7 @@ export function CaseVideo({
   locale?: SiteLocale;
   aspectRatio?: string;
   showToggle?: boolean;
+  transitionId?: string;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const poster = getMediaAsset(posterAssetKey);
@@ -60,7 +62,10 @@ export function CaseVideo({
   }
 
   return (
-    <div className={`case-media case-media--${width}`}>
+    <div
+      className={`case-media case-media--${width}`}
+      data-case-cover-transition-target={transitionId}
+    >
       <figure className="case-media__figure">
         <div className="case-video">
           <video
