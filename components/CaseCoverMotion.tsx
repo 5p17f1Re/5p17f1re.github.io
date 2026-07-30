@@ -170,18 +170,13 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       );
       const coverRect = cover?.getBoundingClientRect();
       const targetWidth = Math.min(window.innerWidth, 1156);
-      const targetTop = window.innerWidth <= 800 ? 140 : 232;
-      const aspectRatio = coverRect
-        ? coverRect.width / coverRect.height
-        : 1;
-      const targetHeight = targetWidth / aspectRatio;
       const travelProgress = 1.1;
       const travelX = coverRect
         ? (window.innerWidth / 2 - (coverRect.left + coverRect.width / 2)) *
           travelProgress
         : 0;
       const travelY = coverRect
-        ? (targetTop + targetHeight / 2 -
+        ? (window.innerHeight / 2 -
             (coverRect.top + coverRect.height / 2)) *
           travelProgress
         : 0;

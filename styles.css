@@ -726,14 +726,6 @@ html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="l
   width: 100%;
 }
 
-.view-stage[data-view-ready="false"] {
-  visibility: hidden;
-}
-
-html[data-portfolio-view="snakeview"] .view-stage[data-view-ready="false"] {
-  visibility: visible;
-}
-
 .view-stage--switching {
   overflow: hidden;
 }
