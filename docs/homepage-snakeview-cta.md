@@ -49,3 +49,6 @@ UTM-параметры к ссылке `t.me` не добавляются: он�
 - Стили: `styles.css`.
 - Локальные Figma-ассеты: `public/assets/telegram/`.
 - Не заменять локальные ассеты временными URL из Figma.
+
+Параметры первого появления CTA и правила reduced motion находятся в
+[системе motion](motion-system.md).
