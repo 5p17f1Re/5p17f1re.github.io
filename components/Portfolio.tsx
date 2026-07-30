@@ -64,6 +64,75 @@ const initialCardVariants = {
   }),
 };
 
+const initialAboutVariants = {
+  hidden: { opacity: 1, y: 0 },
+  visible: { opacity: 1, y: 0 },
+};
+
+function AboutTextReveal({ text }: { text: string }) {
+  const revealRef = useRef<HTMLSpanElement>(null);
+  const [lines, setLines] = useState<string[] | null>(null);
+  const wordChunks = text.match(/\S+\s*/g) ?? [text];
+
+  useLayoutEffect(() => {
+    if (lines) return;
+
+    const words = revealRef.current?.querySelectorAll<HTMLSpanElement>(
+      ".about-text-reveal__word",
+    );
+    if (!words?.length) return;
+
+    const linesByOffset = new Map<number, string>();
+    words.forEach((word) => {
+      const line = linesByOffset.get(word.offsetTop) ?? "";
+      linesByOffset.set(word.offsetTop, line + word.textContent);
+    });
+
+    setLines(
+      [...linesByOffset.entries()]
+        .sort(([firstOffset], [secondOffset]) => firstOffset - secondOffset)
+        .map(([, line]) => line),
+    );
+  }, [lines]);
+
+  useEffect(() => {
+    const element = revealRef.current;
+    if (!element) return;
+
+    let width = element.getBoundingClientRect().width;
+    const resizeObserver = new ResizeObserver((entries) => {
+      const nextWidth = entries[0]?.contentRect.width;
+      if (nextWidth === undefined || Math.abs(nextWidth - width) < 1) return;
+
+      width = nextWidth;
+      setLines(null);
+    });
+
+    resizeObserver.observe(element);
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  return (
+    <span
+      ref={revealRef}
+      className="about-text-reveal"
+      data-lines-ready={lines ? "true" : "false"}
+    >
+      {lines
+        ? lines.map((line, index) => (
+            <span className="about-text-reveal__line" key={`${line}-${index}`}>
+              {line}
+            </span>
+          ))
+        : wordChunks.map((word, index) => (
+            <span className="about-text-reveal__word" key={`${word}-${index}`}>
+              {word}
+            </span>
+          ))}
+    </span>
+  );
+}
+
 function ProjectMedia({
   project,
   eager = false,
@@ -462,7 +531,7 @@ function BirdView({
           >
             <div className="project__header">
               <h3 className="project__title">
-                <LocaleTextTransition transitionId={localeTextTransitionId}>
+                <LocaleTextTransition transitionId={localeTextTransitionId} block>
                   {about.name}
                 </LocaleTextTransition>
               </h3>
@@ -532,6 +601,7 @@ function SnakeView({
   about,
   viewReady,
   reduceMotion,
+  revealAboutTextOnLoad,
   sharedCoverEnabled,
 }: {
   projects: Project[];
@@ -543,9 +613,11 @@ function SnakeView({
   about: ReturnType<typeof getAbout>;
   viewReady: boolean;
   reduceMotion: boolean;
+  revealAboutTextOnLoad: boolean;
   sharedCoverEnabled: boolean;
 }) {
   const telegramCtaRef = useRef<HTMLAnchorElement>(null);
+  const aboutContentRef = useRef<HTMLDivElement>(null);
   const telegramCursorAnimationFrameRef = useRef<number | null>(null);
   const telegramCursorPositionRef = useRef<{ x: number; y: number } | null>(
     null,
@@ -678,10 +750,47 @@ function SnakeView({
 
   useEffect(() => cancelTelegramCursorAnimation, []);
 
+  useLayoutEffect(() => {
+    const content = aboutContentRef.current;
+    if (!content) return;
+    const aboutContent = content;
+
+    function orderAboutTextRevealLines() {
+      let nextLineDelayMs = 0;
+
+      aboutContent
+        .querySelectorAll<HTMLElement>(".about-text-reveal__line")
+        .forEach((line) => {
+          const characterCount = line.textContent?.trim().length ?? 0;
+          const durationMs = Math.min(480, Math.max(240, 144 + characterCount * 6));
+
+          line.style.setProperty("--about-text-reveal-duration", `${durationMs}ms`);
+          line.style.setProperty("--about-text-reveal-delay", `${nextLineDelayMs}ms`);
+          nextLineDelayMs += durationMs * 0.07;
+        });
+
+      const telegramCta = telegramCtaRef.current;
+      if (!telegramCta) return;
+
+      telegramCta.style.setProperty(
+        "--hero-about-telegram-reveal-delay",
+        "350ms",
+      );
+      telegramCta.dataset.textRevealReady = "true";
+    }
+
+    const observer = new MutationObserver(orderAboutTextRevealLines);
+    observer.observe(aboutContent, { childList: true, subtree: true });
+    orderAboutTextRevealLines();
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <motion.section
       className="projects projects--snakeview"
       aria-labelledby="snakeview-heading"
+      data-about-text-reveal={revealAboutTextOnLoad ? "true" : undefined}
       initial={false}
       animate={viewReady || reduceMotion ? "visible" : "hidden"}
     >
@@ -698,33 +807,26 @@ function SnakeView({
               ease: viewTransitionEase,
             },
           }}
-          variants={initialCardVariants}
-          custom={0}
+          variants={initialAboutVariants}
         >
-          <div className="hero-about__content">
+          <div className="hero-about__content" ref={aboutContentRef}>
             <div className="hero-about__header">
               <h3 className="hero-about__title">
                 <LocaleTextTransition transitionId={localeTextTransitionId}>
-                  {about.name}
+                  <AboutTextReveal text={about.name} />
                 </LocaleTextTransition>
               </h3>
             </div>
             <p className="hero-about__desc">
-              <LocaleTextTransition
-                transitionId={localeTextTransitionId}
-                block
-              >
-                {about.paragraphs[0]}
+              <LocaleTextTransition transitionId={localeTextTransitionId} block>
+                <AboutTextReveal text={about.paragraphs[0]} />
               </LocaleTextTransition>
             </p>
             {about.paragraphs.slice(1).map((paragraph) => (
               <p className="hero-about__desc gray" key={paragraph}>
-                <LocaleTextTransition
-                  transitionId={localeTextTransitionId}
-                  block
-                >
-                {paragraph}
-              </LocaleTextTransition>
+                <LocaleTextTransition transitionId={localeTextTransitionId} block>
+                  <AboutTextReveal text={paragraph} />
+                </LocaleTextTransition>
             </p>
             ))}
             <a
@@ -1186,6 +1288,9 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
                   viewReady || activeCoverMotion?.direction === "return"
                 }
                 reduceMotion={Boolean(reduceMotion)}
+                revealAboutTextOnLoad={
+                  viewReady && displayedView === "snakeview"
+                }
                 sharedCoverEnabled={displayedView === "snakeview"}
               />
             </motion.div> : null}
