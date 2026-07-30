@@ -30,6 +30,7 @@ export function SiteFooter() {
   const text = getUiText(locale);
   const updatedAt = formatSiteUpdatedAt(locale);
   const version = process.env.NEXT_PUBLIC_SITE_VERSION ?? "1.1";
+  const commitCount = process.env.NEXT_PUBLIC_SITE_COMMIT_COUNT ?? "0";
   const isHome = pathname === "/" || pathname === "/ru" || pathname === "/ru/";
 
   return (
@@ -63,7 +64,16 @@ export function SiteFooter() {
           {text.footerLastUpdated} {updatedAt}
         </p>
         <p className="site-footer__meta">
-          {text.footerVersion} {version}
+          {text.footerVersion} {version}{"\u00a0\u00a0"}
+          <a
+            className="site-footer__link site-footer__repository-link"
+            href="https://github.com/5p17f1Re/5p17f1re.github.io"
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => trackOutboundLink("github", "site_footer")}
+          >
+            {commitCount} commits
+          </a>
         </p>
       </div>
     </footer>

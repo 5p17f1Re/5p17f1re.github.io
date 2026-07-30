@@ -1104,6 +1104,11 @@ html[data-portfolio-view="snakeview"] .view-stage[data-view-ready="false"] {
   border-radius: 2px;
 }
 
+.site-footer__repository-link {
+  color: var(--color-text-caption);
+  text-decoration-color: rgba(255, 255, 255, 0.1);
+}
+
 @media (hover: hover) {
   .site-footer__link:hover {
     color: var(--color-accent-carrot);
