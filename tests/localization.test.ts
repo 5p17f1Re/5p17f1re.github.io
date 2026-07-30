@@ -17,9 +17,9 @@ describe("localized paths", () => {
     );
   });
 
-  it("keeps Russian legacy cases reachable from the Russian homepage", () => {
+  it("routes the Russian Stories case to its localized page", () => {
     expect(getCasePath({ locale: "ru", slug: "starter-stories" })).toBe(
-      "/starter-stories/",
+      "/ru/starter-stories/",
     );
   });
 

@@ -28,8 +28,7 @@ export const cases: readonly CaseDefinition[] = [
     slug: "starter-stories",
     transitionId: "starter-stories",
     access: { scope: "public" },
-    availableLocales: [],
-    legacyLocale: "ru",
+    availableLocales: ["en", "ru"],
   },
   { slug: "pye-try-on-app", transitionId: "pye-try-on-app", access: { scope: "public" }, availableLocales: [], legacyLocale: "en" },
 ];
