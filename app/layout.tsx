@@ -8,6 +8,7 @@ import "../styles.css";
 
 const googleAnalyticsId = "G-TLZ88JYZQZ";
 const yandexMetricaId = 110991707;
+const shouldLoadGoogleAnalytics = process.env.NODE_ENV === "production";
 
 const inter = localFont({
   src: [
@@ -80,13 +81,15 @@ export default function RootLayout({
         </Script>
         <SiteShell>{children}</SiteShell>
         <YandexMetrica />
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
-          strategy="lazyOnload"
-        />
-        <Script id="google-analytics" strategy="lazyOnload">
-          {`window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
+        {shouldLoadGoogleAnalytics ? (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
+              strategy="lazyOnload"
+            />
+            <Script id="google-analytics" strategy="lazyOnload">
+              {`window.dataLayer = window.dataLayer || [];
+window.gtag = window.gtag || function(){window.dataLayer.push(arguments);};
 var analyticsDebugKey = "portfolio-analytics-debug";
 var analyticsDebugMode = false;
 try {
@@ -95,9 +98,15 @@ try {
   if (analyticsDebugValue === "0") sessionStorage.removeItem(analyticsDebugKey);
   analyticsDebugMode = sessionStorage.getItem(analyticsDebugKey) === "1";
 } catch (error) {}
-gtag("js", new Date());
-gtag("config", "${googleAnalyticsId}", analyticsDebugMode ? { debug_mode: true } : undefined);`}
-        </Script>
+window.gtag("js", new Date());
+if (analyticsDebugMode) {
+  window.gtag("config", "${googleAnalyticsId}", { debug_mode: true });
+} else {
+  window.gtag("config", "${googleAnalyticsId}");
+}`}
+            </Script>
+          </>
+        ) : null}
         <Script id="yandex-metrica" strategy="lazyOnload">
           {`(function(m,e,t,r,i,k,a){
 m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};

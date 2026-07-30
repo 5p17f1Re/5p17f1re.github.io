@@ -5,18 +5,25 @@ import { CaseVideo } from "@/components/CaseVideo";
 
 const mediaRoot = "starter-stories";
 const media = (name: string) => `${mediaRoot}/${name}`;
-const title = "Истории для ресторанов в Стартере";
+const title = "Restaurant Stories in Starter";
 const description =
-  "Как мы дали ресторанам простой способ общаться с гостями через приложения и сайты.";
+  "Giving restaurants a self-serve way to communicate with guests.";
 const cover = "/media/images/starter-stories/01-cover-1920.webp";
 
 export const metadata: Metadata = {
-  title: `${title} — Сева Кудрявцев`,
+  title: `${title} — Seva Kudryavtsev`,
   description,
-  alternates: { canonical: "/starter-stories/" },
+  alternates: {
+    canonical: "/starter-stories/",
+    languages: {
+      en: "/starter-stories/",
+      ru: "/ru/starter-stories/",
+      "x-default": "/starter-stories/",
+    },
+  },
   openGraph: {
     type: "article",
-    locale: "ru_RU",
+    locale: "en_US",
     url: "/starter-stories/",
     title,
     description,
@@ -25,7 +32,7 @@ export const metadata: Metadata = {
         url: cover,
         width: 1920,
         height: 1080,
-        alt: "Истории на сайте и в мобильном приложении ресторана",
+        alt: "Stories on a restaurant website and mobile app",
       },
     ],
   },
@@ -43,7 +50,7 @@ export default function StarterStoriesPage() {
       <main
         id="main-content"
         className="case-page-shell"
-        lang="ru"
+        lang="en"
       >
         <header className="case-title">
           <h1>{title}</h1>
@@ -58,93 +65,72 @@ export default function StarterStoriesPage() {
         />
 
         <article className="case-content">
-          <section className="case-text">
-            <h2>Контекст</h2>
+          <section className="case-text case-text--intro">
+            <h2>Giving restaurants a self-serve way to communicate with guests</h2>
             <p>
-              Стартер — платформа для ресторанов: она помогает принимать заказы,
-              управлять программой лояльности и работать с базой гостей. У
-              каждого ресторана есть собственные приложение и сайт, настроенные
-              под его бренд.
+              STARTER is a B2B2C platform for restaurants. It powers branded
+              apps and websites where guests can order food, discover
+              promotions, and use loyalty programmes. Restaurant owners,
+              managers, and marketers work in its admin tools.
             </p>
             <p>
-              Главные пользователи гостевой части — посетители ресторанов. Они
-              заказывают еду, бронируют столики, узнают об акциях и пользуются
-              программой лояльности. В административной панели работают
-              владельцы, управляющие и маркетологи ресторанов.
-            </p>
-          </section>
-
-          <section className="case-text">
-            <h2>Проблема</h2>
-            <p>
-              Ресторанам не хватало простого способа рассказывать гостям об
-              акциях, новых блюдах и событиях. Для коммуникации оставались
-              небольшие баннеры и отдельные информационные страницы. Баннер
-              вмещал мало информации, а для хорошей страницы часто требовалась
-              помощь дизайнера.
+              Restaurants needed a simple way to talk about promotions, menu
+              launches, and events. A banner had too little room; a well-made
+              landing page often required a designer. We introduced Stories as
+              a familiar guest-facing format, but designed it as a durable
+              product capability rather than an expiring social post.
             </p>
             <p>
-              Истории могли объединить простоту баннера и вместительность
-              отдельной страницы. Формат уже был знаком и ресторанам, и гостям,
-              а готовые материалы из социальных сетей можно было использовать
-              повторно.
+              As the lead designer, I was responsible for research, UX, and art
+              direction across the guest app, website, and admin panel. Another
+              designer produced the guest-facing and admin interfaces under my
+              direction. I also worked with a product manager and the
+              engineering team.
             </p>
           </section>
 
           <section className="case-text">
-            <h2>Моя роль и команда</h2>
+            <h2>Establishing what the first release needed</h2>
             <p>
-              Я отвечал за исследование, пользовательский опыт и визуальное
-              направление решения в приложении, на сайте и в административной
-              панели. Работал вместе с продакт-менеджером, вторым дизайнером и
-              командой разработки. Когда проект вошёл в ближайший спринт, мы
-              разделили дизайн гостевой части и административной панели, чтобы
-              успеть подготовить обе стороны продукта к разработке.
-            </p>
-          </section>
-
-          <section className="case-text">
-            <h2>С чего начали</h2>
-            <p>
-              Сначала я изучил, как клиенты Стартера уже общаются с гостями: что
-              публикуют в баннерах и на информационных страницах, какие темы
-              повторяются и где существующих форматов не хватает.
+              I began by looking at how STARTER clients already communicated
+              with their guests: what they published in banners and information
+              pages, which themes recurred, and where the existing formats fell
+              short.
             </p>
           </section>
 
           <CaseMedia
             width="wide"
             assetKey={media("02-client-examples")}
-            alt="Доска с примерами коммуникации клиентов Стартера"
+            alt="Examples of client communication"
           />
 
           <div className="case-text">
             <p>
-              Затем я исследовал 23 приложения и несколько сайтов: откуда
-              открываются истории, как они работают на телефоне и компьютере,
-              какие действия доступны внутри и какие пропорции используют разные
-              продукты.
+              I then reviewed 23 apps and several websites. I compared entry
+              points, phone and desktop behaviour, in-story actions, and aspect
+              ratios.
             </p>
           </div>
 
           <CaseMedia
             width="full"
             assetKey={media("03-market-research")}
-            alt="Большая доска исследования историй в приложениях и на сайтах"
+            alt="Research into Stories across apps and websites"
           />
 
           <div className="case-text">
-            <p>Из исследования появились четыре требования к первому решению:</p>
+            <p>The research set four requirements for the first release:</p>
             <ol>
               <li>
-                Фиксированные пропорции 9:16 вместо растягивания на весь экран —
-                так один материал предсказуемо работает на разных устройствах.
+                A fixed 9:16 format rather than stretching content to fill the
+                screen, so one asset works predictably across devices.
               </li>
-              <li>Отдельная кнопка-ссылка на каждом слайде.</li>
-              <li>Возможность поделиться историей.</li>
+              <li>An action link on every slide.</li>
+              <li>The ability to share a Story.</li>
               <li>
-                Оценки или комментарии могут быть полезны позже, но не
-                обязательны для первого запуска.
+                Reactions or comments could be useful later, but were not
+                essential to launch.
               </li>
             </ol>
           </div>
@@ -154,269 +140,258 @@ export default function StarterStoriesPage() {
             items={[
               {
                 assetKey: media("04-proportions"),
-                alt: "Сравнение пропорций историй",
+                alt: "Story aspect-ratio comparison",
               },
               {
                 assetKey: media("04-in-product"),
-                alt: "Пример истории внутри продуктового сценария",
+                alt: "A Story inside a product flow",
               },
             ]}
           />
 
           <div className="case-text">
             <p>
-              Я также разложил найденные истории по темам. Для нас было важно
-              смотреть не на социальные сети, где публикация исчезает через
-              сутки, а на истории внутри продукта: там контент может работать
-              дольше и решать конкретную задачу ресторана.
+              The important reference was not only social media. Inside a
+              product, a Story can remain useful beyond a day and serve a
+              concrete restaurant need: explaining an offer, introducing a
+              menu, or inviting guests to an event.
             </p>
           </div>
 
           <CaseMedia
             width="full"
             assetKey={media("05-use-cases")}
-            alt="Классификация историй по задачам"
+            alt="A classification of Stories by purpose"
           />
 
           <div className="case-text">
-            <p>На основе запросов клиентов и исследования мы оставили три гипотезы:</p>
+            <p>
+              Based on client requests and the research, we kept three
+              hypotheses to test:
+            </p>
             <ol>
               <li>
-                Рестораны смогут чаще и понятнее общаться с гостями без
-                дополнительных затрат на новый формат контента.
+                Restaurants could communicate more often and more clearly
+                without investing in a new content format.
               </li>
               <li>
-                Знакомый формат снизит порог публикации для бизнеса и поможет
-                подробнее рассказывать об акциях, событиях и новинках.
+                A familiar format could lower the barrier to publishing and
+                help restaurants explain promotions, events, and launches.
               </li>
               <li>
-                Более содержательная коммуникация поможет гостю принять решение
-                о первом заказе.
+                Richer communication could help guests decide whether to place
+                a first order.
               </li>
             </ol>
           </div>
 
           <section className="case-text">
-            <h2>Как ресторан будет создавать истории</h2>
+            <h2>Making publishing clear for restaurant marketers</h2>
             <p>
-              Отдельной задачей был процесс публикации. Вместе с
-              продакт-менеджером мы поговорили с главным маркетологом и
-              управляющим сети из трёх ресторанов и четырёх брендов. Клиент
-              регулярно использовал баннеры и информационные страницы, поэтому
-              хорошо понимал ограничения текущих инструментов.
+              Together with the product manager, I interviewed the lead marketer
+              and operations manager of a restaurant group with three locations
+              and four brands. They were active users of banners and information
+              pages, so they could clearly describe the limits of the existing
+              tools.
             </p>
           </section>
 
           <CaseMedia
             width="wide"
             assetKey={media("06-interview")}
-            alt="Материалы интервью с представителями ресторанной сети"
+            alt="Interview materials from the restaurant group"
           />
 
           <div className="case-text">
-            <p>Из интервью мы узнали:</p>
+            <p>The interview showed that:</p>
             <ul>
               <li>
-                Поддерживать исчезающие истории сразу для нескольких проектов
-                слишком трудозатратно.
+                Maintaining expiring content across several brands would be too
+                demanding.
               </li>
               <li>
-                Существующих инструментов коммуникации не хватает:
-                информационные страницы недостаточно гибкие, а всплывающие окна
-                не всегда работают предсказуемо.
+                Existing communication tools were not flexible enough, and
+                pop-ups did not always work predictably.
               </li>
               <li>
-                Маркетологу нужна аналитика, чтобы понимать, как контент влияет
-                на поведение гостей.
+                Marketers needed analytics to understand content performance.
               </li>
               <li>
-                Клиент опасается, что новый формат замедлит сайт и приложение.
+                The client was concerned about website and app performance.
               </li>
               <li>
-                Когда маркетолог начинает собирать публикацию, содержание акции
-                и основные материалы у него уже готовы.
+                When a marketer starts building a campaign, its copy and core
+                assets are normally already available.
               </li>
             </ul>
             <p>
-              После интервью я собрал путь маркетолога от идеи до публикации и
-              перечислил необходимые возможности. Эта доска задала структуру
-              административной панели и помогла отделить обязательное для
-              запуска от последующего развития.
+              After the interview, I mapped the marketer’s journey from idea to
+              publication. It informed the admin-panel structure and separated
+              what was essential to launch from later improvements.
             </p>
           </div>
 
           <CaseMedia
             width="full"
             assetKey={media("07-user-journey")}
-            alt="Пользовательский путь создания и публикации истории"
+            alt="Journey from creating to publishing a Story"
           />
 
           <section className="case-text">
-            <h2>Как истории выглядят у гостей</h2>
+            <h2>Integrating Stories into the guest experience</h2>
             <p>
-              На главной странице ресторанов уже использовались баннеры трёх
-              типов: они открывали всплывающее окно, информационную страницу или
-              произвольную ссылку. Нужно было встроить истории в существующий
-              блок и при этом помочь гостю отличить их от обычных баннеров.
+              The home screen already contained three banner types: banners
+              could open a modal, an information page, or any external link.
+              Stories needed to fit this established pattern while remaining
+              recognisable as a sequence of screens.
             </p>
             <p>
-              Мы проверили несколько обозначений. Обводка внутри баннера
-              перекрывала контент, а дополнительные подписи создавали визуальный
-              шум. Самым понятным вариантом оказалась внешняя обводка: она
-              выделяет баннер с историей, не вмешиваясь в макет самого
-              изображения. Обычные баннеры остаются без дополнительного
-              обозначения.
+              We explored several markers. An inner border covered content, and
+              labels added noise. An outer border was the quietest option: it
+              identifies a banner with Stories without changing the creative
+              itself. Standard banners remain unmarked.
             </p>
           </section>
 
           <CaseMedia
             width="wide"
             assetKey={media("08-banner-directions")}
-            alt="Поиск обозначения баннера с историей"
+            alt="Exploring the Stories banner marker"
           />
 
           <div className="case-text">
             <p>
-              После выбора обводки мы проверили её на всех типах баннеров и
-              разных материалах клиентов.
+              We tested the marker across every banner type and a range of
+              client assets.
             </p>
           </div>
 
           <CaseMedia
             width="wide"
             assetKey={media("09-banner-examples")}
-            alt="Проверка обводки на разных баннерах"
+            alt="Testing the marker on different banners"
           />
 
           <div className="case-text">
             <p>
-              Затем адаптировали просмотр для компьютерной и мобильной версий. На
-              компьютере кнопку действия разместили прямо на слайде: так она
-              сохраняет связь с конкретной историей и не выглядит отдельным
-              элементом при последовательном просмотре. На телефоне кнопка также
-              остаётся внутри слайда, потому что часть экрана занимает интерфейс
-              браузера.
+              We also adapted the viewer for desktop and mobile web. On desktop,
+              the action is part of the slide, so it stays associated with its
+              specific content while a guest progresses through the sequence.
+              On mobile, the same placement works around the browser chrome.
             </p>
           </div>
 
           <CaseMedia
             width="wide"
             assetKey={media("10-web-versions")}
-            alt="Варианты просмотра историй на компьютере и телефоне"
+            alt="Stories on desktop and mobile"
           />
 
           <section className="case-text">
-            <h2>Административная панель</h2>
+            <h2>An editor that previews the published result</h2>
             <p>
-              Для инструмента публикации я изучил решения Фрисбай и 2ГИС.
-              Особенно полезным оказался подход 2ГИС: перед нами стояла похожая
-              задача — дать бизнесу универсальный, но простой инструмент для
-              сборки историй.
+              For the admin experience, I studied Frisbuy and 2GIS. Both
+              addressed a similar challenge: letting businesses assemble a
+              sequence of assets without turning the product into a complex
+              design tool.
             </p>
           </section>
 
           <CaseMedia
             width="wide"
             assetKey={media("11-admin-references")}
-            alt="Административные панели Фрисбай и 2ГИС"
+            alt="Frisbuy and 2GIS admin interfaces"
           />
 
           <div className="case-text">
             <p>
-              Первую версию мы собрали с учётом требований и существующей
-              архитектуры панели. Интерфейс получился слишком размашистым и
-              шумным: настройки, список слайдов и предварительный просмотр
-              конкурировали за внимание.
+              The first version of our editor was too sprawling. Settings,
+              slide ordering, and the preview competed for attention.
             </p>
           </div>
 
           <CaseMedia
             width="wide"
             assetKey={media("12-admin-first-version")}
-            alt="Первая версия редактора историй"
+            alt="The first editor version"
           />
 
           <div className="case-text">
             <p>
-              На встрече с продакт-менеджером я быстро собрал несколько
-              направлений. Мы не планировали делать полноценный визуальный
-              редактор: маркетолог загружает уже подготовленные изображения и
-              видео, а в панели настраивает последовательность, кнопку и
-              публикацию. Поэтому важнее было показать итоговый вид слайда и
-              сделать структуру истории очевидной.
+              We did not need to reproduce a social-media visual editor.
+              Marketers upload prepared images and video, then control order,
+              the action link, and publication. I therefore organised the
+              chosen direction around the active slide: slides form a
+              horizontal sequence, with settings next to the selected item.
             </p>
             <p>
-              В выбранном варианте слайды выстроены в горизонтальную
-              последовательность, а настройки находятся рядом с выбранным
-              слайдом. Форма редактора повторяет результат, который увидит гость,
-              поэтому человеку проще контролировать порядок и проверять, не
-              перекрывает ли интерфейс важную часть изображения.
+              The editor mirrors the result a guest will see. A marketer can
+              immediately check the sequence and ensure no interface element
+              covers important imagery.
             </p>
           </div>
 
           <CaseMedia
             width="wide"
             assetKey={media("13-admin-directions")}
-            alt="Поиск формы редактора: варианты расположения слайдов и настроек"
+            alt="Exploring the editor layout"
           />
 
           <div className="case-text">
             <p>
-              После выбора направления мы увеличили слайды и собрали настройки
-              вокруг активного элемента. Так последовательность стала заметнее,
-              а предварительный просмотр перестал быть отдельным режимом работы.
+              Settings sit around the active slide, while the larger horizontal
+              sequence makes the final structure visible as it is assembled.
             </p>
           </div>
 
           <section className="case-text">
-            <h2>Управление опубликованными историями</h2>
+            <h2>Managing published Stories</h2>
             <p>
-              Для списка историй выбрали таблицу. Маркетолог видит опубликованные
-              и неопубликованные материалы, архив, основные показатели, место
-              публикации и дату создания. Отсюда можно быстро скопировать ссылку
-              или убрать историю в архив.
+              For published Stories, we used a table. It shows live and draft
+              content, the archive, core indicators, placement, and creation
+              date; marketers can copy a link or archive a Story from the same
+              place.
             </p>
           </section>
 
           <CaseMedia
             width="wide"
             assetKey={media("14-admin-list")}
-            alt="Список историй и статистика в административной панели"
+            alt="Stories list and analytics in the admin panel"
           />
 
           <div className="case-text">
             <p>
-              Мы проработали состояния создания, публикации и управления
-              историей и передали решение в разработку. Интерфейсом пользуются
-              люди с разным опытом, поэтому одной из целей было сделать выпуск
-              истории понятным без отдельного обучения.
+              We designed the creation, publishing, and management states, then
+              handed the solution over for development. People with very
+              different levels of experience use the admin panel, so the flow
+              needed to work without separate training.
             </p>
           </div>
 
           <CaseMedia
             width="wide"
             assetKey={media("15-admin-final")}
-            alt="Итоговые экраны административной панели"
+            alt="Final admin-panel screens"
           />
 
           <section className="case-text">
-            <h2>Результат</h2>
+            <h2>What the launch showed</h2>
             <p>
-              Клиенты быстро приняли новый формат: в первую неделю больше
-              половины клиентов из топ-30 запустили собственные истории. Среди
-              первых примеров были Fresa’s и DUO.
+              More than half of STARTER’s top 30 clients launched their own
+              Stories in the first week. Early examples included Fresa’s and
+              DUO.
             </p>
             <p>
-              За первый месяц после запуска в поддержку не поступило ни одного
-              вопроса о том, как пользоваться историями. Для нас это стало
-              важным сигналом качества: рестораны смогли самостоятельно собрать
-              и опубликовать новый формат контента.
+              During the first month, support received no questions about how
+              to use the feature. This was an early signal that restaurants
+              could create and publish the new content format independently.
             </p>
             <p>
-              В первом запуске мы проверили принятие инструмента и понятность
-              интерфейса. Влияние историй на заказы и выручку требовало более
-              длинного периода наблюдения и достаточного объёма данных, поэтому
-              мы не включали эти показатели в раннюю оценку результата.
+              The initial release tested feature adoption and interface clarity.
+              Its effect on orders, revenue, or loyalty would have required a
+              longer observation window and sufficient data, so I do not claim
+              those outcomes here.
             </p>
           </section>
 
@@ -424,7 +399,8 @@ export default function StarterStoriesPage() {
             width="wide"
             src="/media/videos/starter-stories/16-web-demo.mp4"
             posterAssetKey={media("16-video-poster")}
-            title="Просмотр готовой истории в веб-версии"
+            title="A completed Story in web view"
+            locale="en"
           />
         </article>
       </main>

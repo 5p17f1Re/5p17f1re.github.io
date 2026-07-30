@@ -170,18 +170,13 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       );
       const coverRect = cover?.getBoundingClientRect();
       const targetWidth = Math.min(window.innerWidth, 1156);
-      const targetTop = window.innerWidth <= 800 ? 140 : 232;
-      const aspectRatio = coverRect
-        ? coverRect.width / coverRect.height
-        : 1;
-      const targetHeight = targetWidth / aspectRatio;
       const travelProgress = 1.1;
       const travelX = coverRect
         ? (window.innerWidth / 2 - (coverRect.left + coverRect.width / 2)) *
           travelProgress
         : 0;
       const travelY = coverRect
-        ? (targetTop + targetHeight / 2 -
+        ? (window.innerHeight / 2 -
             (coverRect.top + coverRect.height / 2)) *
           travelProgress
         : 0;
@@ -373,7 +368,7 @@ export function SharedCaseCover({
       coverPosition = { x: travelX, y: travelY };
     } else if (active.phase === "takeoff" && target) {
       coverAnimation = { opacity: 0, scale: 0.9 };
-      coverPosition = { x: 0, y: 48 };
+      coverPosition = { x: 0, y: 0 };
     } else if (active.phase === "landing") {
       coverAnimation = target
         ? { opacity: 1, scale: 1 }
@@ -385,13 +380,13 @@ export function SharedCaseCover({
       coverAnimation = target
         ? { opacity: 1, scale: 0.9 }
         : { opacity: 0, scale: 1.2 };
-      if (target) coverPosition = { x: 0, y: 48 };
+      if (target) coverPosition = { x: 0, y: 0 };
     } else {
       coverAnimation = target
         ? { opacity: 0, scale: 0.9 }
         : { opacity: 1, scale: 1 };
       coverPosition = target
-        ? { x: 0, y: 48 }
+        ? { x: 0, y: 0 }
         : { x: 0, y: 0 };
     }
   }
@@ -409,7 +404,7 @@ export function SharedCaseCover({
           x: travelX,
           y: travelY,
         }
-      : { opacity: 0, scale: 0.9, x: 0, y: 48 };
+      : { opacity: 0, scale: 0.9, x: 0, y: 0 };
 
   return (
     <motion.div
