@@ -3,9 +3,11 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 
+const yandexMetricaId = 110991707;
+
 declare global {
   interface Window {
-    ym?: (command: "hit", url: string) => void;
+    ym?: (counterId: number, command: "hit", url: string) => void;
   }
 }
 
@@ -16,9 +18,9 @@ export function YandexMetrica() {
   useEffect(() => {
     function reportPageView() {
       const url = window.location.href;
-      if (reportedUrlRef.current === url) return;
+      if (!window.ym || reportedUrlRef.current === url) return;
 
-      window.ym?.("hit", url);
+      window.ym(yandexMetricaId, "hit", url);
       reportedUrlRef.current = url;
     }
 
