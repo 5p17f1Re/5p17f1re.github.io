@@ -160,8 +160,11 @@ html[data-case-cover-motion-direction="forward"] .project:not([data-case-cover-a
 html[data-case-cover-motion-direction="forward"] .project[data-case-cover-active="true"] .project__header,
 html[data-case-cover-motion-direction="forward"] .project[data-case-cover-active="true"] .project__desc,
 html[data-case-cover-motion-direction="forward"] .project[data-case-cover-active="true"] .project__case-link {
-  opacity: 0;
-  transition: opacity 150ms ease-out;
+  opacity: 0.6;
+  filter: blur(24px);
+  transition:
+    opacity 300ms cubic-bezier(0.45, 0, 0.75, 0.65),
+    filter 300ms cubic-bezier(0.45, 0, 0.75, 0.65);
 }
 
 @keyframes case-cover-neighbor-return {
@@ -821,6 +824,7 @@ html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="l
 /* ─── Snakeview: 1-column view ──────────────────────────────────────────── */
 .projects--snakeview {
   --snakeview-text-column-width: 458px;
+  width: min(934px, calc(100% - 64px));
   max-width: 934px;
   margin-left: auto;
   margin-right: auto;
@@ -1309,7 +1313,7 @@ html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="l
 @media (max-width: 1439px) {
   .page { width: 100%; }
   .projects { margin-left: max(0, calc((100% - 1408px) / 2)); }
-  .projects--snakeview { margin-left: max(0, calc((100% - 934px) / 2)); }
+  .projects--snakeview { margin-left: auto; margin-right: auto; }
 }
 
 /* ─── Birdview: below 800px → 2 columns ───────────────────────────────── */
@@ -1359,8 +1363,8 @@ html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="l
   /* snakeview: full width on smaller screens */
   .projects--snakeview {
     max-width: 100%;
-    margin-left: 0;
-    margin-right: 0;
+    margin-left: auto;
+    margin-right: auto;
   }
   .projects .project {
     width: calc(50% - 10px);
@@ -1866,8 +1870,8 @@ html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="l
   }
 
   .projects--snakeview .hero-about {
-    width: calc(100% - 64px);
-    margin: 0 32px;
+    width: 100%;
+    margin: 0;
   }
 
   .site-footer__content {
@@ -1902,7 +1906,7 @@ html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="l
   }
 
   .projects--snakeview .project__desc {
-    width: calc(100% - 64px);
+    width: 100%;
     max-width: 326px;
   }
 
@@ -1986,6 +1990,6 @@ html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="l
 
 @media (max-width: 600px) {
   .projects--snakeview > .hero-about {
-    width: calc(100% - 64px);
+    width: 100%;
   }
 }

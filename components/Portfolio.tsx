@@ -151,7 +151,7 @@ function ProjectMedia({
   if (project.mediaType === "video") {
     const sizes =
       view === "snakeview"
-        ? "(max-width: 800px) 100vw, 934px"
+        ? "(max-width: 998px) calc(100vw - 64px), 934px"
         : "(max-width: 600px) 50vw, (max-width: 800px) 50vw, 33vw";
 
     return (
@@ -178,7 +178,11 @@ function ProjectMedia({
                 key={src}
                 assetKey={src}
                 alt={project.title}
-                sizes="(max-width: 800px) 50vw, 465px"
+                sizes={
+                  view === "snakeview"
+                    ? "(max-width: 998px) calc((100vw - 64px) / 2), 465px"
+                    : "(max-width: 800px) 50vw, 465px"
+                }
               />
             ))}
           </div>
@@ -199,7 +203,7 @@ function ProjectMedia({
         alt={project.title}
         sizes={
           view === "snakeview"
-            ? "(max-width: 800px) 100vw, 934px"
+            ? "(max-width: 998px) calc(100vw - 64px), 934px"
             : "(max-width: 600px) 50vw, (max-width: 800px) 50vw, 33vw"
         }
         eager={eager}
@@ -910,6 +914,9 @@ function SnakeView({
 
 export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
   const { active: activeCoverMotion } = useCaseCoverMotion();
+  const skipAboutTextRevealRef = useRef(
+    activeCoverMotion?.direction === "return",
+  );
   const [activeLocale, setActiveLocale] = useState<SiteLocale>(locale);
   const projects = getProjects(activeLocale);
   const about = getAbout(activeLocale);
@@ -917,6 +924,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
   const showAbout = true;
   const [view, setView] = useState<ViewMode>("snakeview");
   const [viewReady, setViewReady] = useState(false);
+  const [revealAboutTextOnLoad, setRevealAboutTextOnLoad] = useState(false);
   const [alternateViewPrepared, setAlternateViewPrepared] = useState(false);
   const [nextView, setNextView] = useState<ViewMode | null>(null);
   const [containerHeight, setContainerHeight] = useState<number>();
@@ -986,8 +994,12 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
     const storedView =
       document.documentElement.dataset.portfolioView ??
       window.localStorage.getItem("portfolio-view");
+    const initialView = storedView === "birdview" ? "birdview" : "snakeview";
     /* eslint-disable react-hooks/set-state-in-effect -- The client-only preference is applied after hydration. */
-    setView(storedView === "birdview" ? "birdview" : "snakeview");
+    setView(initialView);
+    setRevealAboutTextOnLoad(
+      initialView === "snakeview" && !skipAboutTextRevealRef.current,
+    );
     setViewReady(true);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
@@ -1288,9 +1300,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
                   viewReady || activeCoverMotion?.direction === "return"
                 }
                 reduceMotion={Boolean(reduceMotion)}
-                revealAboutTextOnLoad={
-                  viewReady && displayedView === "snakeview"
-                }
+                revealAboutTextOnLoad={revealAboutTextOnLoad}
                 sharedCoverEnabled={displayedView === "snakeview"}
               />
             </motion.div> : null}
