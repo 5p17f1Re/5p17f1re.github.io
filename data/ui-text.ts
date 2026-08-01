@@ -27,7 +27,7 @@ export type UiText = {
 
 export const uiText: Record<SiteLocale, UiText> = {
   en: {
-    portfolioHeading: "Seva Kudryavtsev — Product Designer",
+    portfolioHeading: "Seva Kudryavtsev",
     skipToContent: "Skip to content",
     primaryNavigation: "Primary navigation",
     birdview: "Birdview",
@@ -55,7 +55,7 @@ export const uiText: Record<SiteLocale, UiText> = {
     footerVersion: "Version",
   },
   ru: {
-    portfolioHeading: "Сева Кудрявцев — продуктовый дизайнер",
+    portfolioHeading: "Сева Кудрявцев",
     skipToContent: "К содержанию",
     primaryNavigation: "Основная навигация",
     birdview: "Сетка",
