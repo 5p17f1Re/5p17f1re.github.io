@@ -40,10 +40,16 @@ type ActiveTransition = TransitionSnapshot & {
 const storageKey = "case-cover-motion-snapshot";
 const birdviewNavigationMs = 200;
 const snakeviewNavigationMs = 250;
-const positionAnimationMs = 300;
-const landingMs = 350;
+// Forward-only timing experiment: the shared-cover entry is 1.5x slower;
+// return motion keeps the established timings below.
+const forwardBirdviewNavigationMs = 300;
+const forwardSnakeviewNavigationMs = 375;
+const positionAnimationMs = 450;
+const forwardLandingMs = 525;
+const returnCoverLandingMs = 350;
 const returnLandingMs = 500;
-const totalMs = snakeviewNavigationMs + landingMs;
+const forwardTotalMs = forwardSnakeviewNavigationMs + forwardLandingMs;
+const returnTakeoffMs = snakeviewNavigationMs + returnCoverLandingMs;
 const landingEase = [0.12, 1, 0.2, 1] as const;
 const landingOpacityEase = [0.4, 0, 0.2, 1] as const;
 const takeoffEase = [0.45, 0, 0.75, 0.65] as const;
@@ -154,7 +160,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const armFallback = useCallback((durationMs = totalMs) => {
+  const armFallback = useCallback((durationMs = forwardTotalMs) => {
     if (completionTimerRef.current !== null) {
       window.clearTimeout(completionTimerRef.current);
     }
@@ -200,8 +206,8 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       armNavigation(
         () => router.push(snapshot.casePath, { scroll: false }),
         snapshot.view === "birdview"
-          ? birdviewNavigationMs
-          : snakeviewNavigationMs,
+          ? forwardBirdviewNavigationMs
+          : forwardSnakeviewNavigationMs,
       );
       return true;
     },
@@ -234,7 +240,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       phase,
       offscreenReturn,
     });
-    armFallback(phase === "landing" ? returnLandingMs : totalMs);
+    armFallback(phase === "landing" ? returnLandingMs : returnTakeoffMs);
     if (offscreenReturn) {
       router.push(snapshot.homePath, { scroll: false });
     } else {
@@ -290,7 +296,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       window.scrollTo({ top: 0, behavior: "instant" });
       if (current.phase === "takeoff") {
         setTransition({ ...current, phase: "landing" });
-        armFallback(landingMs);
+        armFallback(forwardLandingMs);
       }
     }
     if (
@@ -373,6 +379,8 @@ export function SharedCaseCover({
   );
   const shouldMeasureLanding =
     isLandingDestination && Boolean(sourceCoverRect) && !landingGeometry;
+  const landingDurationMs =
+    active?.direction === "forward" ? forwardLandingMs : returnCoverLandingMs;
 
   useLayoutEffect(() => {
     if (!shouldMeasureLanding || !coverRef.current || !sourceCoverRect) return;
@@ -415,14 +423,19 @@ export function SharedCaseCover({
         y: 0,
         scale: 1,
         transition: {
-          duration: landingMs / 1000,
+          duration: landingDurationMs / 1000,
           ease: landingEase,
         },
       });
     });
 
     return () => window.cancelAnimationFrame(animationFrame);
-  }, [isLandingDestination, landingControls, landingGeometry]);
+  }, [
+    isLandingDestination,
+    landingControls,
+    landingDurationMs,
+    landingGeometry,
+  ]);
 
   let coverAnimation = { opacity: 1, scale: 1 };
   if (isActiveCover && active?.direction === "forward") {
@@ -467,7 +480,7 @@ export function SharedCaseCover({
       }}
       transition={{
         opacity: {
-          duration: landingMs / 1000,
+          duration: landingDurationMs / 1000,
           ease: landingOpacityEase,
         },
         scale: {
@@ -476,7 +489,7 @@ export function SharedCaseCover({
               ? active.direction === "return" && target
                 ? positionAnimationMs / 1000
                 : positionAnimationMs / 1000
-              : landingMs / 1000,
+              : landingDurationMs / 1000,
           ease:
             active?.phase === "takeoff"
               ? active.direction === "return" && target
@@ -488,7 +501,7 @@ export function SharedCaseCover({
           duration:
             active?.phase === "takeoff"
               ? positionAnimationMs / 1000
-              : landingMs / 1000,
+              : landingDurationMs / 1000,
           ease:
             active?.phase === "takeoff" ? takeoffEase : landingEase,
         },
@@ -496,7 +509,7 @@ export function SharedCaseCover({
           duration:
             active?.phase === "takeoff"
               ? positionAnimationMs / 1000
-              : landingMs / 1000,
+              : landingDurationMs / 1000,
           ease:
             active?.phase === "takeoff" ? takeoffEase : landingEase,
         },
