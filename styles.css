@@ -135,6 +135,24 @@ img { display: block; max-width: 100%; }
   min-width: 0;
 }
 
+/* Keep the server-rendered case behind the shared cover until the image has
+   landed. This prevents a visible first paint followed by React handoff. */
+html[data-case-cover-motion-direction="forward"] .case-motion-route {
+  visibility: hidden;
+}
+
+html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="handoff"] .case-motion-route {
+  visibility: visible;
+}
+
+/* The destination rect is measured while the forward transition is active;
+   freeze the viewport so the landing point cannot move under the pointer. */
+html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"],
+html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"] body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 .shared-case-cover {
   width: 100%;
 }
@@ -323,7 +341,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   );
 }
 
-html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"] .case-title h1 {
+html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="handoff"] .case-title h1 {
   animation: case-cover-title-reveal 788ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -332,8 +350,17 @@ html[data-case-cover-motion-direction="forward"] .case-page-shell .case-text {
   filter: blur(24px);
 }
 
-html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"] .case-page-shell .case-text {
+html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="handoff"] .case-page-shell .case-text {
   animation: case-cover-copy-reveal 450ms 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+html[data-case-cover-motion-direction="return"] .case-page-shell .case-title,
+html[data-case-cover-motion-direction="return"] .case-page-shell .case-text {
+  opacity: 0.6;
+  filter: blur(24px);
+  transition:
+    opacity 350ms cubic-bezier(0.45, 0, 0.75, 0.65),
+    filter 350ms cubic-bezier(0.45, 0, 0.75, 0.65);
 }
 
 /* ─── Nav ───────────────────────────────────────────────────────────────── */
