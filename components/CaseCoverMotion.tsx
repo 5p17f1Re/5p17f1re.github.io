@@ -49,7 +49,10 @@ const snakeviewNavigationMs = 250;
 const forwardTakeoffMs = 320;
 const forwardLandingMs = 360;
 const forwardMotionMs = forwardTakeoffMs + forwardLandingMs;
-const forwardMotionDelayMs = 0;
+// Let the homepage context reveal its first blur frames before the route
+// handoff. The persistent cover starts moving immediately, so this is not a
+// pause in the motion timeline.
+const forwardMotionDelayMs = 80;
 const forwardHandoffMs = 140;
 const matchCutCrossfadeMs = 120;
 const returnCoverLandingMs = 350;
@@ -150,7 +153,7 @@ type CaseCoverMotionContextValue = {
       "scrollY" | "sourceCoverRect"
     >,
   ) => boolean;
-  returnHome: () => boolean;
+  returnHome: (event: ReactMouseEvent<HTMLAnchorElement>) => boolean;
 };
 
 const CaseCoverMotionContext = createContext<CaseCoverMotionContextValue | null>(
@@ -196,7 +199,17 @@ function getVisibleCover(
   return [...document.querySelectorAll<HTMLElement>(selector)].find((element) => {
     const style = getComputedStyle(element);
     const rect = element.getBoundingClientRect();
-    return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0;
+    const canMeasureHiddenCover =
+      role === "target" ||
+      (role === "source" &&
+        document.documentElement.dataset.caseCoverMotionDirection === "return");
+    const viewLayer = element.closest<HTMLElement>(".view-layer");
+    return (
+      style.display !== "none" &&
+      (canMeasureHiddenCover || style.visibility !== "hidden") &&
+      (!viewLayer || getComputedStyle(viewLayer).opacity !== "0") &&
+      rect.width > 0
+    );
   });
 }
 
@@ -218,7 +231,6 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
   const completionTimerRef = useRef<number | null>(null);
   const handoffTimerRef = useRef<number | null>(null);
   const matchCutTimerRef = useRef<number | null>(null);
-  const forwardNavigationRef = useRef<string | null>(null);
 
   const setTransition = useCallback((next: ActiveTransition | null) => {
     activeRef.current = next;
@@ -271,9 +283,6 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       matchCutTimerRef.current = null;
     }
     const completed = activeRef.current;
-    if (completed?.direction === "forward") {
-      forwardNavigationRef.current = null;
-    }
     setTransition(null);
     setTransitionContent(null);
     setReplacementContent(null);
@@ -371,13 +380,17 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       >,
     ) => {
       const isPlainPrimaryClick =
-        event.button === 0 &&
         !event.metaKey &&
         !event.ctrlKey &&
         !event.shiftKey &&
         !event.altKey;
       if (!isPlainPrimaryClick || reduceMotion) return false;
       if (activeRef.current) return true;
+
+      // Prevent the anchor's native navigation before arming the delayed
+      // router handoff; otherwise the document can reload over the first
+      // painted frame and discard the persistent transition layer.
+      event.preventDefault();
 
       const cover = event.currentTarget.querySelector<HTMLElement>(
         `[data-case-cover-motion="${CSS.escape(snapshot.transitionId)}"]`,
@@ -401,17 +414,25 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
         takeoffStartedAt: Date.now(),
       });
       armFallback();
-      router.push(snapshot.casePath, { scroll: false });
+      armNavigation(
+        () => router.push(snapshot.casePath, { scroll: false }),
+        forwardMotionDelayMs,
+      );
       return true;
     },
-    [armFallback, reduceMotion, router, setTransition],
+    [armFallback, armNavigation, reduceMotion, router, setTransition],
   );
 
-  const returnHome = useCallback(() => {
-    if (activeRef.current) return true;
+  const returnHome = useCallback((event: ReactMouseEvent<HTMLAnchorElement>) => {
+    if (activeRef.current) {
+      event.preventDefault();
+      return true;
+    }
     const snapshot = readSnapshot();
     if (!snapshot || reduceMotion) return false;
-    const cover = getVisibleCover(snapshot.transitionId, "source");
+
+    event.preventDefault();
+    const cover = getVisibleCover(snapshot.transitionId, "target");
     const coverRect = cover?.getBoundingClientRect();
     const offscreenReturn = Boolean(
       coverRect && (coverRect.bottom < 0 || coverRect.top > window.innerHeight),
@@ -484,17 +505,6 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("popstate", handlePopState);
   }, [armFallback, reduceMotion, setTransition]);
 
-  useEffect(() => {
-    if (!active || active.direction !== "forward") return;
-    if (pathname.replace(/\/$/, "") === active.casePath.replace(/\/$/, "")) {
-      return;
-    }
-    if (forwardNavigationRef.current === active.transitionId) return;
-
-    forwardNavigationRef.current = active.transitionId;
-    router.push(active.casePath, { scroll: false });
-  }, [active, pathname, router]);
-
   useLayoutEffect(() => {
     if (!active) return;
     const normalizedPath = pathname.replace(/\/$/, "");
@@ -526,6 +536,23 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     const destinationRole = current.direction === "forward" ? "target" : "source";
     let frame = 0;
     let attempts = 0;
+    let previousDestination: CoverRectSnapshot | undefined;
+
+    const hasStableGeometry = (next: CoverRectSnapshot) => {
+      if (!previousDestination) {
+        previousDestination = next;
+        return false;
+      }
+
+      const delta = Math.max(
+        Math.abs(previousDestination.left - next.left),
+        Math.abs(previousDestination.top - next.top),
+        Math.abs(previousDestination.width - next.width),
+        Math.abs(previousDestination.height - next.height),
+      );
+      previousDestination = next;
+      return delta < 0.5;
+    };
 
     const measureDestination = () => {
       attempts += 1;
@@ -534,6 +561,12 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
 
       if (destinationRect && destinationRect.width > 0) {
         const destinationSnapshot = snapshotCoverRect(destinationRect);
+        if (!destinationSnapshot || !hasStableGeometry(destinationSnapshot)) {
+          if (attempts < 12) {
+            frame = window.requestAnimationFrame(measureDestination);
+          }
+          return;
+        }
         setTransition({
           ...current,
           phase: current.direction === "forward" ? "takeoff" : "landing",
@@ -550,6 +583,24 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
             phase: "takeoff",
             destinationCoverRect: destinationSnapshot,
           });
+        } else {
+          if (handoffTimerRef.current !== null) {
+            window.clearTimeout(handoffTimerRef.current);
+          }
+          // Reveal the homepage cover just after the 350 ms cover landing,
+          // while the persistent layer is still present. This makes the
+          // handoff overlap instead of exposing a final-frame geometry gap.
+          handoffTimerRef.current = window.setTimeout(() => {
+            handoffTimerRef.current = null;
+            const latest = activeRef.current;
+            if (
+              latest?.transitionId === current.transitionId &&
+              latest.direction === "return" &&
+              latest.phase === "landing"
+            ) {
+              setTransition({ ...latest, phase: "handoff" });
+            }
+          }, returnCoverLandingMs + 32);
         }
         armFallback(
           current.direction === "forward"
@@ -768,8 +819,15 @@ export function SharedCaseCover({
     target &&
     active?.direction === "forward" &&
     active.phase === "handoff";
+  const isReturnHandoff =
+    !target &&
+    active?.direction === "return" &&
+    active.phase === "handoff";
   const isHiddenByTransition =
-    participates && !active?.offscreenReturn && !isTargetHandoff;
+    participates &&
+    !active?.offscreenReturn &&
+    !isTargetHandoff &&
+    !isReturnHandoff;
 
   useLayoutEffect(() => {
     if (!transitionId || !enabled) return;

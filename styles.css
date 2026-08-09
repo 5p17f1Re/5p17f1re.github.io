@@ -137,12 +137,12 @@ img { display: block; max-width: 100%; }
 
 /* Keep the server-rendered case behind the shared cover until the image has
    landed. This prevents a visible first paint followed by React handoff. */
-html[data-case-cover-motion-direction="forward"] .case-motion-route {
+html[data-case-cover-motion-direction="forward"] .case-motion-route:has(.case-page-shell) {
   visibility: hidden;
 }
 
-html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"] .case-motion-route,
-html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="handoff"] .case-motion-route {
+html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"] .case-motion-route:has(.case-page-shell),
+html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="handoff"] .case-motion-route:has(.case-page-shell) {
   visibility: visible;
 }
 
@@ -217,22 +217,31 @@ html[data-case-cover-motion-active] .project-motion-cell:has(.project[data-case-
   z-index: 1;
 }
 
+@keyframes case-cover-home-context-exit {
+  from {
+    opacity: 1;
+    filter: blur(0);
+  }
+
+  45% {
+    opacity: 0.97;
+    filter: blur(4px);
+  }
+
+  to {
+    opacity: 0.9;
+    filter: blur(7px);
+  }
+}
+
 html[data-case-cover-motion-direction="forward"] .project:not([data-case-cover-active="true"]) {
-  opacity: 0.6;
-  filter: blur(12px);
-  transition:
-    opacity 1576ms cubic-bezier(0.45, 0, 0.75, 0.65),
-    filter 1576ms cubic-bezier(0.45, 0, 0.75, 0.65);
+  animation: case-cover-home-context-exit 320ms 16ms cubic-bezier(0.12, 1, 0.2, 1) both;
 }
 
 html[data-case-cover-motion-direction="forward"] .project[data-case-cover-active="true"] .project__header,
 html[data-case-cover-motion-direction="forward"] .project[data-case-cover-active="true"] .project__desc,
 html[data-case-cover-motion-direction="forward"] .project[data-case-cover-active="true"] .project__case-link {
-  opacity: 0.6;
-  filter: blur(12px);
-  transition:
-    opacity 1576ms cubic-bezier(0.45, 0, 0.75, 0.65),
-    filter 1576ms cubic-bezier(0.45, 0, 0.75, 0.65);
+  animation: case-cover-home-context-exit 320ms 16ms cubic-bezier(0.12, 1, 0.2, 1) both;
 }
 
 /* Forward handoff: the persistent layer carries the target content after the
@@ -270,7 +279,8 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
   opacity: 0;
 }
 
-html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="landing"] .project:not([data-case-cover-active="true"]) {
+html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="landing"] .project:not([data-case-cover-active="true"]),
+html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="handoff"] .project:not([data-case-cover-active="true"]) {
   animation: case-cover-neighbor-return 350ms 150ms cubic-bezier(0.12, 1, 0.2, 1) both;
 }
 
@@ -288,7 +298,10 @@ html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="la
 
 html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="landing"] .project[data-case-cover-active="true"] .project__header,
 html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="landing"] .project[data-case-cover-active="true"] .project__desc,
-html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="landing"] .project[data-case-cover-active="true"] .project__case-link {
+html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="landing"] .project[data-case-cover-active="true"] .project__case-link,
+html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="handoff"] .project[data-case-cover-active="true"] .project__header,
+html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="handoff"] .project[data-case-cover-active="true"] .project__desc,
+html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="handoff"] .project[data-case-cover-active="true"] .project__case-link {
   animation: case-cover-copy-return 150ms 350ms cubic-bezier(0.12, 1, 0.2, 1) both;
 }
 

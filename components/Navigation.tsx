@@ -465,9 +465,7 @@ function Navigation({ controls }: { controls: HomeNavigationControls }) {
       return;
     }
 
-    if (returnHome()) {
-      event.preventDefault();
-    }
+    returnHome(event);
   }
 
   function handleNavigationPointerOver(event: PointerEvent<HTMLElement>) {
