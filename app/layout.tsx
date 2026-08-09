@@ -4,11 +4,13 @@ import Script from "next/script";
 import { SiteShell } from "@/components/SiteShell";
 import { YandexMetrica } from "@/components/YandexMetrica";
 import { SquircleNoScript } from "@/components/Squircle";
+import { getAbout } from "@/data/about";
 import "../styles.css";
 
 const googleAnalyticsId = "G-TLZ88JYZQZ";
 const yandexMetricaId = 110991707;
 const shouldLoadGoogleAnalytics = process.env.NODE_ENV === "production";
+const englishAboutDescription = getAbout("en").paragraphs[0];
 
 const inter = localFont({
   src: [
@@ -29,8 +31,7 @@ const interTight = localFont({
 export const metadata: Metadata = {
   metadataBase: new URL("https://sevakudryavtsev.com"),
   title: "Seva Kudryavtsev",
-  description:
-    "Designer who combines the quality of consumer interfaces with the systems thinking behind complex products.",
+  description: englishAboutDescription,
   alternates: { canonical: "/" },
   icons: {
     icon: {
@@ -44,8 +45,7 @@ export const metadata: Metadata = {
     url: "/",
     siteName: "Seva Kudryavtsev",
     title: "Seva Kudryavtsev",
-    description:
-      "Designer who combines the quality of consumer interfaces with the systems thinking behind complex products.",
+    description: englishAboutDescription,
     images: [
       {
         url: "/media/images/sevakudrytavtsev-600.webp",
@@ -58,8 +58,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary",
     title: "Seva Kudryavtsev",
-    description:
-      "Designer who combines the quality of consumer interfaces with the systems thinking behind complex products.",
+    description: englishAboutDescription,
     images: ["/media/images/sevakudrytavtsev-600.webp"],
   },
 };

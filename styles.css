@@ -11,6 +11,17 @@
   --color-accent-green: #137547;
   --color-nav-gray: rgba(135, 135, 135, 0.3);
   --color-nav-black: rgba(0, 0, 0, 0.4);
+  --case-cover-context-duration: 320ms;
+  --case-cover-title-reveal-duration: 420ms;
+  --case-cover-copy-reveal-duration: 480ms;
+  --case-cover-text-reveal-delay: 100ms;
+}
+
+html[data-case-cover-motion-debug] {
+  --case-cover-context-duration: 480ms;
+  --case-cover-title-reveal-duration: 630ms;
+  --case-cover-copy-reveal-duration: 720ms;
+  --case-cover-text-reveal-delay: 100ms;
 }
 
 ::selection {
@@ -164,10 +175,14 @@ html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][
    keep their layout boxes, but stay hidden until this layer has landed. */
 .case-cover-motion-layer {
   position: fixed;
+  left: var(--case-cover-motion-left, 0px);
+  top: var(--case-cover-motion-top, 0px);
+  width: var(--case-cover-motion-width, 0px);
+  height: var(--case-cover-motion-height, 0px);
   z-index: 20;
   pointer-events: none;
   transform-origin: 50% 50%;
-  will-change: transform;
+  will-change: transform, left, top, width, height, opacity, filter;
 }
 
 .case-cover-motion-layer__content,
@@ -183,14 +198,12 @@ html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][
   max-width: none;
   margin: 0;
   overflow: hidden;
-  transition: opacity 120ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.case-cover-motion-layer--crossfade .case-cover-motion-layer__content {
-  transition-duration: 120ms;
+  opacity: 1;
+  transition: none;
 }
 
 .case-cover-motion-layer__content--replacement {
+  opacity: 0;
   pointer-events: none;
 }
 
@@ -235,30 +248,25 @@ html[data-case-cover-motion-active] .project-motion-cell:has(.project[data-case-
 }
 
 html[data-case-cover-motion-direction="forward"] .project:not([data-case-cover-active="true"]) {
-  animation: case-cover-home-context-exit 320ms 16ms cubic-bezier(0.12, 1, 0.2, 1) both;
+  animation: case-cover-home-context-exit var(--case-cover-context-duration) 16ms cubic-bezier(0.12, 1, 0.2, 1) both;
 }
 
 html[data-case-cover-motion-direction="forward"] .project[data-case-cover-active="true"] .project__header,
 html[data-case-cover-motion-direction="forward"] .project[data-case-cover-active="true"] .project__desc,
 html[data-case-cover-motion-direction="forward"] .project[data-case-cover-active="true"] .project__case-link {
-  animation: case-cover-home-context-exit 320ms 16ms cubic-bezier(0.12, 1, 0.2, 1) both;
+  animation: case-cover-home-context-exit var(--case-cover-context-duration) 16ms cubic-bezier(0.12, 1, 0.2, 1) both;
 }
 
-/* Forward handoff: the persistent layer carries the target content after the
-   match-cut boundary; this route-local cover only becomes visible once both
-   layers share the final geometry. */
+/* The route-local cover stays hidden while the persistent icon/container is
+   expanding. At completion the same target content is already fully visible
+   in that container, so revealing this exact-geometry layer is not a cut. */
 html[data-case-cover-motion-direction="forward"] [data-case-cover-role="target"] {
   opacity: 0;
-  transition: opacity 140ms cubic-bezier(0.12, 1, 0.2, 1);
-}
-
-html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="handoff"] [data-case-cover-role="target"] {
-  opacity: 1;
 }
 
 @keyframes case-cover-neighbor-return {
   from {
-    opacity: 0.6;
+    opacity: 0.33;
     filter: blur(12px);
   }
 
@@ -269,7 +277,7 @@ html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="h
 }
 
 html[data-case-cover-motion-direction="return"] .project:not([data-case-cover-active="true"]) {
-  opacity: 0.6;
+  opacity: 0.33;
   filter: blur(12px);
 }
 
@@ -286,7 +294,7 @@ html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="ha
 
 @keyframes case-cover-copy-return {
   from {
-    opacity: 0;
+    opacity: 0.33;
     filter: blur(12px);
   }
 
@@ -307,7 +315,7 @@ html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="ha
 
 @keyframes case-cover-offscreen-return {
   from {
-    opacity: 0;
+    opacity: 0.33;
     filter: blur(12px);
     transform: scale(1.2);
   }
@@ -393,7 +401,8 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
 
 html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"] .case-title h1,
 html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="handoff"] .case-title h1 {
-  animation: case-cover-title-reveal 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: case-cover-title-reveal var(--case-cover-title-reveal-duration) cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--case-cover-text-reveal-delay);
 }
 
 html[data-case-cover-motion-direction="forward"] .case-page-shell .case-text {
@@ -403,7 +412,8 @@ html[data-case-cover-motion-direction="forward"] .case-page-shell .case-text {
 
 html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"] .case-page-shell .case-text,
 html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="handoff"] .case-page-shell .case-text {
-  animation: case-cover-copy-reveal 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: case-cover-copy-reveal var(--case-cover-copy-reveal-duration) cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--case-cover-text-reveal-delay);
 }
 
 html[data-case-cover-motion-direction="return"] .case-page-shell .case-title,

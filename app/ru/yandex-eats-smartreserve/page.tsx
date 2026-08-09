@@ -11,7 +11,7 @@ const cover =
   "/media/images/yandex-eats-smartreserve/01-cover-1600.webp";
 
 export const metadata: Metadata = {
-  title: `${title} — Сева Кудрявцев`,
+  title,
   description,
   alternates: {
     canonical: "/ru/yandex-eats-smartreserve/",
