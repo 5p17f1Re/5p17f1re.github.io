@@ -16,7 +16,7 @@ import { motion, useReducedMotion } from "motion/react";
 
 type ViewMode = "birdview" | "snakeview";
 type Direction = "forward" | "return";
-type TransitionPhase = "takeoff" | "landing";
+type TransitionPhase = "takeoff" | "landing" | "handoff";
 type CoverRectSnapshot = {
   left: number;
   top: number;
@@ -45,6 +45,7 @@ const snakeviewNavigationMs = 250;
 // measured case rect. The 50ms lead-in keeps the blur visible before motion.
 const forwardLandingMs = 788;
 const forwardMotionDelayMs = 50;
+const forwardHandoffMs = 140;
 const returnCoverLandingMs = 350;
 const returnLandingMs = 500;
 const forwardTotalMs = forwardMotionDelayMs + forwardLandingMs;
@@ -122,6 +123,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
   );
   const navigationTimerRef = useRef<number | null>(null);
   const completionTimerRef = useRef<number | null>(null);
+  const handoffTimerRef = useRef<number | null>(null);
 
   const setTransition = useCallback((next: ActiveTransition | null) => {
     activeRef.current = next;
@@ -165,6 +167,10 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       window.clearTimeout(completionTimerRef.current);
       completionTimerRef.current = null;
     }
+    if (handoffTimerRef.current !== null) {
+      window.clearTimeout(handoffTimerRef.current);
+      handoffTimerRef.current = null;
+    }
     const completed = activeRef.current;
     setTransition(null);
     setTransitionContent(null);
@@ -190,6 +196,32 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       reduceMotion ? 50 : durationMs,
     );
   }, [complete, reduceMotion]);
+
+  const armForwardHandoff = useCallback(
+    (transition: ActiveTransition, landingDurationMs: number) => {
+      if (transition.direction !== "forward") return;
+
+      if (handoffTimerRef.current !== null) {
+        window.clearTimeout(handoffTimerRef.current);
+      }
+
+      handoffTimerRef.current = window.setTimeout(() => {
+        handoffTimerRef.current = null;
+        const current = activeRef.current;
+        if (
+          !current ||
+          current.transitionId !== transition.transitionId ||
+          current.direction !== "forward" ||
+          current.phase !== "landing"
+        ) {
+          return;
+        }
+
+        setTransition({ ...current, phase: "handoff" });
+      }, landingDurationMs);
+    },
+    [setTransition],
+  );
 
   const openCase = useCallback(
     (
@@ -361,10 +393,15 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
           phase: "landing",
           destinationCoverRect: snapshotCoverRect(destinationRect),
         });
-        armFallback(
+        const landingDurationMs =
           current.direction === "forward"
             ? forwardLandingMs
-            : returnLandingMs,
+            : returnLandingMs;
+        armForwardHandoff(current, landingDurationMs);
+        armFallback(
+          current.direction === "forward"
+            ? landingDurationMs + forwardHandoffMs
+            : landingDurationMs,
         );
         return;
       }
@@ -376,12 +413,15 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
 
     frame = window.requestAnimationFrame(measureDestination);
     return () => window.cancelAnimationFrame(frame);
-  }, [active, armFallback, pathname, setTransition]);
+  }, [active, armFallback, armForwardHandoff, pathname, setTransition]);
 
   useEffect(
     () => () => {
       if (completionTimerRef.current !== null) {
         window.clearTimeout(completionTimerRef.current);
+      }
+      if (handoffTimerRef.current !== null) {
+        window.clearTimeout(handoffTimerRef.current);
       }
       if (navigationTimerRef.current !== null) {
         window.clearTimeout(navigationTimerRef.current);
@@ -430,8 +470,16 @@ function CaseCoverTransitionLayer({ content }: { content: ReactNode | null }) {
   const destinationScale = destinationRect
     ? destinationRect.width / sourceRect.width
     : 1;
+  const destinationScaleY = destinationRect
+    ? destinationRect.height / sourceRect.height
+    : 1;
+  const isHandoff = active.phase === "handoff";
   const durationMs =
-    active.direction === "forward" ? forwardLandingMs : returnCoverLandingMs;
+    isHandoff
+      ? forwardHandoffMs
+      : active.direction === "forward"
+        ? forwardLandingMs
+        : returnCoverLandingMs;
 
   return (
     <motion.div
@@ -443,10 +491,11 @@ function CaseCoverTransitionLayer({ content }: { content: ReactNode | null }) {
           ? {
               x: destinationCenterX - sourceCenterX,
               y: destinationCenterY - sourceCenterY,
-              scale: destinationScale,
-              opacity: 1,
+              scaleX: destinationScale,
+              scaleY: destinationScaleY,
+              opacity: isHandoff ? 0 : 1,
             }
-          : { x: 0, y: 0, scale: 1, opacity: 1 }
+          : { x: 0, y: 0, scaleX: 1, scaleY: 1, opacity: 1 }
       }
       transition={
         hasGeometry
@@ -482,7 +531,12 @@ export function SharedCaseCover({
   const coverRef = useRef<HTMLDivElement>(null);
   const isActiveCover = active?.transitionId === transitionId;
   const participates = Boolean(transitionId) && enabled && isActiveCover;
-  const isHiddenByTransition = participates && !active?.offscreenReturn;
+  const isTargetHandoff =
+    target &&
+    active?.direction === "forward" &&
+    active.phase === "handoff";
+  const isHiddenByTransition =
+    participates && !active?.offscreenReturn && !isTargetHandoff;
 
   useLayoutEffect(() => {
     if (!transitionId || !enabled) return;

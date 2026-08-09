@@ -34,6 +34,7 @@ const siteVersionMinor = Number.isFinite(parsedRepositoryCommitCount)
 const nextConfig: NextConfig = {
   output: "export",
   trailingSlash: true,
+  allowedDevOrigins: ["127.0.0.1"],
   pageExtensions: ["ts", "tsx", "md", "mdx"],
   turbopack: {
     root: process.cwd(),
