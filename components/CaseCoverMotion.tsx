@@ -50,6 +50,7 @@ const forwardSnakeviewNavigationMs = 375;
 const returnPositionAnimationMs = 300;
 const forwardPositionAnimationMs = 675;
 const forwardLandingMs = 788;
+const forwardMotionDelayMs = 50;
 const returnCoverLandingMs = 350;
 const returnLandingMs = 500;
 const forwardTotalMs = forwardSnakeviewNavigationMs + forwardLandingMs;
@@ -526,6 +527,10 @@ export function SharedCaseCover({
                 ? forwardPositionAnimationMs
                 : returnPositionAnimationMs) / 1000
               : landingDurationMs / 1000,
+          delay:
+            active?.phase === "takeoff" && active.direction === "forward"
+              ? forwardMotionDelayMs / 1000
+              : 0,
           ease:
             active?.phase === "takeoff"
               ? active.direction === "return" && target
@@ -540,6 +545,10 @@ export function SharedCaseCover({
                 ? forwardPositionAnimationMs
                 : returnPositionAnimationMs) / 1000
               : landingDurationMs / 1000,
+          delay:
+            active?.phase === "takeoff" && active.direction === "forward"
+              ? forwardMotionDelayMs / 1000
+              : 0,
           ease:
             active?.phase === "takeoff" ? takeoffEase : landingEase,
         },
@@ -550,6 +559,10 @@ export function SharedCaseCover({
                 ? forwardPositionAnimationMs
                 : returnPositionAnimationMs) / 1000
               : landingDurationMs / 1000,
+          delay:
+            active?.phase === "takeoff" && active.direction === "forward"
+              ? forwardMotionDelayMs / 1000
+              : 0,
           ease:
             active?.phase === "takeoff" ? takeoffEase : landingEase,
         },
