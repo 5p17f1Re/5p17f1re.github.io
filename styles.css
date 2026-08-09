@@ -176,6 +176,12 @@ html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][
   width: 100%;
 }
 
+.case-cover-motion-layer__content--replacement {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
 .case-cover-motion-layer__content .optimized-image__img,
 .case-cover-motion-layer__content .project__img,
 .case-cover-motion-layer__content .project__video,

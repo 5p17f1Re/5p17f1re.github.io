@@ -35,6 +35,7 @@ type ActiveTransition = TransitionSnapshot & {
   direction: Direction;
   phase: TransitionPhase;
   offscreenReturn?: boolean;
+  takeoffStartedAt?: number;
   matchCutRect?: CoverRectSnapshot;
   destinationCoverRect?: CoverRectSnapshot;
 };
@@ -44,11 +45,11 @@ const birdviewNavigationMs = 200;
 const snakeviewNavigationMs = 250;
 // The forward cover uses one persistent layer with a deliberate match-cut:
 // it takes off from the homepage, switches to the case cover at an
-// intermediate measured rect, then lands on the case geometry. The 50ms
-// lead-in keeps the surrounding blur visible before motion.
+// intermediate measured rect, then lands on the case geometry. The blur is
+// handled by the content timeline, so the cover starts moving immediately.
 const forwardTakeoffMs = 320;
 const forwardLandingMs = 360;
-const forwardMotionDelayMs = 50;
+const forwardMotionDelayMs = 0;
 const forwardHandoffMs = 140;
 const returnCoverLandingMs = 350;
 const returnLandingMs = 500;
@@ -79,6 +80,20 @@ function interpolateCoverRect(
     width: source.width + (destination.width - source.width) * progress,
     height: source.height + (destination.height - source.height) * progress,
   };
+}
+
+function getPremeasureCoverRect(source: CoverRectSnapshot): CoverRectSnapshot {
+  return {
+    left: source.left,
+    top: source.top - source.height * 0.14,
+    width: source.width * 1.08,
+    height: source.height * 1.04,
+  };
+}
+
+function getTakeoffRemainingMs(startedAt: number | undefined): number {
+  if (startedAt === undefined) return forwardTakeoffMs;
+  return Math.max(0, forwardTakeoffMs - (Date.now() - startedAt));
 }
 
 type CaseCoverMotionContextValue = {
@@ -135,6 +150,8 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
   const [transitionContent, setTransitionContent] = useState<ReactNode | null>(
     null,
   );
+  const [replacementContent, setReplacementContent] =
+    useState<ReactNode | null>(null);
   const activeRef = useRef<ActiveTransition | null>(null);
   const coverContentRegistryRef = useRef(
     new Map<string, { source?: ReactNode; target?: ReactNode }>(),
@@ -197,6 +214,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     const completed = activeRef.current;
     setTransition(null);
     setTransitionContent(null);
+    setReplacementContent(null);
     if (completed?.direction === "return") removeSnapshot();
   }, [setTransition]);
 
@@ -240,11 +258,6 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        const targetContent =
-          coverContentRegistryRef.current.get(current.transitionId)?.target;
-        if (targetContent !== undefined) {
-          setTransitionContent(targetContent);
-        }
         // Match-cut is the boundary between takeoff and landing, not a
         // rendered pause: switch content and start the next geometry tween
         // in the same React update.
@@ -263,9 +276,9 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
             setTransition({ ...landing, phase: "handoff" });
           }
         }, forwardLandingMs);
-      }, forwardTakeoffMs);
+      }, getTakeoffRemainingMs(transition.takeoffStartedAt));
     },
-    [setTransition, setTransitionContent],
+    [setTransition],
   );
 
   const openCase = useCallback(
@@ -298,11 +311,13 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
         coverContentRegistryRef.current.get(snapshot.transitionId)?.source ??
           null,
       );
+      setReplacementContent(null);
       writeSnapshot(nextSnapshot);
       setTransition({
         ...nextSnapshot,
         direction: "forward",
         phase: "takeoff",
+        takeoffStartedAt: Date.now(),
       });
       armFallback();
       armNavigation(
@@ -337,6 +352,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       coverContentRegistryRef.current.get(snapshot.transitionId)?.target ??
         null,
     );
+    setReplacementContent(null);
     setTransition({
       ...snapshot,
       sourceCoverRect: snapshotCoverRect(coverRect),
@@ -377,6 +393,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
         coverContentRegistryRef.current.get(snapshot.transitionId)?.target ??
           null,
       );
+      setReplacementContent(null);
       setTransition({
         ...snapshot,
         sourceCoverRect: snapshotCoverRect(coverRect),
@@ -447,6 +464,11 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
           destinationCoverRect: destinationSnapshot,
         });
         if (current.direction === "forward") {
+          const targetContent =
+            coverContentRegistryRef.current.get(current.transitionId)?.target;
+          if (targetContent !== undefined) {
+            setReplacementContent(targetContent);
+          }
           armForwardMatchCut({
             ...current,
             phase: "takeoff",
@@ -456,7 +478,9 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
         }
         armFallback(
           current.direction === "forward"
-            ? forwardTakeoffMs + forwardLandingMs + forwardHandoffMs
+            ? getTakeoffRemainingMs(current.takeoffStartedAt) +
+              forwardLandingMs +
+              forwardHandoffMs
             : returnLandingMs,
         );
         return;
@@ -501,7 +525,10 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       value={{ active, registerCoverContent, openCase, returnHome }}
     >
       {children}
-      <CaseCoverTransitionLayer content={transitionContent} />
+      <CaseCoverTransitionLayer
+        content={transitionContent}
+        replacementContent={replacementContent}
+      />
     </CaseCoverMotionContext.Provider>
   );
 }
@@ -510,14 +537,21 @@ export function CaseMotionRoutes({ children }: { children: ReactNode }) {
   return <div className="case-motion-route">{children}</div>;
 }
 
-function CaseCoverTransitionLayer({ content }: { content: ReactNode | null }) {
+function CaseCoverTransitionLayer({
+  content,
+  replacementContent,
+}: {
+  content: ReactNode | null;
+  replacementContent: ReactNode | null;
+}) {
   const { active } = useCaseCoverMotion();
   const sourceRect = active?.sourceCoverRect;
   const destinationRect = active?.destinationCoverRect;
   const animationTargetRect =
     active?.direction === "forward" &&
     active.phase === "takeoff"
-      ? active.matchCutRect ?? destinationRect
+      ? active.matchCutRect ??
+        (sourceRect ? getPremeasureCoverRect(sourceRect) : destinationRect)
       : destinationRect;
   const hasGeometry = Boolean(sourceRect && animationTargetRect);
 
@@ -540,11 +574,15 @@ function CaseCoverTransitionLayer({ content }: { content: ReactNode | null }) {
   const durationMs =
     active.direction === "forward"
       ? active.phase === "takeoff"
-        ? forwardTakeoffMs
+        ? getTakeoffRemainingMs(active.takeoffStartedAt)
         : active.phase === "handoff"
           ? forwardHandoffMs
           : forwardLandingMs
       : returnCoverLandingMs;
+  const showReplacement =
+    active.direction === "forward" &&
+    active.phase !== "takeoff" &&
+    replacementContent !== null;
 
   return (
     <motion.div
@@ -574,7 +612,20 @@ function CaseCoverTransitionLayer({ content }: { content: ReactNode | null }) {
         height: sourceRect.height,
       }}
     >
-      <div className="case-cover-motion-layer__content">{content}</div>
+      <div
+        className="case-cover-motion-layer__content"
+        style={{ opacity: showReplacement ? 0 : 1 }}
+      >
+        {content}
+      </div>
+      {replacementContent ? (
+        <div
+          className="case-cover-motion-layer__content case-cover-motion-layer__content--replacement"
+          style={{ opacity: showReplacement ? 1 : 0 }}
+        >
+          {replacementContent}
+        </div>
+      ) : null}
     </motion.div>
   );
 }
