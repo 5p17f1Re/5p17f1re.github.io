@@ -44,8 +44,9 @@ const snakeviewNavigationMs = 250;
 // return motion keeps the established timings below.
 const forwardBirdviewNavigationMs = 300;
 const forwardSnakeviewNavigationMs = 375;
-const positionAnimationMs = 450;
-const forwardLandingMs = 525;
+const returnPositionAnimationMs = 300;
+const forwardPositionAnimationMs = 675;
+const forwardLandingMs = 788;
 const returnCoverLandingMs = 350;
 const returnLandingMs = 500;
 const forwardTotalMs = forwardSnakeviewNavigationMs + forwardLandingMs;
@@ -486,9 +487,9 @@ export function SharedCaseCover({
         scale: {
           duration:
             active?.phase === "takeoff"
-              ? active.direction === "return" && target
-                ? positionAnimationMs / 1000
-                : positionAnimationMs / 1000
+              ? (active.direction === "forward"
+                ? forwardPositionAnimationMs
+                : returnPositionAnimationMs) / 1000
               : landingDurationMs / 1000,
           ease:
             active?.phase === "takeoff"
@@ -500,7 +501,9 @@ export function SharedCaseCover({
         x: {
           duration:
             active?.phase === "takeoff"
-              ? positionAnimationMs / 1000
+              ? (active.direction === "forward"
+                ? forwardPositionAnimationMs
+                : returnPositionAnimationMs) / 1000
               : landingDurationMs / 1000,
           ease:
             active?.phase === "takeoff" ? takeoffEase : landingEase,
@@ -508,7 +511,9 @@ export function SharedCaseCover({
         y: {
           duration:
             active?.phase === "takeoff"
-              ? positionAnimationMs / 1000
+              ? (active.direction === "forward"
+                ? forwardPositionAnimationMs
+                : returnPositionAnimationMs) / 1000
               : landingDurationMs / 1000,
           ease:
             active?.phase === "takeoff" ? takeoffEase : landingEase,
