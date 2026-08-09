@@ -16,7 +16,7 @@ import { motion, useReducedMotion } from "motion/react";
 
 type ViewMode = "birdview" | "snakeview";
 type Direction = "forward" | "return";
-type TransitionPhase = "takeoff" | "match-cut" | "landing" | "handoff";
+type TransitionPhase = "takeoff" | "landing" | "handoff";
 type CoverRectSnapshot = {
   left: number;
   top: number;
@@ -245,31 +245,24 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
         if (targetContent !== undefined) {
           setTransitionContent(targetContent);
         }
-        setTransition({ ...current, phase: "match-cut" });
-        window.requestAnimationFrame(() => {
-          const latest = activeRef.current;
+        // Match-cut is the boundary between takeoff and landing, not a
+        // rendered pause: switch content and start the next geometry tween
+        // in the same React update.
+        setTransition({ ...current, phase: "landing" });
+        if (handoffTimerRef.current !== null) {
+          window.clearTimeout(handoffTimerRef.current);
+        }
+        handoffTimerRef.current = window.setTimeout(() => {
+          handoffTimerRef.current = null;
+          const landing = activeRef.current;
           if (
-            latest?.transitionId === current.transitionId &&
-            latest.direction === "forward" &&
-            latest.phase === "match-cut"
+            landing?.transitionId === current.transitionId &&
+            landing.direction === "forward" &&
+            landing.phase === "landing"
           ) {
-            setTransition({ ...latest, phase: "landing" });
-            if (handoffTimerRef.current !== null) {
-              window.clearTimeout(handoffTimerRef.current);
-            }
-            handoffTimerRef.current = window.setTimeout(() => {
-              handoffTimerRef.current = null;
-              const landing = activeRef.current;
-              if (
-                landing?.transitionId === current.transitionId &&
-                landing.direction === "forward" &&
-                landing.phase === "landing"
-              ) {
-                setTransition({ ...landing, phase: "handoff" });
-              }
-            }, forwardLandingMs);
+            setTransition({ ...landing, phase: "handoff" });
           }
-        });
+        }, forwardLandingMs);
       }, forwardTakeoffMs);
     },
     [setTransition, setTransitionContent],
@@ -523,7 +516,7 @@ function CaseCoverTransitionLayer({ content }: { content: ReactNode | null }) {
   const destinationRect = active?.destinationCoverRect;
   const animationTargetRect =
     active?.direction === "forward" &&
-    (active.phase === "takeoff" || active.phase === "match-cut")
+    active.phase === "takeoff"
       ? active.matchCutRect ?? destinationRect
       : destinationRect;
   const hasGeometry = Boolean(sourceRect && animationTargetRect);
@@ -548,11 +541,9 @@ function CaseCoverTransitionLayer({ content }: { content: ReactNode | null }) {
     active.direction === "forward"
       ? active.phase === "takeoff"
         ? forwardTakeoffMs
-        : active.phase === "match-cut"
-          ? 0
-          : active.phase === "handoff"
-            ? forwardHandoffMs
-            : forwardLandingMs
+        : active.phase === "handoff"
+          ? forwardHandoffMs
+          : forwardLandingMs
       : returnCoverLandingMs;
 
   return (

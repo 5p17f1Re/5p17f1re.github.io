@@ -78,14 +78,14 @@ Telegram-CTA получает отдельное появление: через 
 Перед навигацией сохраняются выбранный вид, scroll-позиция и геометрия обложки.
 `CaseCoverMotion` сохраняет одну persistent-обложку в transition-слое. Перед
 движением есть пауза `50 ms`, чтобы blur окружающего контента успел стать
-заметным. Затем один и тот же слой проходит три forward-фазы с
+заметным. Затем один и тот же слой проходит непрерывный forward-таймлайн с
 `cubic-bezier(0.12, 1, 0.2, 1)`:
 
 1. `takeoff` — `320 ms`, движение от source rect к промежуточной геометрии;
-2. `match-cut` — мгновенная смена содержимого persistent-слоя на case cover в
-   промежуточной геометрии (`46%` пути), без fade и второго полёта;
-3. `landing` — `360 ms`, продолжение движения от match-cut к измеренному target
-   rect.
+2. match-cut boundary — мгновенная смена содержимого persistent-слоя на case
+   cover в промежуточной геометрии (`46%` пути), одновременно с запуском
+   landing, без отдельной паузы или zero-duration tween;
+3. `landing` — `360 ms`, продолжение движения к измеренному target rect.
 
 После landing destination cover получает короткий `140 ms` handoff под fade
 общего слоя; второй cover не показывается до этой точки. X- и Y-масштаб
@@ -105,7 +105,7 @@ Telegram-CTA получает отдельное появление: через 
 приземление к окончанию cover landing, не добавляя отдельного
 перерисовывающегося слоя.
 
-Во время `takeoff`, `match-cut` и `landing` scroll заблокирован, чтобы
+Во время `takeoff` и `landing` scroll заблокирован, чтобы
 измеренный target rect не устаревал от ручного скролла. После начала handoff
 scroll снова доступен. Возврат на главную сохраняет неизменённый baseline
 `350/500 ms`.
@@ -133,7 +133,7 @@ fallback активной карточки: `scale: 1.2 → 1`, `opacity: 0 → 
 
 - `components/Portfolio.tsx` — entrance главной, смена view/locale, About и CTA;
 - `components/CaseCoverMotion.tsx` — snapshot, фазы
-  `takeoff`/`match-cut`/`landing`/`handoff`, навигация и shared-cover;
+  `takeoff`/`landing`/`handoff`, навигация и shared-cover;
 - `components/LocaleTextTransition.tsx` — crossfade локализованного текста;
 - `styles.css` — CSS-маски, blur/opacity и reduced-motion-исключения.
 

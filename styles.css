@@ -141,7 +141,6 @@ html[data-case-cover-motion-direction="forward"] .case-motion-route {
   visibility: hidden;
 }
 
-html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="match-cut"] .case-motion-route,
 html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"] .case-motion-route,
 html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="handoff"] .case-motion-route {
   visibility: visible;
@@ -150,10 +149,8 @@ html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="h
 /* The destination rect is measured while the forward transition is active;
    freeze the viewport so the landing point cannot move under the pointer. */
 html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="takeoff"],
-html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="match-cut"],
 html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"],
 html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="takeoff"] body,
-html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="match-cut"] body,
 html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"] body {
   overflow: hidden;
   overscroll-behavior: none;
@@ -215,8 +212,8 @@ html[data-case-cover-motion-direction="forward"] .project[data-case-cover-active
     filter 1576ms cubic-bezier(0.45, 0, 0.75, 0.65);
 }
 
-/* Forward handoff: the persistent layer already carries the target content
-   after match-cut; this route-local cover only becomes visible once both
+/* Forward handoff: the persistent layer carries the target content after the
+   match-cut boundary; this route-local cover only becomes visible once both
    layers share the final geometry. */
 html[data-case-cover-motion-direction="forward"] [data-case-cover-role="target"] {
   opacity: 0;
@@ -323,6 +320,16 @@ html[data-case-cover-motion-offscreen] .project[data-case-cover-active="true"] .
     filter: blur(12px);
   }
 
+  28% {
+    opacity: 0.35;
+    filter: blur(12px);
+  }
+
+  68% {
+    opacity: 1;
+    filter: blur(6px);
+  }
+
   to {
     opacity: 1;
     filter: blur(0);
@@ -348,7 +355,6 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   );
 }
 
-html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="match-cut"] .case-title h1,
 html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"] .case-title h1,
 html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="handoff"] .case-title h1 {
   animation: case-cover-title-reveal 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -359,7 +365,6 @@ html[data-case-cover-motion-direction="forward"] .case-page-shell .case-text {
   filter: blur(12px);
 }
 
-html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="match-cut"] .case-page-shell .case-text,
 html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"] .case-page-shell .case-text,
 html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="handoff"] .case-page-shell .case-text {
   animation: case-cover-copy-reveal 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
