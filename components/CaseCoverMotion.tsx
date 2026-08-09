@@ -12,7 +12,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { motion, useAnimationControls, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 
 type ViewMode = "birdview" | "snakeview";
 type Direction = "forward" | "return";
@@ -30,34 +30,26 @@ type TransitionSnapshot = {
   scrollY: number;
   view: ViewMode;
   sourceCoverRect?: CoverRectSnapshot;
-  travelX?: number;
-  travelY?: number;
-  travelScale?: number;
 };
 type ActiveTransition = TransitionSnapshot & {
   direction: Direction;
   phase: TransitionPhase;
   offscreenReturn?: boolean;
+  destinationCoverRect?: CoverRectSnapshot;
 };
 
 const storageKey = "case-cover-motion-snapshot";
 const birdviewNavigationMs = 200;
 const snakeviewNavigationMs = 250;
-// Forward-only timing experiment: the shared-cover entry is 1.5x slower;
-// return motion keeps the established timings below.
-const forwardBirdviewNavigationMs = 300;
-const forwardSnakeviewNavigationMs = 375;
-const returnPositionAnimationMs = 300;
-const forwardPositionAnimationMs = 675;
+// The forward cover now travels once, from the captured source rect to the
+// measured case rect. The 50ms lead-in keeps the blur visible before motion.
 const forwardLandingMs = 788;
 const forwardMotionDelayMs = 50;
 const returnCoverLandingMs = 350;
 const returnLandingMs = 500;
-const forwardTotalMs = forwardSnakeviewNavigationMs + forwardLandingMs;
+const forwardTotalMs = forwardMotionDelayMs + forwardLandingMs;
 const returnTakeoffMs = snakeviewNavigationMs + returnCoverLandingMs;
 const landingEase = [0.12, 1, 0.2, 1] as const;
-const landingOpacityEase = [0.4, 0, 0.2, 1] as const;
-const takeoffEase = [0.45, 0, 0.75, 0.65] as const;
 
 function snapshotCoverRect(rect: DOMRect | undefined): CoverRectSnapshot | undefined {
   if (!rect) return undefined;
@@ -72,11 +64,16 @@ function snapshotCoverRect(rect: DOMRect | undefined): CoverRectSnapshot | undef
 
 type CaseCoverMotionContextValue = {
   active: ActiveTransition | null;
+  registerCoverContent: (
+    transitionId: string,
+    target: boolean,
+    content: ReactNode,
+  ) => void;
   openCase: (
     event: ReactMouseEvent<HTMLAnchorElement>,
     snapshot: Omit<
       TransitionSnapshot,
-      "scrollY" | "sourceCoverRect" | "travelX" | "travelY" | "travelScale"
+      "scrollY" | "sourceCoverRect"
     >,
   ) => boolean;
   returnHome: () => boolean;
@@ -116,7 +113,13 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const reduceMotion = useReducedMotion();
   const [active, setActive] = useState<ActiveTransition | null>(null);
+  const [transitionContent, setTransitionContent] = useState<ReactNode | null>(
+    null,
+  );
   const activeRef = useRef<ActiveTransition | null>(null);
+  const coverContentRegistryRef = useRef(
+    new Map<string, { source?: ReactNode; target?: ReactNode }>(),
+  );
   const navigationTimerRef = useRef<number | null>(null);
   const completionTimerRef = useRef<number | null>(null);
 
@@ -145,6 +148,18 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const registerCoverContent = useCallback(
+    (transitionId: string, target: boolean, content: ReactNode) => {
+      const registered =
+        coverContentRegistryRef.current.get(transitionId) ?? {};
+      coverContentRegistryRef.current.set(transitionId, {
+        ...registered,
+        ...(target ? { target: content } : { source: content }),
+      });
+    },
+    [],
+  );
+
   const complete = useCallback(() => {
     if (completionTimerRef.current !== null) {
       window.clearTimeout(completionTimerRef.current);
@@ -152,6 +167,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     }
     const completed = activeRef.current;
     setTransition(null);
+    setTransitionContent(null);
     if (completed?.direction === "return") removeSnapshot();
   }, [setTransition]);
 
@@ -196,37 +212,15 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
         `[data-case-cover-motion="${CSS.escape(snapshot.transitionId)}"]`,
       );
       const coverRect = cover?.getBoundingClientRect();
-      const targetWidth = Math.min(window.innerWidth, 1156);
-      const targetTop = window.innerWidth <= 800 ? 140 : 232;
-      const aspectRatio = coverRect
-        ? coverRect.width / coverRect.height
-        : 1;
-      const targetHeight = targetWidth / aspectRatio;
-      const travelProgress = 1.1;
-      const travelX = coverRect
-        ? (window.innerWidth / 2 - (coverRect.left + coverRect.width / 2)) *
-          travelProgress
-        : 0;
-      const travelY = coverRect
-        ? (targetTop + targetHeight / 2 -
-            (coverRect.top + coverRect.height / 2)) * travelProgress
-        : 0;
-      const fullScale = coverRect ? targetWidth / coverRect.width : 1;
-      const travelScale =
-        snapshot.view === "birdview"
-          ? 1.35
-          : Math.min(
-              1.07,
-              1 + Math.min(Math.max(fullScale - 1, 0), 0.22) * 0.5,
-            );
       const nextSnapshot = {
         ...snapshot,
         scrollY: window.scrollY,
         sourceCoverRect: snapshotCoverRect(coverRect),
-        travelX,
-        travelY,
-        travelScale,
       };
+      setTransitionContent(
+        coverContentRegistryRef.current.get(snapshot.transitionId)?.source ??
+          null,
+      );
       writeSnapshot(nextSnapshot);
       setTransition({
         ...nextSnapshot,
@@ -236,9 +230,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       armFallback();
       armNavigation(
         () => router.push(snapshot.casePath, { scroll: false }),
-        snapshot.view === "birdview"
-          ? forwardBirdviewNavigationMs
-          : forwardSnakeviewNavigationMs,
+        forwardMotionDelayMs,
       );
       return true;
     },
@@ -264,6 +256,10 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       // The in-memory snapshot still restores the current transition.
     }
     const phase = offscreenReturn ? "landing" : "takeoff";
+    setTransitionContent(
+      coverContentRegistryRef.current.get(snapshot.transitionId)?.target ??
+        null,
+    );
     setTransition({
       ...snapshot,
       sourceCoverRect: snapshotCoverRect(coverRect),
@@ -300,6 +296,10 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
         `[data-case-cover-motion="${CSS.escape(snapshot.transitionId)}"]`,
       );
       const coverRect = cover?.getBoundingClientRect();
+      setTransitionContent(
+        coverContentRegistryRef.current.get(snapshot.transitionId)?.target ??
+          null,
+      );
       setTransition({
         ...snapshot,
         sourceCoverRect: snapshotCoverRect(coverRect),
@@ -317,30 +317,66 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
   }, [armFallback, reduceMotion, setTransition]);
 
   useLayoutEffect(() => {
-    const current = activeRef.current;
-    if (!current) return;
+    if (!active) return;
     const normalizedPath = pathname.replace(/\/$/, "");
     if (
-      current.direction === "forward" &&
-      normalizedPath === current.casePath.replace(/\/$/, "")
+      active.direction === "forward" &&
+      normalizedPath === active.casePath.replace(/\/$/, "")
     ) {
       window.scrollTo({ top: 0, behavior: "instant" });
-      if (current.phase === "takeoff") {
-        setTransition({ ...current, phase: "landing" });
-        armFallback(forwardLandingMs);
-      }
     }
     if (
-      current.direction === "return" &&
-      normalizedPath === current.homePath.replace(/\/$/, "")
+      active.direction === "return" &&
+      normalizedPath === active.homePath.replace(/\/$/, "")
     ) {
-      window.scrollTo({ top: current.scrollY, behavior: "instant" });
-      if (current.phase === "takeoff") {
-        setTransition({ ...current, phase: "landing" });
-        armFallback(returnLandingMs);
-      }
+      window.scrollTo({ top: active.scrollY, behavior: "instant" });
     }
-  }, [armFallback, pathname, setTransition]);
+  }, [active, pathname]);
+
+  useLayoutEffect(() => {
+    const current = active;
+    const normalizedPath = pathname.replace(/\/$/, "");
+    if (!current || current.offscreenReturn || current.destinationCoverRect) {
+      return;
+    }
+
+    const destinationPath =
+      current.direction === "forward" ? current.casePath : current.homePath;
+    if (normalizedPath !== destinationPath.replace(/\/$/, "")) return;
+
+    const destinationRole = current.direction === "forward" ? "target" : "source";
+    let frame = 0;
+    let attempts = 0;
+
+    const measureDestination = () => {
+      attempts += 1;
+      const destination = document.querySelector<HTMLElement>(
+        `[data-case-cover-motion="${CSS.escape(current.transitionId)}"][data-case-cover-role="${destinationRole}"]`,
+      );
+      const destinationRect = destination?.getBoundingClientRect();
+
+      if (destinationRect && destinationRect.width > 0) {
+        setTransition({
+          ...current,
+          phase: "landing",
+          destinationCoverRect: snapshotCoverRect(destinationRect),
+        });
+        armFallback(
+          current.direction === "forward"
+            ? forwardLandingMs
+            : returnLandingMs,
+        );
+        return;
+      }
+
+      if (attempts < 8) {
+        frame = window.requestAnimationFrame(measureDestination);
+      }
+    };
+
+    frame = window.requestAnimationFrame(measureDestination);
+    return () => window.cancelAnimationFrame(frame);
+  }, [active, armFallback, pathname, setTransition]);
 
   useEffect(
     () => () => {
@@ -363,9 +399,10 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
 
   return (
     <CaseCoverMotionContext.Provider
-      value={{ active, openCase, returnHome }}
+      value={{ active, registerCoverContent, openCase, returnHome }}
     >
       {children}
+      <CaseCoverTransitionLayer content={transitionContent} />
     </CaseCoverMotionContext.Provider>
   );
 }
@@ -374,11 +411,59 @@ export function CaseMotionRoutes({ children }: { children: ReactNode }) {
   return <div className="case-motion-route">{children}</div>;
 }
 
-type LandingGeometry = {
-  x: number;
-  y: number;
-  scale: number;
-};
+function CaseCoverTransitionLayer({ content }: { content: ReactNode | null }) {
+  const { active } = useCaseCoverMotion();
+  const sourceRect = active?.sourceCoverRect;
+  const destinationRect = active?.destinationCoverRect;
+  const hasGeometry = Boolean(sourceRect && destinationRect);
+
+  if (!active || active.offscreenReturn || !content || !sourceRect) return null;
+
+  const sourceCenterX = sourceRect.left + sourceRect.width / 2;
+  const sourceCenterY = sourceRect.top + sourceRect.height / 2;
+  const destinationCenterX = destinationRect
+    ? destinationRect.left + destinationRect.width / 2
+    : sourceCenterX;
+  const destinationCenterY = destinationRect
+    ? destinationRect.top + destinationRect.height / 2
+    : sourceCenterY;
+  const destinationScale = destinationRect
+    ? destinationRect.width / sourceRect.width
+    : 1;
+  const durationMs =
+    active.direction === "forward" ? forwardLandingMs : returnCoverLandingMs;
+
+  return (
+    <motion.div
+      key={`${active.transitionId}-${active.direction}`}
+      className="case-cover-motion-layer"
+      initial={false}
+      animate={
+        hasGeometry
+          ? {
+              x: destinationCenterX - sourceCenterX,
+              y: destinationCenterY - sourceCenterY,
+              scale: destinationScale,
+              opacity: 1,
+            }
+          : { x: 0, y: 0, scale: 1, opacity: 1 }
+      }
+      transition={
+        hasGeometry
+          ? { duration: durationMs / 1000, ease: landingEase }
+          : { duration: 0 }
+      }
+      style={{
+        left: sourceRect.left,
+        top: sourceRect.top,
+        width: sourceRect.width,
+        height: sourceRect.height,
+      }}
+    >
+      <div className="case-cover-motion-layer__content">{content}</div>
+    </motion.div>
+  );
+}
 
 export function SharedCaseCover({
   transitionId,
@@ -393,111 +478,16 @@ export function SharedCaseCover({
   className?: string;
   children: ReactNode;
 }) {
-  const { active } = useCaseCoverMotion();
-  const landingControls = useAnimationControls();
+  const { active, registerCoverContent } = useCaseCoverMotion();
   const coverRef = useRef<HTMLDivElement>(null);
-  const [landingGeometry, setLandingGeometry] =
-    useState<LandingGeometry | null>(null);
   const isActiveCover = active?.transitionId === transitionId;
   const participates = Boolean(transitionId) && enabled && isActiveCover;
-  const sourceCoverRect = active?.sourceCoverRect;
-  const travelX = active?.travelX ?? 0;
-  const travelY = active?.travelY ?? 0;
-  const travelScale = active?.travelScale ?? 1.2;
-  const isLandingDestination = Boolean(
-    participates &&
-      !active?.offscreenReturn &&
-      active?.phase === "landing" &&
-      ((active.direction === "forward" && target) ||
-        (active.direction === "return" && !target)),
-  );
-  const shouldMeasureLanding =
-    isLandingDestination && Boolean(sourceCoverRect) && !landingGeometry;
-  const landingDurationMs =
-    active?.direction === "forward" ? forwardLandingMs : returnCoverLandingMs;
+  const isHiddenByTransition = participates && !active?.offscreenReturn;
 
   useLayoutEffect(() => {
-    if (!shouldMeasureLanding || !coverRef.current || !sourceCoverRect) return;
-
-    const animationFrame = window.requestAnimationFrame(() => {
-      const destinationCoverRect = coverRef.current?.getBoundingClientRect();
-      if (!destinationCoverRect || destinationCoverRect.width === 0) return;
-
-      setLandingGeometry({
-        x:
-          sourceCoverRect.left + sourceCoverRect.width / 2 -
-          (destinationCoverRect.left + destinationCoverRect.width / 2),
-        y:
-          sourceCoverRect.top + sourceCoverRect.height / 2 -
-          (destinationCoverRect.top + destinationCoverRect.height / 2),
-        scale: sourceCoverRect.width / destinationCoverRect.width,
-      });
-    });
-
-    return () => window.cancelAnimationFrame(animationFrame);
-  }, [
-    shouldMeasureLanding,
-    sourceCoverRect,
-  ]);
-
-  useLayoutEffect(() => {
-    if (!isLandingDestination || !landingGeometry) return;
-
-    landingControls.set({
-      opacity: 1,
-      x: landingGeometry.x,
-      y: landingGeometry.y,
-      scale: landingGeometry.scale,
-    });
-
-    const animationFrame = window.requestAnimationFrame(() => {
-      void landingControls.start({
-        opacity: 1,
-        x: 0,
-        y: 0,
-        scale: 1,
-        transition: {
-          duration: landingDurationMs / 1000,
-          ease: landingEase,
-        },
-      });
-    });
-
-    return () => window.cancelAnimationFrame(animationFrame);
-  }, [
-    isLandingDestination,
-    landingControls,
-    landingDurationMs,
-    landingGeometry,
-  ]);
-
-  let coverAnimation = { opacity: 1, scale: 1 };
-  let coverPosition = { x: 0, y: 0 };
-  if (isActiveCover && active?.direction === "forward") {
-    if (active.phase === "takeoff" && !target) {
-      coverAnimation = { opacity: 1, scale: travelScale };
-      coverPosition = { x: travelX, y: travelY };
-    } else if (active.phase === "takeoff" && target) {
-      coverAnimation = { opacity: 0, scale: 0.9 };
-      coverPosition = { x: 0, y: 48 };
-    } else if (active.phase === "landing") {
-      coverAnimation = target
-        ? { opacity: 1, scale: 1 }
-        : { opacity: 0, scale: 1 };
-    }
-  }
-  if (isActiveCover && active?.direction === "return") {
-    if (active.phase === "takeoff") {
-      coverAnimation = { opacity: 1, scale: 1 };
-    } else {
-      coverAnimation = target
-        ? { opacity: 0, scale: 1 }
-        : { opacity: 1, scale: 1 };
-    }
-  }
-  const shouldUseMeasuredLanding = Boolean(
-    isLandingDestination && landingGeometry,
-  );
+    if (!transitionId || !enabled) return;
+    registerCoverContent(transitionId, target, children);
+  }, [children, enabled, registerCoverContent, target, transitionId]);
 
   return (
     <motion.div
@@ -506,66 +496,9 @@ export function SharedCaseCover({
       data-case-cover-motion={transitionId}
       data-case-cover-role={target ? "target" : "source"}
       initial={false}
-      animate={
-        shouldUseMeasuredLanding
-          ? landingControls
-          : { ...coverAnimation, ...coverPosition }
-      }
       style={{
         transformOrigin: "50% 50%",
-        visibility: shouldMeasureLanding ? "hidden" : undefined,
-      }}
-      transition={{
-        opacity: {
-          duration: landingDurationMs / 1000,
-          ease: landingOpacityEase,
-        },
-        scale: {
-          duration:
-            active?.phase === "takeoff"
-              ? (active.direction === "forward"
-                ? forwardPositionAnimationMs
-                : returnPositionAnimationMs) / 1000
-              : landingDurationMs / 1000,
-          delay:
-            active?.phase === "takeoff" && active.direction === "forward"
-              ? forwardMotionDelayMs / 1000
-              : 0,
-          ease:
-            active?.phase === "takeoff"
-              ? active.direction === "return" && target
-                ? takeoffEase
-                : takeoffEase
-              : landingEase,
-        },
-        x: {
-          duration:
-            active?.phase === "takeoff"
-              ? (active.direction === "forward"
-                ? forwardPositionAnimationMs
-                : returnPositionAnimationMs) / 1000
-              : landingDurationMs / 1000,
-          delay:
-            active?.phase === "takeoff" && active.direction === "forward"
-              ? forwardMotionDelayMs / 1000
-              : 0,
-          ease:
-            active?.phase === "takeoff" ? takeoffEase : landingEase,
-        },
-        y: {
-          duration:
-            active?.phase === "takeoff"
-              ? (active.direction === "forward"
-                ? forwardPositionAnimationMs
-                : returnPositionAnimationMs) / 1000
-              : landingDurationMs / 1000,
-          delay:
-            active?.phase === "takeoff" && active.direction === "forward"
-              ? forwardMotionDelayMs / 1000
-              : 0,
-          ease:
-            active?.phase === "takeoff" ? takeoffEase : landingEase,
-        },
+        visibility: isHiddenByTransition ? "hidden" : undefined,
       }}
     >
       {children}

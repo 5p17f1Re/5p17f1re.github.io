@@ -139,6 +139,30 @@ img { display: block; max-width: 100%; }
   width: 100%;
 }
 
+/* One persistent cover survives the route handoff. The route-local covers
+   keep their layout boxes, but stay hidden until this layer has landed. */
+.case-cover-motion-layer {
+  position: fixed;
+  z-index: 20;
+  pointer-events: none;
+  transform-origin: 50% 50%;
+}
+
+.case-cover-motion-layer__content,
+.case-cover-motion-layer__content .optimized-image,
+.case-cover-motion-layer__content .optimized-video,
+.case-cover-motion-layer__content .case-media__figure {
+  width: 100%;
+}
+
+.case-cover-motion-layer__content .optimized-image__img,
+.case-cover-motion-layer__content .project__img,
+.case-cover-motion-layer__content .project__video,
+.case-cover-motion-layer__content .case-media__image,
+.case-cover-motion-layer__content .case-media__video {
+  width: 100%;
+}
+
 html[data-case-cover-motion-active] .project-motion-cell {
   opacity: 1 !important;
   transform: none !important;
@@ -153,8 +177,8 @@ html[data-case-cover-motion-direction="forward"] .project:not([data-case-cover-a
   opacity: 0.6;
   filter: blur(24px);
   transition:
-    opacity 675ms cubic-bezier(0.45, 0, 0.75, 0.65),
-    filter 675ms cubic-bezier(0.45, 0, 0.75, 0.65);
+    opacity 788ms cubic-bezier(0.45, 0, 0.75, 0.65),
+    filter 788ms cubic-bezier(0.45, 0, 0.75, 0.65);
 }
 
 html[data-case-cover-motion-direction="forward"] .project[data-case-cover-active="true"] .project__header,
@@ -163,8 +187,8 @@ html[data-case-cover-motion-direction="forward"] .project[data-case-cover-active
   opacity: 0.6;
   filter: blur(24px);
   transition:
-    opacity 675ms cubic-bezier(0.45, 0, 0.75, 0.65),
-    filter 675ms cubic-bezier(0.45, 0, 0.75, 0.65);
+    opacity 788ms cubic-bezier(0.45, 0, 0.75, 0.65),
+    filter 788ms cubic-bezier(0.45, 0, 0.75, 0.65);
 }
 
 @keyframes case-cover-neighbor-return {
