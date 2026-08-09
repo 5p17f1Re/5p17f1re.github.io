@@ -240,22 +240,38 @@ html[data-case-cover-motion-offscreen] .project[data-case-cover-active="true"] .
 @keyframes case-cover-title-reveal {
   from {
     opacity: 0;
+    filter: blur(24px);
     --case-cover-title-reveal: 0%;
   }
 
   8% {
     opacity: 1;
+    filter: blur(24px);
     --case-cover-title-reveal: 0%;
   }
 
   to {
     opacity: 1;
+    filter: blur(0);
     --case-cover-title-reveal: 100%;
+  }
+}
+
+@keyframes case-cover-copy-reveal {
+  from {
+    opacity: 0;
+    filter: blur(24px);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
   }
 }
 
 html[data-case-cover-motion-direction="forward"] .case-title h1 {
   opacity: 0;
+  filter: blur(24px);
   -webkit-mask-image: linear-gradient(
     90deg,
     #000 0%,
@@ -274,6 +290,15 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
 
 html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"] .case-title h1 {
   animation: case-cover-title-reveal 788ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+html[data-case-cover-motion-direction="forward"] .case-page-shell .case-text {
+  opacity: 0;
+  filter: blur(24px);
+}
+
+html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"] .case-page-shell .case-text {
+  animation: case-cover-copy-reveal 450ms 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* ─── Nav ───────────────────────────────────────────────────────────────── */
