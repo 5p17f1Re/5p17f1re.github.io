@@ -16,7 +16,7 @@ import { motion, useReducedMotion } from "motion/react";
 
 type ViewMode = "birdview" | "snakeview";
 type Direction = "forward" | "return";
-type TransitionPhase = "takeoff" | "landing" | "handoff";
+type TransitionPhase = "takeoff" | "match-cut" | "landing" | "handoff";
 type CoverRectSnapshot = {
   left: number;
   top: number;
@@ -35,20 +35,25 @@ type ActiveTransition = TransitionSnapshot & {
   direction: Direction;
   phase: TransitionPhase;
   offscreenReturn?: boolean;
+  matchCutRect?: CoverRectSnapshot;
   destinationCoverRect?: CoverRectSnapshot;
 };
 
 const storageKey = "case-cover-motion-snapshot";
 const birdviewNavigationMs = 200;
 const snakeviewNavigationMs = 250;
-// The forward cover now travels once, from the captured source rect to the
-// measured case rect. The 50ms lead-in keeps the blur visible before motion.
-const forwardLandingMs = 788;
+// The forward cover uses one persistent layer with a deliberate match-cut:
+// it takes off from the homepage, switches to the case cover at an
+// intermediate measured rect, then lands on the case geometry. The 50ms
+// lead-in keeps the surrounding blur visible before motion.
+const forwardTakeoffMs = 320;
+const forwardLandingMs = 360;
 const forwardMotionDelayMs = 50;
 const forwardHandoffMs = 140;
 const returnCoverLandingMs = 350;
 const returnLandingMs = 500;
-const forwardTotalMs = forwardMotionDelayMs + forwardLandingMs;
+const forwardTotalMs =
+  forwardMotionDelayMs + forwardTakeoffMs + forwardLandingMs + forwardHandoffMs;
 const returnTakeoffMs = snakeviewNavigationMs + returnCoverLandingMs;
 const landingEase = [0.12, 1, 0.2, 1] as const;
 
@@ -60,6 +65,19 @@ function snapshotCoverRect(rect: DOMRect | undefined): CoverRectSnapshot | undef
     top: rect.top,
     width: rect.width,
     height: rect.height,
+  };
+}
+
+function interpolateCoverRect(
+  source: CoverRectSnapshot,
+  destination: CoverRectSnapshot,
+  progress: number,
+): CoverRectSnapshot {
+  return {
+    left: source.left + (destination.left - source.left) * progress,
+    top: source.top + (destination.top - source.top) * progress,
+    width: source.width + (destination.width - source.width) * progress,
+    height: source.height + (destination.height - source.height) * progress,
   };
 }
 
@@ -124,6 +142,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
   const navigationTimerRef = useRef<number | null>(null);
   const completionTimerRef = useRef<number | null>(null);
   const handoffTimerRef = useRef<number | null>(null);
+  const matchCutTimerRef = useRef<number | null>(null);
 
   const setTransition = useCallback((next: ActiveTransition | null) => {
     activeRef.current = next;
@@ -171,6 +190,10 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       window.clearTimeout(handoffTimerRef.current);
       handoffTimerRef.current = null;
     }
+    if (matchCutTimerRef.current !== null) {
+      window.clearTimeout(matchCutTimerRef.current);
+      matchCutTimerRef.current = null;
+    }
     const completed = activeRef.current;
     setTransition(null);
     setTransitionContent(null);
@@ -197,30 +220,59 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     );
   }, [complete, reduceMotion]);
 
-  const armForwardHandoff = useCallback(
-    (transition: ActiveTransition, landingDurationMs: number) => {
+  const armForwardMatchCut = useCallback(
+    (transition: ActiveTransition) => {
       if (transition.direction !== "forward") return;
 
-      if (handoffTimerRef.current !== null) {
-        window.clearTimeout(handoffTimerRef.current);
+      if (matchCutTimerRef.current !== null) {
+        window.clearTimeout(matchCutTimerRef.current);
       }
 
-      handoffTimerRef.current = window.setTimeout(() => {
-        handoffTimerRef.current = null;
+      matchCutTimerRef.current = window.setTimeout(() => {
+        matchCutTimerRef.current = null;
         const current = activeRef.current;
         if (
           !current ||
           current.transitionId !== transition.transitionId ||
           current.direction !== "forward" ||
-          current.phase !== "landing"
+          current.phase !== "takeoff"
         ) {
           return;
         }
 
-        setTransition({ ...current, phase: "handoff" });
-      }, landingDurationMs);
+        const targetContent =
+          coverContentRegistryRef.current.get(current.transitionId)?.target;
+        if (targetContent !== undefined) {
+          setTransitionContent(targetContent);
+        }
+        setTransition({ ...current, phase: "match-cut" });
+        window.requestAnimationFrame(() => {
+          const latest = activeRef.current;
+          if (
+            latest?.transitionId === current.transitionId &&
+            latest.direction === "forward" &&
+            latest.phase === "match-cut"
+          ) {
+            setTransition({ ...latest, phase: "landing" });
+            if (handoffTimerRef.current !== null) {
+              window.clearTimeout(handoffTimerRef.current);
+            }
+            handoffTimerRef.current = window.setTimeout(() => {
+              handoffTimerRef.current = null;
+              const landing = activeRef.current;
+              if (
+                landing?.transitionId === current.transitionId &&
+                landing.direction === "forward" &&
+                landing.phase === "landing"
+              ) {
+                setTransition({ ...landing, phase: "handoff" });
+              }
+            }, forwardLandingMs);
+          }
+        });
+      }, forwardTakeoffMs);
     },
-    [setTransition],
+    [setTransition, setTransitionContent],
   );
 
   const openCase = useCallback(
@@ -388,20 +440,31 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       const destinationRect = destination?.getBoundingClientRect();
 
       if (destinationRect && destinationRect.width > 0) {
+        const destinationSnapshot = snapshotCoverRect(destinationRect);
+        const matchCutRect =
+          current.direction === "forward" &&
+          current.sourceCoverRect &&
+          destinationSnapshot
+            ? interpolateCoverRect(current.sourceCoverRect, destinationSnapshot, 0.46)
+            : undefined;
         setTransition({
           ...current,
-          phase: "landing",
-          destinationCoverRect: snapshotCoverRect(destinationRect),
+          phase: current.direction === "forward" ? "takeoff" : "landing",
+          matchCutRect,
+          destinationCoverRect: destinationSnapshot,
         });
-        const landingDurationMs =
-          current.direction === "forward"
-            ? forwardLandingMs
-            : returnLandingMs;
-        armForwardHandoff(current, landingDurationMs);
+        if (current.direction === "forward") {
+          armForwardMatchCut({
+            ...current,
+            phase: "takeoff",
+            matchCutRect,
+            destinationCoverRect: destinationSnapshot,
+          });
+        }
         armFallback(
           current.direction === "forward"
-            ? landingDurationMs + forwardHandoffMs
-            : landingDurationMs,
+            ? forwardTakeoffMs + forwardLandingMs + forwardHandoffMs
+            : returnLandingMs,
         );
         return;
       }
@@ -413,7 +476,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
 
     frame = window.requestAnimationFrame(measureDestination);
     return () => window.cancelAnimationFrame(frame);
-  }, [active, armFallback, armForwardHandoff, pathname, setTransition]);
+  }, [active, armFallback, armForwardMatchCut, pathname, setTransition]);
 
   useEffect(
     () => () => {
@@ -422,6 +485,9 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       }
       if (handoffTimerRef.current !== null) {
         window.clearTimeout(handoffTimerRef.current);
+      }
+      if (matchCutTimerRef.current !== null) {
+        window.clearTimeout(matchCutTimerRef.current);
       }
       if (navigationTimerRef.current !== null) {
         window.clearTimeout(navigationTimerRef.current);
@@ -455,31 +521,39 @@ function CaseCoverTransitionLayer({ content }: { content: ReactNode | null }) {
   const { active } = useCaseCoverMotion();
   const sourceRect = active?.sourceCoverRect;
   const destinationRect = active?.destinationCoverRect;
-  const hasGeometry = Boolean(sourceRect && destinationRect);
+  const animationTargetRect =
+    active?.direction === "forward" &&
+    (active.phase === "takeoff" || active.phase === "match-cut")
+      ? active.matchCutRect ?? destinationRect
+      : destinationRect;
+  const hasGeometry = Boolean(sourceRect && animationTargetRect);
 
   if (!active || active.offscreenReturn || !content || !sourceRect) return null;
 
   const sourceCenterX = sourceRect.left + sourceRect.width / 2;
   const sourceCenterY = sourceRect.top + sourceRect.height / 2;
-  const destinationCenterX = destinationRect
-    ? destinationRect.left + destinationRect.width / 2
+  const destinationCenterX = animationTargetRect
+    ? animationTargetRect.left + animationTargetRect.width / 2
     : sourceCenterX;
-  const destinationCenterY = destinationRect
-    ? destinationRect.top + destinationRect.height / 2
+  const destinationCenterY = animationTargetRect
+    ? animationTargetRect.top + animationTargetRect.height / 2
     : sourceCenterY;
-  const destinationScale = destinationRect
-    ? destinationRect.width / sourceRect.width
+  const destinationScale = animationTargetRect
+    ? animationTargetRect.width / sourceRect.width
     : 1;
-  const destinationScaleY = destinationRect
-    ? destinationRect.height / sourceRect.height
+  const destinationScaleY = animationTargetRect
+    ? animationTargetRect.height / sourceRect.height
     : 1;
-  const isHandoff = active.phase === "handoff";
   const durationMs =
-    isHandoff
-      ? forwardHandoffMs
-      : active.direction === "forward"
-        ? forwardLandingMs
-        : returnCoverLandingMs;
+    active.direction === "forward"
+      ? active.phase === "takeoff"
+        ? forwardTakeoffMs
+        : active.phase === "match-cut"
+          ? 0
+          : active.phase === "handoff"
+            ? forwardHandoffMs
+            : forwardLandingMs
+      : returnCoverLandingMs;
 
   return (
     <motion.div
@@ -493,7 +567,7 @@ function CaseCoverTransitionLayer({ content }: { content: ReactNode | null }) {
               y: destinationCenterY - sourceCenterY,
               scaleX: destinationScale,
               scaleY: destinationScaleY,
-              opacity: isHandoff ? 0 : 1,
+              opacity: 1,
             }
           : { x: 0, y: 0, scaleX: 1, scaleY: 1, opacity: 1 }
       }

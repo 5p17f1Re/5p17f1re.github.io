@@ -141,14 +141,20 @@ html[data-case-cover-motion-direction="forward"] .case-motion-route {
   visibility: hidden;
 }
 
+html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="match-cut"] .case-motion-route,
+html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"] .case-motion-route,
 html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="handoff"] .case-motion-route {
   visibility: visible;
 }
 
 /* The destination rect is measured while the forward transition is active;
    freeze the viewport so the landing point cannot move under the pointer. */
-html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"],
-html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"] body {
+html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="takeoff"],
+html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="match-cut"],
+html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"],
+html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="takeoff"] body,
+html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="match-cut"] body,
+html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"] body {
   overflow: hidden;
   overscroll-behavior: none;
 }
@@ -193,24 +199,25 @@ html[data-case-cover-motion-active] .project-motion-cell:has(.project[data-case-
 
 html[data-case-cover-motion-direction="forward"] .project:not([data-case-cover-active="true"]) {
   opacity: 0.6;
-  filter: blur(24px);
+  filter: blur(12px);
   transition:
-    opacity 788ms cubic-bezier(0.45, 0, 0.75, 0.65),
-    filter 788ms cubic-bezier(0.45, 0, 0.75, 0.65);
+    opacity 1576ms cubic-bezier(0.45, 0, 0.75, 0.65),
+    filter 1576ms cubic-bezier(0.45, 0, 0.75, 0.65);
 }
 
 html[data-case-cover-motion-direction="forward"] .project[data-case-cover-active="true"] .project__header,
 html[data-case-cover-motion-direction="forward"] .project[data-case-cover-active="true"] .project__desc,
 html[data-case-cover-motion-direction="forward"] .project[data-case-cover-active="true"] .project__case-link {
   opacity: 0.6;
-  filter: blur(24px);
+  filter: blur(12px);
   transition:
-    opacity 788ms cubic-bezier(0.45, 0, 0.75, 0.65),
-    filter 788ms cubic-bezier(0.45, 0, 0.75, 0.65);
+    opacity 1576ms cubic-bezier(0.45, 0, 0.75, 0.65),
+    filter 1576ms cubic-bezier(0.45, 0, 0.75, 0.65);
 }
 
-/* Forward handoff: let the destination cover replace the source under a
-   short fade once the shared layer has reached the exact target rect. */
+/* Forward handoff: the persistent layer already carries the target content
+   after match-cut; this route-local cover only becomes visible once both
+   layers share the final geometry. */
 html[data-case-cover-motion-direction="forward"] [data-case-cover-role="target"] {
   opacity: 0;
   transition: opacity 140ms cubic-bezier(0.12, 1, 0.2, 1);
@@ -223,7 +230,7 @@ html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="h
 @keyframes case-cover-neighbor-return {
   from {
     opacity: 0.6;
-    filter: blur(24px);
+    filter: blur(12px);
   }
 
   to {
@@ -234,7 +241,7 @@ html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="h
 
 html[data-case-cover-motion-direction="return"] .project:not([data-case-cover-active="true"]) {
   opacity: 0.6;
-  filter: blur(24px);
+  filter: blur(12px);
 }
 
 html[data-case-cover-motion-direction="return"] .project[data-case-cover-active="true"] .project__header,
@@ -250,7 +257,7 @@ html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="la
 @keyframes case-cover-copy-return {
   from {
     opacity: 0;
-    filter: blur(24px);
+    filter: blur(12px);
   }
 
   to {
@@ -293,13 +300,13 @@ html[data-case-cover-motion-offscreen] .project[data-case-cover-active="true"] .
 @keyframes case-cover-title-reveal {
   from {
     opacity: 0;
-    filter: blur(24px);
+    filter: blur(12px);
     --case-cover-title-reveal: 0%;
   }
 
   8% {
     opacity: 1;
-    filter: blur(24px);
+    filter: blur(12px);
     --case-cover-title-reveal: 0%;
   }
 
@@ -313,7 +320,7 @@ html[data-case-cover-motion-offscreen] .project[data-case-cover-active="true"] .
 @keyframes case-cover-copy-reveal {
   from {
     opacity: 0;
-    filter: blur(24px);
+    filter: blur(12px);
   }
 
   to {
@@ -324,7 +331,7 @@ html[data-case-cover-motion-offscreen] .project[data-case-cover-active="true"] .
 
 html[data-case-cover-motion-direction="forward"] .case-title h1 {
   opacity: 0;
-  filter: blur(24px);
+  filter: blur(12px);
   -webkit-mask-image: linear-gradient(
     90deg,
     #000 0%,
@@ -341,23 +348,27 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   );
 }
 
+html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="match-cut"] .case-title h1,
+html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"] .case-title h1,
 html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="handoff"] .case-title h1 {
-  animation: case-cover-title-reveal 788ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: case-cover-title-reveal 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 html[data-case-cover-motion-direction="forward"] .case-page-shell .case-text {
   opacity: 0;
-  filter: blur(24px);
+  filter: blur(12px);
 }
 
+html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="match-cut"] .case-page-shell .case-text,
+html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"] .case-page-shell .case-text,
 html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="handoff"] .case-page-shell .case-text {
-  animation: case-cover-copy-reveal 450ms 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: case-cover-copy-reveal 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 html[data-case-cover-motion-direction="return"] .case-page-shell .case-title,
 html[data-case-cover-motion-direction="return"] .case-page-shell .case-text {
   opacity: 0.6;
-  filter: blur(24px);
+  filter: blur(12px);
   transition:
     opacity 350ms cubic-bezier(0.45, 0, 0.75, 0.65),
     filter 350ms cubic-bezier(0.45, 0, 0.75, 0.65);
