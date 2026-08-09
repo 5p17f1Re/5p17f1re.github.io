@@ -778,6 +778,12 @@ html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="l
   width: 100%;
 }
 
+/* Keep server-rendered project cards visible if client hydration is delayed. */
+.view-stage[data-view-ready="false"] .project-motion-cell {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
 .view-stage--switching {
   overflow: hidden;
 }
