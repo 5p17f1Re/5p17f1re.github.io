@@ -167,19 +167,37 @@ html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][
   z-index: 20;
   pointer-events: none;
   transform-origin: 50% 50%;
+  will-change: transform, filter;
 }
 
 .case-cover-motion-layer__content,
 .case-cover-motion-layer__content .optimized-image,
 .case-cover-motion-layer__content .optimized-video,
 .case-cover-motion-layer__content .case-media__figure {
+  display: block;
   width: 100%;
+}
+
+@keyframes case-cover-match-cut-veil {
+  0%,
+  100% {
+    filter: blur(0);
+  }
+
+  45% {
+    filter: blur(16px);
+  }
+}
+
+.case-cover-motion-layer--match-cut {
+  animation: case-cover-match-cut-veil 80ms ease-out both;
 }
 
 .case-cover-motion-layer__content--replacement {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  overflow: hidden;
 }
 
 .case-cover-motion-layer__content .optimized-image__img,

@@ -36,25 +36,26 @@ type ActiveTransition = TransitionSnapshot & {
   phase: TransitionPhase;
   offscreenReturn?: boolean;
   takeoffStartedAt?: number;
-  matchCutRect?: CoverRectSnapshot;
+  matchCutActive?: boolean;
   destinationCoverRect?: CoverRectSnapshot;
 };
 
 const storageKey = "case-cover-motion-snapshot";
 const birdviewNavigationMs = 200;
 const snakeviewNavigationMs = 250;
-// The forward cover uses one persistent layer with a deliberate match-cut:
-// it takes off from the homepage, switches to the case cover at an
-// intermediate measured rect, then lands on the case geometry. The blur is
-// handled by the content timeline, so the cover starts moving immediately.
+// Forward motion is one absolute-time trajectory. Match-cut only changes the
+// content inside the persistent layer; it must never restart the transform
+// easing at the route boundary.
 const forwardTakeoffMs = 320;
 const forwardLandingMs = 360;
+const forwardMotionMs = forwardTakeoffMs + forwardLandingMs;
 const forwardMotionDelayMs = 0;
 const forwardHandoffMs = 140;
+const matchCutBlurMs = 80;
 const returnCoverLandingMs = 350;
 const returnLandingMs = 500;
 const forwardTotalMs =
-  forwardMotionDelayMs + forwardTakeoffMs + forwardLandingMs + forwardHandoffMs;
+  forwardMotionDelayMs + forwardMotionMs + forwardHandoffMs;
 const returnTakeoffMs = snakeviewNavigationMs + returnCoverLandingMs;
 const landingEase = [0.12, 1, 0.2, 1] as const;
 
@@ -91,9 +92,48 @@ function getPremeasureCoverRect(source: CoverRectSnapshot): CoverRectSnapshot {
   };
 }
 
-function getTakeoffRemainingMs(startedAt: number | undefined): number {
-  if (startedAt === undefined) return forwardTakeoffMs;
-  return Math.max(0, forwardTakeoffMs - (Date.now() - startedAt));
+function getForwardRemainingMs(startedAt: number | undefined): number {
+  if (startedAt === undefined) return forwardMotionMs;
+  return Math.max(0, forwardMotionMs - (Date.now() - startedAt));
+}
+
+function cubicBezierProgress(
+  progress: number,
+  ease: readonly [number, number, number, number],
+): number {
+  const [x1, y1, x2, y2] = ease;
+  const clamped = Math.min(1, Math.max(0, progress));
+  let low = 0;
+  let high = 1;
+  let parameter = clamped;
+
+  for (let index = 0; index < 12; index += 1) {
+    const x =
+      3 * (1 - parameter) ** 2 * parameter * x1 +
+      3 * (1 - parameter) * parameter ** 2 * x2 +
+      parameter ** 3;
+    if (x < clamped) low = parameter;
+    else high = parameter;
+    parameter = (low + high) / 2;
+  }
+
+  return (
+    3 * (1 - parameter) ** 2 * parameter * y1 +
+    3 * (1 - parameter) * parameter ** 2 * y2 +
+    parameter ** 3
+  );
+}
+
+function coverTransform(
+  source: CoverRectSnapshot,
+  current: CoverRectSnapshot,
+): string {
+  const sourceCenterX = source.left + source.width / 2;
+  const sourceCenterY = source.top + source.height / 2;
+  const currentCenterX = current.left + current.width / 2;
+  const currentCenterY = current.top + current.height / 2;
+
+  return `translate3d(${currentCenterX - sourceCenterX}px, ${currentCenterY - sourceCenterY}px, 0) scale(${current.width / source.width}, ${current.height / source.height})`;
 }
 
 type CaseCoverMotionContextValue = {
@@ -258,10 +298,25 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        // Match-cut is the boundary between takeoff and landing, not a
-        // rendered pause: switch content and start the next geometry tween
-        // in the same React update.
-        setTransition({ ...current, phase: "landing" });
+        // The transform is already running from the original start time. This
+        // state update only changes the visible content and starts the short
+        // blur veil; it must not create a second geometry animation.
+        setTransition({
+          ...current,
+          phase: "landing",
+          matchCutActive: true,
+        });
+        matchCutTimerRef.current = window.setTimeout(() => {
+          matchCutTimerRef.current = null;
+          const latest = activeRef.current;
+          if (
+            latest?.transitionId === current.transitionId &&
+            latest.direction === "forward" &&
+            latest.matchCutActive
+          ) {
+            setTransition({ ...latest, matchCutActive: false });
+          }
+        }, matchCutBlurMs);
         if (handoffTimerRef.current !== null) {
           window.clearTimeout(handoffTimerRef.current);
         }
@@ -276,7 +331,11 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
             setTransition({ ...landing, phase: "handoff" });
           }
         }, forwardLandingMs);
-      }, getTakeoffRemainingMs(transition.takeoffStartedAt));
+      },
+      transition.takeoffStartedAt === undefined
+        ? forwardTakeoffMs
+        : Math.max(0, forwardTakeoffMs - (Date.now() - transition.takeoffStartedAt)),
+      );
     },
     [setTransition],
   );
@@ -451,16 +510,9 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
 
       if (destinationRect && destinationRect.width > 0) {
         const destinationSnapshot = snapshotCoverRect(destinationRect);
-        const matchCutRect =
-          current.direction === "forward" &&
-          current.sourceCoverRect &&
-          destinationSnapshot
-            ? interpolateCoverRect(current.sourceCoverRect, destinationSnapshot, 0.46)
-            : undefined;
         setTransition({
           ...current,
           phase: current.direction === "forward" ? "takeoff" : "landing",
-          matchCutRect,
           destinationCoverRect: destinationSnapshot,
         });
         if (current.direction === "forward") {
@@ -472,15 +524,12 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
           armForwardMatchCut({
             ...current,
             phase: "takeoff",
-            matchCutRect,
             destinationCoverRect: destinationSnapshot,
           });
         }
         armFallback(
           current.direction === "forward"
-            ? getTakeoffRemainingMs(current.takeoffStartedAt) +
-              forwardLandingMs +
-              forwardHandoffMs
+            ? getForwardRemainingMs(current.takeoffStartedAt) + forwardHandoffMs
             : returnLandingMs,
         );
         return;
@@ -547,13 +596,57 @@ function CaseCoverTransitionLayer({
   const { active } = useCaseCoverMotion();
   const sourceRect = active?.sourceCoverRect;
   const destinationRect = active?.destinationCoverRect;
-  const animationTargetRect =
-    active?.direction === "forward" &&
-    active.phase === "takeoff"
-      ? active.matchCutRect ??
-        (sourceRect ? getPremeasureCoverRect(sourceRect) : destinationRect)
-      : destinationRect;
+  const destinationRectRef = useRef<CoverRectSnapshot | undefined>(undefined);
+  const layerRef = useRef<HTMLDivElement>(null);
+
+  const isForward = active?.direction === "forward";
+  const animationTargetRect = isForward
+    ? destinationRect ?? (sourceRect ? getPremeasureCoverRect(sourceRect) : undefined)
+    : destinationRect;
   const hasGeometry = Boolean(sourceRect && animationTargetRect);
+
+  useLayoutEffect(() => {
+    destinationRectRef.current = destinationRect;
+  }, [destinationRect]);
+
+  useLayoutEffect(() => {
+    const layer = layerRef.current;
+    if (!layer || !isForward || !sourceRect) return;
+
+    const startedAt = active?.takeoffStartedAt ?? Date.now();
+    let frame = 0;
+
+    const updateForwardMotion = () => {
+      const elapsed = Math.max(0, Date.now() - startedAt);
+      const progress = Math.min(1, elapsed / forwardMotionMs);
+      const easedProgress = cubicBezierProgress(progress, landingEase);
+      const destination =
+        destinationRectRef.current ?? getPremeasureCoverRect(sourceRect);
+      const currentRect = interpolateCoverRect(
+        sourceRect,
+        destination,
+        easedProgress,
+      );
+      layer.style.transform = coverTransform(sourceRect, currentRect);
+
+      if (progress < 1) {
+        frame = window.requestAnimationFrame(updateForwardMotion);
+      }
+    };
+
+    updateForwardMotion();
+    return () => window.cancelAnimationFrame(frame);
+  }, [
+    active?.direction,
+    active?.takeoffStartedAt,
+    active?.transitionId,
+    isForward,
+    sourceRect,
+    sourceRect?.height,
+    sourceRect?.left,
+    sourceRect?.top,
+    sourceRect?.width,
+  ]);
 
   if (!active || active.offscreenReturn || !content || !sourceRect) return null;
 
@@ -571,39 +664,39 @@ function CaseCoverTransitionLayer({
   const destinationScaleY = animationTargetRect
     ? animationTargetRect.height / sourceRect.height
     : 1;
-  const durationMs =
-    active.direction === "forward"
-      ? active.phase === "takeoff"
-        ? getTakeoffRemainingMs(active.takeoffStartedAt)
-        : active.phase === "handoff"
-          ? forwardHandoffMs
-          : forwardLandingMs
-      : returnCoverLandingMs;
   const showReplacement =
-    active.direction === "forward" &&
+    isForward &&
     active.phase !== "takeoff" &&
     replacementContent !== null;
+  const layerClassName = `case-cover-motion-layer${
+    active.matchCutActive ? " case-cover-motion-layer--match-cut" : ""
+  }`;
 
   return (
     <motion.div
+      ref={layerRef}
       key={`${active.transitionId}-${active.direction}`}
-      className="case-cover-motion-layer"
+      className={layerClassName}
       initial={false}
       animate={
-        hasGeometry
-          ? {
-              x: destinationCenterX - sourceCenterX,
-              y: destinationCenterY - sourceCenterY,
-              scaleX: destinationScale,
-              scaleY: destinationScaleY,
-              opacity: 1,
-            }
-          : { x: 0, y: 0, scaleX: 1, scaleY: 1, opacity: 1 }
+        isForward
+          ? undefined
+          : hasGeometry
+            ? {
+                x: destinationCenterX - sourceCenterX,
+                y: destinationCenterY - sourceCenterY,
+                scaleX: destinationScale,
+                scaleY: destinationScaleY,
+                opacity: 1,
+              }
+            : { x: 0, y: 0, scaleX: 1, scaleY: 1, opacity: 1 }
       }
       transition={
-        hasGeometry
-          ? { duration: durationMs / 1000, ease: landingEase }
-          : { duration: 0 }
+        isForward
+          ? undefined
+          : hasGeometry
+            ? { duration: returnCoverLandingMs / 1000, ease: landingEase }
+            : { duration: 0 }
       }
       style={{
         left: sourceRect.left,
