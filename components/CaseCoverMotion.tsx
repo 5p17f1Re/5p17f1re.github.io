@@ -51,7 +51,7 @@ const forwardLandingMs = 360;
 const forwardMotionMs = forwardTakeoffMs + forwardLandingMs;
 const forwardMotionDelayMs = 0;
 const forwardHandoffMs = 140;
-const matchCutBlurMs = 80;
+const matchCutCrossfadeMs = 120;
 const returnCoverLandingMs = 350;
 const returnLandingMs = 500;
 const forwardTotalMs =
@@ -182,6 +182,24 @@ function removeSnapshot() {
   }
 }
 
+function getVisibleCover(
+  transitionId: string,
+  role?: "source" | "target",
+): HTMLElement | undefined {
+  const roleSelector = role ? `[data-case-cover-role="${role}"]` : "";
+  const selector = `[data-case-cover-motion="${CSS.escape(transitionId)}"]${roleSelector}`;
+  const activeViewCover = document.querySelector<HTMLElement>(
+    `[aria-hidden="false"] ${selector}`,
+  );
+  if (activeViewCover) return activeViewCover;
+
+  return [...document.querySelectorAll<HTMLElement>(selector)].find((element) => {
+    const style = getComputedStyle(element);
+    const rect = element.getBoundingClientRect();
+    return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0;
+  });
+}
+
 export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -200,6 +218,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
   const completionTimerRef = useRef<number | null>(null);
   const handoffTimerRef = useRef<number | null>(null);
   const matchCutTimerRef = useRef<number | null>(null);
+  const forwardNavigationRef = useRef<string | null>(null);
 
   const setTransition = useCallback((next: ActiveTransition | null) => {
     activeRef.current = next;
@@ -252,6 +271,9 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       matchCutTimerRef.current = null;
     }
     const completed = activeRef.current;
+    if (completed?.direction === "forward") {
+      forwardNavigationRef.current = null;
+    }
     setTransition(null);
     setTransitionContent(null);
     setReplacementContent(null);
@@ -263,7 +285,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       navigationTimerRef.current = window.setTimeout(() => {
         if (!activeRef.current) return;
         navigate();
-      }, delayMs);
+      }, Math.max(0, delayMs));
     },
     [],
   );
@@ -299,8 +321,8 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
         }
 
         // The transform is already running from the original start time. This
-        // state update only changes the visible content and starts the short
-        // blur veil; it must not create a second geometry animation.
+        // state update only starts the content crossfade; it must not create a
+        // second geometry animation.
         setTransition({
           ...current,
           phase: "landing",
@@ -316,7 +338,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
           ) {
             setTransition({ ...latest, matchCutActive: false });
           }
-        }, matchCutBlurMs);
+        }, matchCutCrossfadeMs);
         if (handoffTimerRef.current !== null) {
           window.clearTimeout(handoffTimerRef.current);
         }
@@ -379,22 +401,17 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
         takeoffStartedAt: Date.now(),
       });
       armFallback();
-      armNavigation(
-        () => router.push(snapshot.casePath, { scroll: false }),
-        forwardMotionDelayMs,
-      );
+      router.push(snapshot.casePath, { scroll: false });
       return true;
     },
-    [armFallback, armNavigation, reduceMotion, router, setTransition],
+    [armFallback, reduceMotion, router, setTransition],
   );
 
   const returnHome = useCallback(() => {
     if (activeRef.current) return true;
     const snapshot = readSnapshot();
     if (!snapshot || reduceMotion) return false;
-    const cover = document.querySelector<HTMLElement>(
-      `[data-case-cover-motion="${CSS.escape(snapshot.transitionId)}"]`,
-    );
+    const cover = getVisibleCover(snapshot.transitionId, "source");
     const coverRect = cover?.getBoundingClientRect();
     const offscreenReturn = Boolean(
       coverRect && (coverRect.bottom < 0 || coverRect.top > window.innerHeight),
@@ -444,9 +461,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
         return;
       }
       document.documentElement.dataset.portfolioView = snapshot.view;
-      const cover = document.querySelector<HTMLElement>(
-        `[data-case-cover-motion="${CSS.escape(snapshot.transitionId)}"]`,
-      );
+      const cover = getVisibleCover(snapshot.transitionId, "source");
       const coverRect = cover?.getBoundingClientRect();
       setTransitionContent(
         coverContentRegistryRef.current.get(snapshot.transitionId)?.target ??
@@ -468,6 +483,17 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, [armFallback, reduceMotion, setTransition]);
+
+  useEffect(() => {
+    if (!active || active.direction !== "forward") return;
+    if (pathname.replace(/\/$/, "") === active.casePath.replace(/\/$/, "")) {
+      return;
+    }
+    if (forwardNavigationRef.current === active.transitionId) return;
+
+    forwardNavigationRef.current = active.transitionId;
+    router.push(active.casePath, { scroll: false });
+  }, [active, pathname, router]);
 
   useLayoutEffect(() => {
     if (!active) return;
@@ -503,9 +529,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
 
     const measureDestination = () => {
       attempts += 1;
-      const destination = document.querySelector<HTMLElement>(
-        `[data-case-cover-motion="${CSS.escape(current.transitionId)}"][data-case-cover-role="${destinationRole}"]`,
-      );
+      const destination = getVisibleCover(current.transitionId, destinationRole);
       const destinationRect = destination?.getBoundingClientRect();
 
       if (destinationRect && destinationRect.width > 0) {
@@ -669,7 +693,7 @@ function CaseCoverTransitionLayer({
     active.phase !== "takeoff" &&
     replacementContent !== null;
   const layerClassName = `case-cover-motion-layer${
-    active.matchCutActive ? " case-cover-motion-layer--match-cut" : ""
+    active.matchCutActive ? " case-cover-motion-layer--crossfade" : ""
   }`;
 
   return (
