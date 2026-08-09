@@ -30,6 +30,9 @@ type TransitionSnapshot = {
   scrollY: number;
   view: ViewMode;
   sourceCoverRect?: CoverRectSnapshot;
+  travelX?: number;
+  travelY?: number;
+  travelScale?: number;
 };
 type ActiveTransition = TransitionSnapshot & {
   direction: Direction;
@@ -72,7 +75,7 @@ type CaseCoverMotionContextValue = {
     event: ReactMouseEvent<HTMLAnchorElement>,
     snapshot: Omit<
       TransitionSnapshot,
-      "scrollY" | "sourceCoverRect"
+      "scrollY" | "sourceCoverRect" | "travelX" | "travelY" | "travelScale"
     >,
   ) => boolean;
   returnHome: () => boolean;
@@ -192,10 +195,36 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
         `[data-case-cover-motion="${CSS.escape(snapshot.transitionId)}"]`,
       );
       const coverRect = cover?.getBoundingClientRect();
+      const targetWidth = Math.min(window.innerWidth, 1156);
+      const targetTop = window.innerWidth <= 800 ? 140 : 232;
+      const aspectRatio = coverRect
+        ? coverRect.width / coverRect.height
+        : 1;
+      const targetHeight = targetWidth / aspectRatio;
+      const travelProgress = 1.1;
+      const travelX = coverRect
+        ? (window.innerWidth / 2 - (coverRect.left + coverRect.width / 2)) *
+          travelProgress
+        : 0;
+      const travelY = coverRect
+        ? (targetTop + targetHeight / 2 -
+            (coverRect.top + coverRect.height / 2)) * travelProgress
+        : 0;
+      const fullScale = coverRect ? targetWidth / coverRect.width : 1;
+      const travelScale =
+        snapshot.view === "birdview"
+          ? 1.35
+          : Math.min(
+              1.07,
+              1 + Math.min(Math.max(fullScale - 1, 0), 0.22) * 0.5,
+            );
       const nextSnapshot = {
         ...snapshot,
         scrollY: window.scrollY,
         sourceCoverRect: snapshotCoverRect(coverRect),
+        travelX,
+        travelY,
+        travelScale,
       };
       writeSnapshot(nextSnapshot);
       setTransition({
@@ -371,6 +400,9 @@ export function SharedCaseCover({
   const isActiveCover = active?.transitionId === transitionId;
   const participates = Boolean(transitionId) && enabled && isActiveCover;
   const sourceCoverRect = active?.sourceCoverRect;
+  const travelX = active?.travelX ?? 0;
+  const travelY = active?.travelY ?? 0;
+  const travelScale = active?.travelScale ?? 1.2;
   const isLandingDestination = Boolean(
     participates &&
       !active?.offscreenReturn &&
@@ -439,11 +471,14 @@ export function SharedCaseCover({
   ]);
 
   let coverAnimation = { opacity: 1, scale: 1 };
+  let coverPosition = { x: 0, y: 0 };
   if (isActiveCover && active?.direction === "forward") {
     if (active.phase === "takeoff" && !target) {
-      coverAnimation = { opacity: 1, scale: 1 };
+      coverAnimation = { opacity: 1, scale: travelScale };
+      coverPosition = { x: travelX, y: travelY };
     } else if (active.phase === "takeoff" && target) {
       coverAnimation = { opacity: 0, scale: 0.9 };
+      coverPosition = { x: 0, y: 48 };
     } else if (active.phase === "landing") {
       coverAnimation = target
         ? { opacity: 1, scale: 1 }
@@ -473,7 +508,7 @@ export function SharedCaseCover({
       animate={
         shouldUseMeasuredLanding
           ? landingControls
-          : coverAnimation
+          : { ...coverAnimation, ...coverPosition }
       }
       style={{
         transformOrigin: "50% 50%",
