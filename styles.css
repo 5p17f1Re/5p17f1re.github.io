@@ -11,6 +11,15 @@
   --color-accent-green: #137547;
   --color-nav-gray: rgba(135, 135, 135, 0.3);
   --color-nav-black: rgba(0, 0, 0, 0.4);
+  --case-cover-motion-eased: 0;
+  --case-cover-motion-context-opacity: 1;
+  --case-cover-motion-context-blur: 0px;
+  --case-cover-motion-context-scale: 1;
+  --case-cover-motion-copy-opacity: 0;
+  --case-cover-motion-copy-blur: 12px;
+  --case-cover-motion-title-progress: 0%;
+  --case-cover-motion-outgoing-opacity: 1;
+  --case-cover-motion-outgoing-blur: 0px;
 }
 
 ::selection {
@@ -135,8 +144,90 @@ img { display: block; max-width: 100%; }
   min-width: 0;
 }
 
+/* Keep the server-rendered case behind the shared cover until the image has
+   landed. This prevents a visible first paint followed by React handoff. */
+html[data-case-cover-motion-direction="forward"] .case-motion-route:has(.case-page-shell) {
+  visibility: hidden;
+}
+
+html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"] .case-motion-route:has(.case-page-shell),
+html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="handoff"] .case-motion-route:has(.case-page-shell) {
+  visibility: visible;
+}
+
+/* The destination rect is measured while the forward transition is active;
+   freeze the viewport so the landing point cannot move under the pointer. */
+html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="takeoff"],
+html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"],
+html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="takeoff"] body,
+html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"] body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* Scroll restoration must be discrete while the fixed return layer is
+   aligning with the saved homepage card. The site-wide smooth scrolling is
+   restored as soon as the transition attributes are removed. */
+html[data-case-cover-motion-active][data-case-cover-motion-direction="return"] {
+  scroll-behavior: auto;
+}
+
 .shared-case-cover {
   width: 100%;
+}
+
+/* One persistent cover survives the route handoff. The route-local covers
+   keep their layout boxes, but stay hidden until this layer has landed. */
+.case-cover-motion-layer {
+  position: fixed;
+  left: var(--case-cover-motion-left, 0px);
+  top: var(--case-cover-motion-top, 0px);
+  width: var(--case-cover-motion-width, 0px);
+  height: var(--case-cover-motion-height, 0px);
+  z-index: 20;
+  pointer-events: none;
+  transform-origin: 50% 50%;
+  will-change: transform, left, top, width, height, opacity, filter;
+}
+
+.case-cover-motion-layer__content,
+.case-cover-motion-layer__content .optimized-image,
+.case-cover-motion-layer__content .optimized-video,
+.case-cover-motion-layer__content .case-media,
+.case-cover-motion-layer__content .case-media__figure {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  overflow: hidden;
+  opacity: 1;
+  transition: none;
+}
+
+.case-cover-motion-layer__content--replacement {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.case-cover-motion-layer__content .case-video,
+.case-cover-motion-layer__content .case-video__poster,
+.case-cover-motion-layer__content .case-media__image,
+.case-cover-motion-layer__content .case-media__video,
+.case-cover-motion-layer__content .optimized-image__img,
+.case-cover-motion-layer__content .project__img,
+.case-cover-motion-layer__content .project__video,
+.case-cover-motion-layer__content video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.case-cover-motion-layer__content .optimized-image__img,
+.case-cover-motion-layer__content .optimized-video__poster {
+  opacity: 1 !important;
 }
 
 html[data-case-cover-motion-active] .project-motion-cell {
@@ -149,86 +240,26 @@ html[data-case-cover-motion-active] .project-motion-cell:has(.project[data-case-
   z-index: 1;
 }
 
-html[data-case-cover-motion-direction="forward"] .project:not([data-case-cover-active="true"]) {
-  opacity: 0.6;
-  filter: blur(24px);
-  transition:
-    opacity 300ms cubic-bezier(0.45, 0, 0.75, 0.65),
-    filter 300ms cubic-bezier(0.45, 0, 0.75, 0.65);
+html[data-case-cover-motion-direction="forward"] .view-layer--current .projects,
+html[data-case-cover-motion-direction="return"] .view-layer--current .projects {
+  opacity: var(--case-cover-motion-context-opacity, 1);
+  filter: blur(var(--case-cover-motion-context-blur, 0px));
+  transform: scale(var(--case-cover-motion-context-scale, 1));
 }
 
-html[data-case-cover-motion-direction="forward"] .project[data-case-cover-active="true"] .project__header,
-html[data-case-cover-motion-direction="forward"] .project[data-case-cover-active="true"] .project__desc,
-html[data-case-cover-motion-direction="forward"] .project[data-case-cover-active="true"] .project__case-link {
-  opacity: 0.6;
-  filter: blur(24px);
-  transition:
-    opacity 300ms cubic-bezier(0.45, 0, 0.75, 0.65),
-    filter 300ms cubic-bezier(0.45, 0, 0.75, 0.65);
-}
-
-@keyframes case-cover-neighbor-return {
-  from {
-    opacity: 0.6;
-    filter: blur(24px);
-  }
-
-  to {
-    opacity: 1;
-    filter: blur(0);
-  }
-}
-
-html[data-case-cover-motion-direction="return"] .project:not([data-case-cover-active="true"]) {
-  opacity: 0.6;
-  filter: blur(24px);
+/* The route-local cover stays hidden while the persistent icon/container is
+   expanding. At completion the same target content is already fully visible
+   in that container, so revealing this exact-geometry layer is not a cut. */
+html[data-case-cover-motion-direction="forward"] [data-case-cover-role="target"] {
+  opacity: 0;
 }
 
 html[data-case-cover-motion-direction="return"] .project[data-case-cover-active="true"] .project__header,
 html[data-case-cover-motion-direction="return"] .project[data-case-cover-active="true"] .project__desc,
 html[data-case-cover-motion-direction="return"] .project[data-case-cover-active="true"] .project__case-link {
-  opacity: 0;
-}
-
-html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="landing"] .project:not([data-case-cover-active="true"]) {
-  animation: case-cover-neighbor-return 350ms 150ms cubic-bezier(0.12, 1, 0.2, 1) both;
-}
-
-@keyframes case-cover-copy-return {
-  from {
-    opacity: 0;
-    filter: blur(24px);
-  }
-
-  to {
-    opacity: 1;
-    filter: blur(0);
-  }
-}
-
-html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="landing"] .project[data-case-cover-active="true"] .project__header,
-html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="landing"] .project[data-case-cover-active="true"] .project__desc,
-html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="landing"] .project[data-case-cover-active="true"] .project__case-link {
-  animation: case-cover-copy-return 150ms 350ms cubic-bezier(0.12, 1, 0.2, 1) both;
-}
-
-@keyframes case-cover-offscreen-return {
-  from {
-    opacity: 0;
-    filter: blur(12px);
-    transform: scale(1.2);
-  }
-
-  to {
-    opacity: 1;
-    filter: blur(0);
-    transform: scale(1);
-  }
-}
-
-html[data-case-cover-motion-offscreen] .project[data-case-cover-active="true"] .shared-case-cover {
-  animation: case-cover-offscreen-return 450ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  transform-origin: center;
+  opacity: 1;
+  filter: none;
+  animation: none;
 }
 
 @property --case-cover-title-reveal {
@@ -237,25 +268,10 @@ html[data-case-cover-motion-offscreen] .project[data-case-cover-active="true"] .
   initial-value: 0%;
 }
 
-@keyframes case-cover-title-reveal {
-  from {
-    opacity: 0;
-    --case-cover-title-reveal: 0%;
-  }
-
-  8% {
-    opacity: 1;
-    --case-cover-title-reveal: 0%;
-  }
-
-  to {
-    opacity: 1;
-    --case-cover-title-reveal: 100%;
-  }
-}
-
 html[data-case-cover-motion-direction="forward"] .case-title h1 {
-  opacity: 0;
+  opacity: var(--case-cover-motion-copy-opacity, 0);
+  filter: blur(var(--case-cover-motion-copy-blur, 12px));
+  --case-cover-title-reveal: var(--case-cover-motion-title-progress, 0%);
   -webkit-mask-image: linear-gradient(
     90deg,
     #000 0%,
@@ -272,8 +288,30 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   );
 }
 
-html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"] .case-title h1 {
-  animation: case-cover-title-reveal 350ms cubic-bezier(0.16, 1, 0.3, 1) both;
+html[data-case-cover-motion-direction="forward"] .case-page-shell .case-text {
+  opacity: var(--case-cover-motion-copy-opacity, 0);
+  filter: blur(var(--case-cover-motion-copy-blur, 12px));
+}
+
+html[data-case-cover-motion-direction="return"] .case-page-shell .case-title,
+html[data-case-cover-motion-direction="return"] .case-page-shell .case-text {
+  opacity: var(--case-cover-motion-outgoing-opacity, 1);
+  filter: blur(var(--case-cover-motion-outgoing-blur, 0px));
+  transition: none;
+}
+
+/* Reused by the independent About Telegram reveal. The case return copy is
+   driven by the shared motion variables above and does not use this keyframe. */
+@keyframes case-cover-copy-return {
+  from {
+    opacity: 0.33;
+    filter: blur(12px);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
 }
 
 /* ─── Nav ───────────────────────────────────────────────────────────────── */
@@ -727,6 +765,12 @@ html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="l
 .view-stage {
   position: relative;
   width: 100%;
+}
+
+/* Keep server-rendered project cards visible if client hydration is delayed. */
+.view-stage[data-view-ready="false"] .project-motion-cell {
+  opacity: 1 !important;
+  transform: none !important;
 }
 
 .view-stage--switching {

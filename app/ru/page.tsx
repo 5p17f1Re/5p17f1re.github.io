@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 import { Portfolio } from "@/components/Portfolio";
+import { getAbout } from "@/data/about";
+
+const title = "Сева Кудрявцев";
+const description = getAbout("ru").paragraphs[0];
+const portrait = "/media/images/sevakudrytavtsev-600.webp";
 
 export const metadata: Metadata = {
-  title: "Сева Кудрявцев — продуктовый дизайнер",
-  description: "Портфолио продуктового дизайнера Севы Кудрявцева.",
+  title,
+  description,
   alternates: {
     canonical: "/ru/",
     languages: {
@@ -13,10 +18,26 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
+    type: "website",
     locale: "ru_RU",
     url: "/ru/",
-    title: "Сева Кудрявцев — продуктовый дизайнер",
-    description: "Портфолио продуктового дизайнера Севы Кудрявцева.",
+    siteName: "Сева Кудрявцев",
+    title,
+    description,
+    images: [
+      {
+        url: portrait,
+        width: 600,
+        height: 600,
+        alt: "Сева Кудрявцев",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title,
+    description,
+    images: [portrait],
   },
 };
 

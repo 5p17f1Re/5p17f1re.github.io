@@ -11,7 +11,7 @@ const description =
 const cover = "/media/images/starter-foodhalls/01-cover-1920.webp";
 
 export const metadata: Metadata = {
-  title: `${title} — Сева Кудрявцев`,
+  title,
   description,
   alternates: {
     canonical: "/ru/starter-foodhalls/",

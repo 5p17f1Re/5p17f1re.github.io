@@ -55,7 +55,7 @@ const phoneMedia = [
 ];
 
 export const metadata: Metadata = {
-  title: `${title} — PYE Try-On App · Seva Kudryavtsev`,
+  title,
   description,
   alternates: { canonical: "/pye-try-on-app/" },
   openGraph: {
