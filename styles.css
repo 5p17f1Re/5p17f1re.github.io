@@ -212,6 +212,15 @@ html[data-case-cover-motion-active][data-case-cover-motion-direction="return"] {
   pointer-events: none;
 }
 
+.shared-case-cover__target-preload {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .case-cover-motion-layer__content .case-video,
 .case-cover-motion-layer__content .case-video__poster,
 .case-cover-motion-layer__content .case-media__image,
@@ -247,9 +256,9 @@ html[data-case-cover-motion-direction="return"] .view-layer--current .projects {
   transform: scale(var(--case-cover-motion-context-scale, 1));
 }
 
-/* The route-local cover stays hidden while the persistent icon/container is
-   expanding. At completion the same target content is already fully visible
-   in that container, so revealing this exact-geometry layer is not a cut. */
+/* The route-local cover stays hidden for the entire forward transition,
+   including handoff. The persistent target image is the only visible cover;
+   the route-local image is revealed on the first idle frame after it unmounts. */
 html[data-case-cover-motion-direction="forward"] [data-case-cover-role="target"] {
   opacity: 0;
 }
@@ -1166,7 +1175,7 @@ html[data-case-cover-motion-direction="return"] .case-page-shell .case-text {
 }
 
 .site-footer--dark {
-  background: #000;
+  background: var(--color-background);
 }
 
 .site-footer__content {
@@ -1435,13 +1444,13 @@ html[data-case-cover-motion-direction="return"] .case-page-shell .case-text {
 .case-page-shell {
   min-height: 100vh;
   overflow: clip;
-  background: #000;
+  background: var(--color-background);
   color: rgba(255, 255, 255, 0.85);
 }
 
 .not-found-page {
   min-height: 100vh;
-  background: #000;
+  background: var(--color-background);
   color: rgba(255, 255, 255, 0.35);
 }
 

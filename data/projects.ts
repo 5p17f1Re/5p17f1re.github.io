@@ -8,6 +8,7 @@ type ProjectContent = {
 type ProjectBase = ProjectContent & {
   slug?: string;
   transitionId?: string;
+  transitionCoverAsset?: string;
   tag: string;
   localizedContent?: Partial<Record<SiteLocale, ProjectContent>>;
 };
@@ -41,6 +42,7 @@ export const projects: Project[] = [
   {
     slug: "yandex-eats-smartreserve",
     transitionId: "yandex-eats-smartreserve",
+    transitionCoverAsset: "yandex-eats-smartreserve/01-cover",
     mediaType: "image",
     tag: "b2b",
     title: "Yandex Eats Analytics",
@@ -58,6 +60,7 @@ export const projects: Project[] = [
   {
     slug: "starter-foodhalls",
     transitionId: "starter-foodhalls",
+    transitionCoverAsset: "starter-foodhalls/01-cover",
     mediaType: "image",
     tag: "b2b",
     title: "Starter for Food Halls",
@@ -75,6 +78,7 @@ export const projects: Project[] = [
   {
     slug: "starter-stories",
     transitionId: "starter-stories",
+    transitionCoverAsset: "starter-stories/01-cover",
     mediaType: "video",
     tag: "product",
     title: "Starter Stories",
@@ -108,6 +112,7 @@ export const projects: Project[] = [
   {
     slug: "pye-try-on-app",
     transitionId: "pye-try-on-app",
+    transitionCoverAsset: "pye-tryon-app/01-cover-poster",
     mediaType: "video",
     tag: "app",
     title: "PYE Home Try-On",

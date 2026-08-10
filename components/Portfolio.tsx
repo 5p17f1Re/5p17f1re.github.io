@@ -153,12 +153,21 @@ function ProjectMedia({
       view === "snakeview"
         ? "(max-width: 998px) calc(100vw - 64px), 934px"
         : "(max-width: 600px) 50vw, (max-width: 800px) 50vw, 33vw";
+    const transitionTarget = project.transitionCoverAsset ? (
+      <OptimizedImage
+        assetKey={project.transitionCoverAsset}
+        alt=""
+        sizes={sizes}
+        eager
+      />
+    ) : null;
 
     return (
       <>
         <SharedCaseCover
           transitionId={project.transitionId}
           enabled={sharedCoverEnabled}
+          transitionTarget={transitionTarget}
           className="shared-case-cover"
         >
           <OptimizedVideo
@@ -192,9 +201,24 @@ function ProjectMedia({
   }
 
   return (
+    <>
     <SharedCaseCover
       transitionId={project.transitionId}
       enabled={sharedCoverEnabled}
+      transitionTarget={
+        project.transitionCoverAsset ? (
+          <OptimizedImage
+            assetKey={project.transitionCoverAsset}
+            alt=""
+            sizes={
+              view === "snakeview"
+                ? "(max-width: 998px) calc(100vw - 64px), 934px"
+                : "(max-width: 600px) 50vw, (max-width: 800px) 50vw, 33vw"
+            }
+            eager
+          />
+        ) : null
+      }
       className="shared-case-cover"
     >
       <OptimizedImage
@@ -209,6 +233,7 @@ function ProjectMedia({
         eager={eager}
       />
     </SharedCaseCover>
+    </>
   );
 }
 

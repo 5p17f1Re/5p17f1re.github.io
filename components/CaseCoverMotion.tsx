@@ -40,12 +40,13 @@ type ActiveTransition = TransitionSnapshot & {
 };
 
 const storageKey = "case-cover-motion-snapshot";
-// iOS-like app launch: decisive scale-up, then a short settling tail. The
-// return transition deliberately keeps its separate canonical timing below.
-const motionDebugScale = process.env.NODE_ENV === "development" ? 1.5 : 1;
+// Keep the forward card-to-case motion at the slower test-environment cadence
+// in every build. The return transition deliberately keeps its separate
+// canonical timing below.
+const forwardMotionScale = 1.5;
 const forwardSpeedScale = 0.46;
-const forwardTakeoffMs = Math.round(520 * forwardSpeedScale * motionDebugScale);
-const forwardLandingMs = Math.round(600 * forwardSpeedScale * motionDebugScale);
+const forwardTakeoffMs = Math.round(520 * forwardSpeedScale * forwardMotionScale);
+const forwardLandingMs = Math.round(600 * forwardSpeedScale * forwardMotionScale);
 const forwardMotionMs = forwardTakeoffMs + forwardLandingMs;
 // Keep only one paint for the homepage blur before mounting the destination.
 // The persistent cover starts moving immediately; this delay is route handoff,
@@ -54,26 +55,37 @@ const forwardMotionMs = forwardTakeoffMs + forwardLandingMs;
 // so the shared canvas scale-down is visible instead of being swallowed by
 // the first navigation paint.
 const forwardMotionDelayMs = 66;
-const forwardCoverOverlayStartMs = 80;
-const forwardCoverOverlayMs = Math.round(220 * motionDebugScale);
+const forwardCoverFadeMs = 80;
 const returnOffscreenMotionMs = 450;
 const returnCoverLandingMs = 350;
 const returnLandingMs = 500;
 const returnNavigationDelayMs = 16;
-const forwardHandoffBufferMs = Math.round(16 * motionDebugScale);
+const forwardHandoffBufferMs = Math.round(16 * forwardMotionScale);
 const forwardTotalMs = forwardMotionMs + forwardHandoffBufferMs;
 const forwardEase = [0.16, 1, 0.3, 1] as const;
+const forwardRevealEase = [0.4, 0, 0.2, 1] as const;
+const forwardTakeoffProgress = forwardTakeoffMs / forwardMotionMs;
 const returnEase = [0.12, 1, 0.2, 1] as const;
+
+function getForwardRevealProgress(rawProgress: number): number {
+  const progress = Math.min(1, Math.max(0, rawProgress));
+  const landingProgress =
+    (progress - forwardTakeoffProgress) / (1 - forwardTakeoffProgress);
+
+  return cubicBezierProgress(landingProgress, forwardRevealEase);
+}
 
 function writeMotionTimelineVars(
   direction: Direction,
   easedProgress: number,
+  rawProgress = easedProgress,
 ): void {
   const root = document.documentElement;
   const progress = Math.min(1, Math.max(0, easedProgress));
   root.style.setProperty("--case-cover-motion-eased", String(progress));
 
   if (direction === "forward") {
+    const revealProgress = getForwardRevealProgress(rawProgress);
     root.style.setProperty(
       "--case-cover-motion-context-opacity",
       String(1 - 0.1 * progress),
@@ -88,15 +100,15 @@ function writeMotionTimelineVars(
     );
     root.style.setProperty(
       "--case-cover-motion-copy-opacity",
-      String(progress),
+      String(revealProgress),
     );
     root.style.setProperty(
       "--case-cover-motion-copy-blur",
-      `${12 * (1 - progress)}px`,
+      `${12 * (1 - revealProgress)}px`,
     );
     root.style.setProperty(
       "--case-cover-motion-title-progress",
-      `${100 * progress}%`,
+      `${100 * revealProgress}%`,
     );
     return;
   }
@@ -345,6 +357,17 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
         ...registered,
         ...(target ? { target: content } : { source: content }),
       });
+      // If a route target is registered after navigation, keep it as a
+      // fallback only. The homepage normally pre-registers the target poster,
+      // so the persistent crop-frame can start its fade at the click itself.
+      const current = activeRef.current;
+      if (
+        target &&
+        current?.direction === "forward" &&
+        current.transitionId === transitionId
+      ) {
+        setReplacementContent((currentContent) => currentContent ?? content);
+      }
     },
     [],
   );
@@ -419,7 +442,10 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
         coverContentRegistryRef.current.get(snapshot.transitionId)?.source ??
           null,
       );
-      setReplacementContent(null);
+      setReplacementContent(
+        coverContentRegistryRef.current.get(snapshot.transitionId)?.target ??
+          null,
+      );
       writeSnapshot(nextSnapshot);
       setTransition({
         ...nextSnapshot,
@@ -698,7 +724,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
           const targetContent =
             coverContentRegistryRef.current.get(current.transitionId)?.target;
           if (targetContent !== undefined) {
-            setReplacementContent(targetContent);
+            setReplacementContent((currentContent) => currentContent ?? targetContent);
           }
         } else if (!current.offscreenReturn) {
           if (handoffTimerRef.current !== null) {
@@ -795,6 +821,8 @@ function CaseCoverTransitionLayer({
   const layerRef = useRef<HTMLDivElement>(null);
   const sourceContentRef = useRef<HTMLDivElement>(null);
   const replacementContentRef = useRef<HTMLDivElement>(null);
+  const replacementFadeContentRef = useRef<ReactNode | null>(null);
+  const replacementFadeStartedAtRef = useRef<number | null>(null);
 
   const isForward = active?.direction === "forward";
   const activeDirection = active?.direction;
@@ -841,7 +869,11 @@ function CaseCoverTransitionLayer({
         const elapsed = Math.max(0, Date.now() - startedAt);
         const progress = Math.min(1, elapsed / returnOffscreenMotionMs);
         const easedProgress = cubicBezierProgress(progress, returnEase);
-        writeMotionTimelineVars("return", easedProgress);
+        writeMotionTimelineVars(
+          "return",
+          easedProgress,
+          progress,
+        );
         layer.style.setProperty("--case-cover-motion-left", `${sourceRect.left}px`);
         layer.style.setProperty("--case-cover-motion-top", `${sourceRect.top}px`);
         layer.style.setProperty("--case-cover-motion-width", `${sourceRect.width}px`);
@@ -876,6 +908,7 @@ function CaseCoverTransitionLayer({
       writeMotionTimelineVars(
         isForwardTransition ? "forward" : "return",
         easedProgress,
+        progress,
       );
       const liveDestination = getVisibleCover(
         activeTransitionId,
@@ -939,31 +972,27 @@ function CaseCoverTransitionLayer({
       return;
     }
 
-    const startedAt = activeTakeoffStartedAt ?? Date.now();
     const isForwardTransition = activeDirection === "forward";
-    const overlayStartMs = isForwardTransition
-      ? forwardCoverOverlayStartMs
-      : 0;
-    const overlayDurationMs = isForwardTransition
-      ? forwardCoverOverlayMs
-      : 1;
+    if (!isForwardTransition || !replacementContent) {
+      replacementFadeContentRef.current = null;
+      replacementFadeStartedAtRef.current = null;
+    } else if (replacementFadeContentRef.current !== replacementContent) {
+      replacementFadeContentRef.current = replacementContent;
+      replacementFadeStartedAtRef.current = performance.now();
+    }
     let frame = 0;
 
     const updateContentCrossfade = () => {
-      const elapsed = Math.max(0, Date.now() - startedAt);
+      const replacementElapsed = replacementFadeStartedAtRef.current === null
+        ? 0
+        : Math.max(0, performance.now() - replacementFadeStartedAtRef.current);
       const progress = replacementContent && isForwardTransition
-        ? Math.min(
-            1,
-            Math.max(
-              0,
-              (elapsed - overlayStartMs) / overlayDurationMs,
-            ),
-          )
+        ? Math.min(1, replacementElapsed / forwardCoverFadeMs)
         : 0;
-      const opacity = cubicBezierProgress(progress, forwardEase);
-      // Keep the source opaque while the replacement is painted over it. A
-      // crossfade makes both images transparent in the middle and exposes the
-      // page background as a visible hole.
+      const opacity = cubicBezierProgress(progress, forwardRevealEase);
+      // Keep the source opaque while the replacement fades in over the same
+      // crop-frame. The fade starts when the target content is actually
+      // mounted, so late route registration can never insert it at mid-opacity.
       if (sourceContentRef.current) {
         sourceContentRef.current.style.opacity = "1";
       }
@@ -971,7 +1000,7 @@ function CaseCoverTransitionLayer({
         replacementContentRef.current.style.opacity = String(opacity);
       }
 
-      if (replacementContent && progress < 1) {
+      if (replacementContent && isForwardTransition && progress < 1) {
         frame = window.requestAnimationFrame(updateContentCrossfade);
       }
     };
@@ -980,7 +1009,6 @@ function CaseCoverTransitionLayer({
     return () => window.cancelAnimationFrame(frame);
   }, [
     activeDirection,
-    activeTakeoffStartedAt,
     activeTransitionId,
     content,
     replacementContent,
@@ -1017,12 +1045,14 @@ export function SharedCaseCover({
   transitionId,
   enabled = true,
   target = false,
+  transitionTarget,
   className,
   children,
 }: {
   transitionId?: string;
   enabled?: boolean;
   target?: boolean;
+  transitionTarget?: ReactNode;
   className?: string;
   children: ReactNode;
 }) {
@@ -1030,10 +1060,6 @@ export function SharedCaseCover({
   const coverRef = useRef<HTMLDivElement>(null);
   const isActiveCover = active?.transitionId === transitionId;
   const participates = Boolean(transitionId) && enabled && isActiveCover;
-  const isTargetHandoff =
-    target &&
-    active?.direction === "forward" &&
-    active.phase === "handoff";
   // The homepage cover is the same content already held by the persistent
   // layer. Keep it mounted and visible as soon as home mounts on return; the
   // fixed layer remains above it until handoff, so there is no first-paint
@@ -1041,13 +1067,22 @@ export function SharedCaseCover({
   const isReturnCover = !target && active?.direction === "return";
   const isHiddenByTransition =
     participates &&
-    !isTargetHandoff &&
     !isReturnCover;
 
   useLayoutEffect(() => {
     if (!transitionId || !enabled) return;
     registerCoverContent(transitionId, target, children);
-  }, [children, enabled, registerCoverContent, target, transitionId]);
+    if (!target && transitionTarget) {
+      registerCoverContent(transitionId, true, transitionTarget);
+    }
+  }, [
+    children,
+    enabled,
+    registerCoverContent,
+    target,
+    transitionId,
+    transitionTarget,
+  ]);
 
   return (
     <motion.div
@@ -1062,6 +1097,14 @@ export function SharedCaseCover({
       }}
     >
       {children}
+      {!target && transitionTarget ? (
+        <span
+          className="shared-case-cover__target-preload"
+          aria-hidden="true"
+        >
+          {transitionTarget}
+        </span>
+      ) : null}
     </motion.div>
   );
 }
