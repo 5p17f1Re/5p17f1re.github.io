@@ -40,8 +40,6 @@ type ActiveTransition = TransitionSnapshot & {
 };
 
 const storageKey = "case-cover-motion-snapshot";
-const birdviewNavigationMs = 200;
-const snakeviewNavigationMs = 250;
 // iOS-like app launch: decisive scale-up, then a short settling tail. The
 // return transition deliberately keeps its separate canonical timing below.
 const motionDebugScale = process.env.NODE_ENV === "development" ? 1.5 : 1;
@@ -56,24 +54,89 @@ const forwardMotionMs = forwardTakeoffMs + forwardLandingMs;
 // so the shared canvas scale-down is visible instead of being swallowed by
 // the first navigation paint.
 const forwardMotionDelayMs = 66;
-const forwardContentCrossfadeStartMs = 80;
-const forwardContentCrossfadeMs = Math.round(220 * motionDebugScale);
-const forwardTextRevealDelayMs = 100;
-const forwardContentRevealMs =
-  forwardTextRevealDelayMs + Math.round(320 * 1.5 * motionDebugScale);
-const returnContentCrossfadeStartMs = 80;
-const returnContentCrossfadeMs = 220;
+const forwardCoverOverlayStartMs = 80;
+const forwardCoverOverlayMs = Math.round(220 * motionDebugScale);
 const returnOffscreenMotionMs = 450;
 const returnCoverLandingMs = 350;
 const returnLandingMs = 500;
+const returnNavigationDelayMs = 16;
 const forwardHandoffBufferMs = Math.round(16 * motionDebugScale);
-const forwardTotalMs = Math.max(
-  forwardMotionMs + forwardHandoffBufferMs,
-  forwardContentRevealMs,
-);
-const returnTakeoffMs = snakeviewNavigationMs + returnCoverLandingMs;
+const forwardTotalMs = forwardMotionMs + forwardHandoffBufferMs;
 const forwardEase = [0.16, 1, 0.3, 1] as const;
 const returnEase = [0.12, 1, 0.2, 1] as const;
+
+function writeMotionTimelineVars(
+  direction: Direction,
+  easedProgress: number,
+): void {
+  const root = document.documentElement;
+  const progress = Math.min(1, Math.max(0, easedProgress));
+  root.style.setProperty("--case-cover-motion-eased", String(progress));
+
+  if (direction === "forward") {
+    root.style.setProperty(
+      "--case-cover-motion-context-opacity",
+      String(1 - 0.1 * progress),
+    );
+    root.style.setProperty(
+      "--case-cover-motion-context-blur",
+      `${7 * progress}px`,
+    );
+    root.style.setProperty(
+      "--case-cover-motion-context-scale",
+      String(1 - 0.1 * progress),
+    );
+    root.style.setProperty(
+      "--case-cover-motion-copy-opacity",
+      String(progress),
+    );
+    root.style.setProperty(
+      "--case-cover-motion-copy-blur",
+      `${12 * (1 - progress)}px`,
+    );
+    root.style.setProperty(
+      "--case-cover-motion-title-progress",
+      `${100 * progress}%`,
+    );
+    return;
+  }
+
+  root.style.setProperty(
+    "--case-cover-motion-context-opacity",
+    String(0.33 + 0.67 * progress),
+  );
+  root.style.setProperty(
+    "--case-cover-motion-context-blur",
+    `${12 * (1 - progress)}px`,
+  );
+  root.style.setProperty(
+    "--case-cover-motion-context-scale",
+    String(0.9 + 0.1 * progress),
+  );
+  root.style.setProperty(
+    "--case-cover-motion-outgoing-opacity",
+    String(1 - 0.4 * progress),
+  );
+  root.style.setProperty(
+    "--case-cover-motion-outgoing-blur",
+    `${12 * progress}px`,
+  );
+}
+
+function clearMotionTimelineVars(): void {
+  const root = document.documentElement;
+  [
+    "--case-cover-motion-eased",
+    "--case-cover-motion-context-opacity",
+    "--case-cover-motion-context-blur",
+    "--case-cover-motion-context-scale",
+    "--case-cover-motion-copy-opacity",
+    "--case-cover-motion-copy-blur",
+    "--case-cover-motion-title-progress",
+    "--case-cover-motion-outgoing-opacity",
+    "--case-cover-motion-outgoing-blur",
+  ].forEach((property) => root.style.removeProperty(property));
+}
 
 function snapshotCoverRect(rect: DOMRect | undefined): CoverRectSnapshot | undefined {
   if (!rect) return undefined;
@@ -241,6 +304,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
   const handoffTimerRef = useRef<number | null>(null);
 
   const setTransition = useCallback((next: ActiveTransition | null) => {
+    const previous = activeRef.current;
     activeRef.current = next;
     setActive(next);
     document.documentElement.toggleAttribute(
@@ -248,6 +312,13 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       Boolean(next),
     );
     if (next) {
+      const startsNewTimeline =
+        !previous ||
+        previous.transitionId !== next.transitionId ||
+        previous.direction !== next.direction;
+      if (startsNewTimeline) {
+        writeMotionTimelineVars(next.direction, 0);
+      }
       document.documentElement.dataset.caseCoverMotionDirection = next.direction;
       document.documentElement.dataset.caseCoverMotionId = next.transitionId;
       document.documentElement.dataset.caseCoverMotionPhase = next.phase;
@@ -262,6 +333,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       document.documentElement.removeAttribute(
         "data-case-cover-motion-offscreen",
       );
+      clearMotionTimelineVars();
     }
   }, []);
 
@@ -393,7 +465,10 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     } catch {
       // The in-memory snapshot still restores the current transition.
     }
-    const phase = offscreenReturn ? "landing" : "takeoff";
+    // Return starts directly in the same landing timeline at every scroll
+    // position. Navigation is delayed by one frame only, so the case shell
+    // can paint its outgoing blur before the homepage canvas appears.
+    const phase: TransitionPhase = "landing";
     setTransitionContent(
       coverContentRegistryRef.current.get(snapshot.transitionId)?.source ??
         coverContentRegistryRef.current.get(snapshot.transitionId)?.target ??
@@ -409,15 +484,16 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       takeoffStartedAt: Date.now(),
       destinationCoverRect: snapshot.sourceCoverRect,
     });
-    armFallback(phase === "landing" ? returnLandingMs : returnTakeoffMs);
+    armFallback(returnLandingMs);
     if (offscreenReturn) {
-      router.push(snapshot.homePath, { scroll: false });
+      armNavigation(
+        () => router.push(snapshot.homePath, { scroll: false }),
+        returnNavigationDelayMs,
+      );
     } else {
       armNavigation(
         () => router.push(snapshot.homePath, { scroll: false }),
-        snapshot.view === "birdview"
-          ? birdviewNavigationMs
-          : snakeviewNavigationMs,
+        returnNavigationDelayMs,
       );
     }
     return true;
@@ -548,24 +624,10 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       current.direction === "forward" ? current.casePath : current.homePath;
     if (normalizedPath !== destinationPath.replace(/\/$/, "")) return;
 
-    // Return already knows the saved homepage rect. It still needs an
-    // explicit takeoff → landing handoff after the homepage mounts; without
-    // it the canvas stays at scale(.9) until completion and then snaps to 1.
+    // Return already knows the saved homepage rect, so it does not need a
+    // second takeoff tween after the homepage mounts. The persistent cover
+    // and the homepage canvas are both driven by the same RAF timeline.
     if (current.destinationCoverRect) {
-      if (current.direction === "return" && current.phase === "takeoff") {
-        const frame = window.requestAnimationFrame(() => {
-          const latest = activeRef.current;
-          if (
-            latest?.transitionId === current.transitionId &&
-            latest.direction === "return" &&
-            latest.phase === "takeoff"
-          ) {
-            setTransition({ ...latest, phase: "landing" });
-            armFallback(returnLandingMs);
-          }
-        });
-        return () => window.cancelAnimationFrame(frame);
-      }
       if (
         current.direction === "return" &&
         !current.offscreenReturn &&
@@ -693,17 +755,10 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       document.documentElement.removeAttribute(
         "data-case-cover-motion-offscreen",
       );
+      clearMotionTimelineVars();
     },
     [],
   );
-
-  useEffect(() => {
-    if (process.env.NODE_ENV !== "development") return;
-    document.documentElement.dataset.caseCoverMotionDebug = "true";
-    return () => {
-      delete document.documentElement.dataset.caseCoverMotionDebug;
-    };
-  }, []);
 
   return (
     <CaseCoverMotionContext.Provider
@@ -745,7 +800,6 @@ function CaseCoverTransitionLayer({
   const activeDirection = active?.direction;
   const activeTransitionId = active?.transitionId;
   const activeTakeoffStartedAt = active?.takeoffStartedAt;
-  const activeOffscreenReturn = active?.offscreenReturn;
   const animationTargetRect = isOffscreenReturn
     ? destinationRect
     : isForward
@@ -786,6 +840,8 @@ function CaseCoverTransitionLayer({
       const updateOffscreenMotion = () => {
         const elapsed = Math.max(0, Date.now() - startedAt);
         const progress = Math.min(1, elapsed / returnOffscreenMotionMs);
+        const easedProgress = cubicBezierProgress(progress, returnEase);
+        writeMotionTimelineVars("return", easedProgress);
         layer.style.setProperty("--case-cover-motion-left", `${sourceRect.left}px`);
         layer.style.setProperty("--case-cover-motion-top", `${sourceRect.top}px`);
         layer.style.setProperty("--case-cover-motion-width", `${sourceRect.width}px`);
@@ -817,6 +873,10 @@ function CaseCoverTransitionLayer({
       const elapsed = Math.max(0, Date.now() - startedAt);
       const progress = Math.min(1, elapsed / durationMs);
       const easedProgress = cubicBezierProgress(progress, ease);
+      writeMotionTimelineVars(
+        isForwardTransition ? "forward" : "return",
+        easedProgress,
+      );
       const liveDestination = getVisibleCover(
         activeTransitionId,
         isForwardTransition ? "target" : "source",
@@ -824,7 +884,11 @@ function CaseCoverTransitionLayer({
       const liveDestinationRect = snapshotCoverRect(
         liveDestination?.getBoundingClientRect(),
       );
-      if (liveDestinationRect && liveDestinationRect.width > 0) {
+      if (
+        isForwardTransition &&
+        liveDestinationRect &&
+        liveDestinationRect.width > 0
+      ) {
         destinationRectRef.current = liveDestinationRect;
       }
       const destination =
@@ -877,22 +941,22 @@ function CaseCoverTransitionLayer({
 
     const startedAt = activeTakeoffStartedAt ?? Date.now();
     const isForwardTransition = activeDirection === "forward";
-    const crossfadeStartMs = isForwardTransition
-      ? forwardContentCrossfadeStartMs
-      : returnContentCrossfadeStartMs;
-    const crossfadeDurationMs = isForwardTransition
-      ? forwardContentCrossfadeMs
-      : returnContentCrossfadeMs;
+    const overlayStartMs = isForwardTransition
+      ? forwardCoverOverlayStartMs
+      : 0;
+    const overlayDurationMs = isForwardTransition
+      ? forwardCoverOverlayMs
+      : 1;
     let frame = 0;
 
     const updateContentCrossfade = () => {
       const elapsed = Math.max(0, Date.now() - startedAt);
-      const progress = replacementContent
+      const progress = replacementContent && isForwardTransition
         ? Math.min(
             1,
             Math.max(
               0,
-              (elapsed - crossfadeStartMs) / crossfadeDurationMs,
+              (elapsed - overlayStartMs) / overlayDurationMs,
             ),
           )
         : 0;
@@ -907,7 +971,7 @@ function CaseCoverTransitionLayer({
         replacementContentRef.current.style.opacity = String(opacity);
       }
 
-      if (progress < 1) {
+      if (replacementContent && progress < 1) {
         frame = window.requestAnimationFrame(updateContentCrossfade);
       }
     };
@@ -916,7 +980,6 @@ function CaseCoverTransitionLayer({
     return () => window.cancelAnimationFrame(frame);
   }, [
     activeDirection,
-    activeOffscreenReturn,
     activeTakeoffStartedAt,
     activeTransitionId,
     content,
