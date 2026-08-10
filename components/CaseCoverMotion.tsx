@@ -52,7 +52,10 @@ const forwardMotionMs = forwardTakeoffMs + forwardLandingMs;
 // Keep only one paint for the homepage blur before mounting the destination.
 // The persistent cover starts moving immediately; this delay is route handoff,
 // not a pause in the motion timeline.
-const forwardMotionDelayMs = 16;
+// Hold the homepage frame for one additional 50 ms before the route handoff
+// so the shared canvas scale-down is visible instead of being swallowed by
+// the first navigation paint.
+const forwardMotionDelayMs = 66;
 const forwardContentCrossfadeStartMs = 80;
 const forwardContentCrossfadeMs = Math.round(220 * motionDebugScale);
 const forwardTextRevealDelayMs = 100;
@@ -373,10 +376,16 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     event.preventDefault();
     const cover = getVisibleCover(snapshot.transitionId, "target");
     const coverRect = cover?.getBoundingClientRect();
-    // All exits use the same compact blur-and-landing motion. The homepage
-    // card is the visual destination even when the case cover is still in
-    // view; this keeps close behavior identical at every scroll position.
-    const offscreenReturn = true;
+    // All exits use the same compact landing motion. Keep the homepage card's
+    // own cover in the persistent layer from the first return frame; the
+    // case's first media image must never flash into the feed.
+    // When the case cover is still in the viewport, preserve the canonical
+    // return flight from that rect into the saved homepage card. Deep-scroll
+    // exits keep the no-flight fallback because their source is not visible.
+    const offscreenReturn = Boolean(
+      coverRect &&
+        (coverRect.bottom < 0 || coverRect.top > window.innerHeight),
+    );
 
     document.documentElement.dataset.portfolioView = snapshot.view;
     try {
@@ -386,13 +395,11 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     }
     const phase = offscreenReturn ? "landing" : "takeoff";
     setTransitionContent(
-      coverContentRegistryRef.current.get(snapshot.transitionId)?.target ??
-        null,
-    );
-    setReplacementContent(
       coverContentRegistryRef.current.get(snapshot.transitionId)?.source ??
+        coverContentRegistryRef.current.get(snapshot.transitionId)?.target ??
         null,
     );
+    setReplacementContent(null);
     setTransition({
       ...snapshot,
       sourceCoverRect: snapshotCoverRect(coverRect),
@@ -430,13 +437,11 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       const cover = getVisibleCover(snapshot.transitionId, "source");
       const coverRect = cover?.getBoundingClientRect();
       setTransitionContent(
-        coverContentRegistryRef.current.get(snapshot.transitionId)?.target ??
-          null,
-      );
-      setReplacementContent(
         coverContentRegistryRef.current.get(snapshot.transitionId)?.source ??
+          coverContentRegistryRef.current.get(snapshot.transitionId)?.target ??
           null,
       );
+      setReplacementContent(null);
       setTransition({
         ...snapshot,
         sourceCoverRect: snapshotCoverRect(coverRect),
@@ -465,20 +470,126 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       active.direction === "return" &&
       normalizedPath === active.homePath.replace(/\/$/, "")
     ) {
+      // The homepage restores its preferred view in its own layout effect.
+      // Re-apply the captured scroll after those layout changes as well, or
+      // the real card can drift away from the fixed transition layer.
       window.scrollTo({ top: active.scrollY, behavior: "instant" });
+      let secondFrame = 0;
+      let thirdFrame = 0;
+      const restoreAfterLayout = () => {
+        window.scrollTo({ top: active.scrollY, behavior: "instant" });
+        thirdFrame = window.requestAnimationFrame(() => {
+          window.scrollTo({ top: active.scrollY, behavior: "instant" });
+        });
+      };
+      secondFrame = window.requestAnimationFrame(restoreAfterLayout);
+      return () => {
+        window.cancelAnimationFrame(secondFrame);
+        window.cancelAnimationFrame(thirdFrame);
+      };
     }
   }, [active, pathname]);
 
   useLayoutEffect(() => {
-    const current = active;
-    const normalizedPath = pathname.replace(/\/$/, "");
-    if (!current || current.destinationCoverRect) {
+    const current = activeRef.current;
+    if (
+      !current ||
+      pathname.replace(/\/$/, "") !== current.homePath.replace(/\/$/, "")
+    ) {
       return;
     }
+
+    let frame = 0;
+    let attempts = 0;
+    const alignProjectsToViewport = () => {
+      const projects = document.querySelector<HTMLElement>(
+        ".view-layer--current .projects",
+      );
+      if (!projects) {
+        if (attempts < 6) {
+          attempts += 1;
+          frame = window.requestAnimationFrame(alignProjectsToViewport);
+        }
+        return;
+      }
+
+      const rect = projects.getBoundingClientRect();
+      // Both directions use the same viewport-centered canvas scale. The
+      // long page itself must not become the transform origin, otherwise the
+      // visible cards appear to grow from the top of the document.
+      projects.style.transformOrigin = `${window.innerWidth / 2 - rect.left}px ${window.innerHeight / 2 - rect.top}px`;
+    };
+
+    alignProjectsToViewport();
+    frame = window.requestAnimationFrame(alignProjectsToViewport);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      const projects = document.querySelector<HTMLElement>(
+        ".view-layer--current .projects",
+      );
+      projects?.style.removeProperty("transform-origin");
+    };
+  }, [
+    active?.direction,
+    active?.homePath,
+    active?.offscreenReturn,
+    active?.takeoffStartedAt,
+    active?.transitionId,
+    pathname,
+  ]);
+
+  useLayoutEffect(() => {
+    const current = active;
+    const normalizedPath = pathname.replace(/\/$/, "");
+    if (!current) return;
 
     const destinationPath =
       current.direction === "forward" ? current.casePath : current.homePath;
     if (normalizedPath !== destinationPath.replace(/\/$/, "")) return;
+
+    // Return already knows the saved homepage rect. It still needs an
+    // explicit takeoff → landing handoff after the homepage mounts; without
+    // it the canvas stays at scale(.9) until completion and then snaps to 1.
+    if (current.destinationCoverRect) {
+      if (current.direction === "return" && current.phase === "takeoff") {
+        const frame = window.requestAnimationFrame(() => {
+          const latest = activeRef.current;
+          if (
+            latest?.transitionId === current.transitionId &&
+            latest.direction === "return" &&
+            latest.phase === "takeoff"
+          ) {
+            setTransition({ ...latest, phase: "landing" });
+            armFallback(returnLandingMs);
+          }
+        });
+        return () => window.cancelAnimationFrame(frame);
+      }
+      if (
+        current.direction === "return" &&
+        !current.offscreenReturn &&
+        current.phase === "landing"
+      ) {
+        if (handoffTimerRef.current !== null) {
+          window.clearTimeout(handoffTimerRef.current);
+        }
+        // Reveal the homepage cover without restarting the canvas keyframe.
+        // Both layers now have the same saved card geometry and content.
+        handoffTimerRef.current = window.setTimeout(() => {
+          handoffTimerRef.current = null;
+          const latest = activeRef.current;
+          if (
+            latest?.transitionId === current.transitionId &&
+            latest.direction === "return" &&
+            latest.phase === "landing"
+          ) {
+            setTransition({ ...latest, phase: "handoff" });
+          }
+        }, returnCoverLandingMs + 32);
+      }
+      return;
+    }
 
     const destinationRole = current.direction === "forward" ? "target" : "source";
     let frame = 0;
@@ -631,6 +742,10 @@ function CaseCoverTransitionLayer({
   const replacementContentRef = useRef<HTMLDivElement>(null);
 
   const isForward = active?.direction === "forward";
+  const activeDirection = active?.direction;
+  const activeTransitionId = active?.transitionId;
+  const activeTakeoffStartedAt = active?.takeoffStartedAt;
+  const activeOffscreenReturn = active?.offscreenReturn;
   const animationTargetRect = isOffscreenReturn
     ? destinationRect
     : isForward
@@ -660,24 +775,24 @@ function CaseCoverTransitionLayer({
 
   useLayoutEffect(() => {
     const layer = layerRef.current;
-    if (!layer || !active || !sourceRect) return;
+    if (!layer || !activeDirection || !activeTransitionId || !sourceRect) {
+      return;
+    }
 
     if (isOffscreenReturn) {
-      const startedAt = active.takeoffStartedAt ?? Date.now();
+      const startedAt = activeTakeoffStartedAt ?? Date.now();
       let frame = 0;
 
       const updateOffscreenMotion = () => {
         const elapsed = Math.max(0, Date.now() - startedAt);
         const progress = Math.min(1, elapsed / returnOffscreenMotionMs);
-        const easedProgress = cubicBezierProgress(progress, forwardEase);
-        const scale = 1.2 - 0.2 * easedProgress;
         layer.style.setProperty("--case-cover-motion-left", `${sourceRect.left}px`);
         layer.style.setProperty("--case-cover-motion-top", `${sourceRect.top}px`);
         layer.style.setProperty("--case-cover-motion-width", `${sourceRect.width}px`);
         layer.style.setProperty("--case-cover-motion-height", `${sourceRect.height}px`);
-        layer.style.opacity = String(0.33 + 0.67 * easedProgress);
-        layer.style.filter = `blur(${12 * (1 - easedProgress)}px)`;
-        layer.style.transform = `translate3d(0, 0, 0) scale(${scale})`;
+        layer.style.opacity = "1";
+        layer.style.filter = "none";
+        layer.style.transform = "translate3d(0, 0, 0)";
 
         if (progress < 1) {
           frame = window.requestAnimationFrame(updateOffscreenMotion);
@@ -688,10 +803,10 @@ function CaseCoverTransitionLayer({
       return () => window.cancelAnimationFrame(frame);
     }
 
-    const isForwardTransition = active.direction === "forward";
+    const isForwardTransition = activeDirection === "forward";
     if (!isForwardTransition && !animationTargetRect) return;
 
-    const startedAt = active.takeoffStartedAt ?? Date.now();
+    const startedAt = activeTakeoffStartedAt ?? Date.now();
     const durationMs = isForwardTransition
       ? forwardMotionMs
       : returnCoverLandingMs;
@@ -703,7 +818,7 @@ function CaseCoverTransitionLayer({
       const progress = Math.min(1, elapsed / durationMs);
       const easedProgress = cubicBezierProgress(progress, ease);
       const liveDestination = getVisibleCover(
-        active.transitionId,
+        activeTransitionId,
         isForwardTransition ? "target" : "source",
       );
       const liveDestinationRect = snapshotCoverRect(
@@ -742,9 +857,9 @@ function CaseCoverTransitionLayer({
     updateMotion();
     return () => window.cancelAnimationFrame(frame);
   }, [
-    active,
-    active?.takeoffStartedAt,
-    active?.transitionId,
+    activeDirection,
+    activeTakeoffStartedAt,
+    activeTransitionId,
     animationTargetRect,
     isOffscreenReturn,
     sourceRect,
@@ -756,10 +871,12 @@ function CaseCoverTransitionLayer({
 
   useLayoutEffect(() => {
     const layer = layerRef.current;
-    if (!layer || !active || !content) return;
+    if (!layer || !activeDirection || !activeTransitionId || !content) {
+      return;
+    }
 
-    const startedAt = active.takeoffStartedAt ?? Date.now();
-    const isForwardTransition = active.direction === "forward";
+    const startedAt = activeTakeoffStartedAt ?? Date.now();
+    const isForwardTransition = activeDirection === "forward";
     const crossfadeStartMs = isForwardTransition
       ? forwardContentCrossfadeStartMs
       : returnContentCrossfadeStartMs;
@@ -780,8 +897,11 @@ function CaseCoverTransitionLayer({
           )
         : 0;
       const opacity = cubicBezierProgress(progress, forwardEase);
+      // Keep the source opaque while the replacement is painted over it. A
+      // crossfade makes both images transparent in the middle and exposes the
+      // page background as a visible hole.
       if (sourceContentRef.current) {
-        sourceContentRef.current.style.opacity = String(1 - opacity);
+        sourceContentRef.current.style.opacity = "1";
       }
       if (replacementContentRef.current) {
         replacementContentRef.current.style.opacity = String(opacity);
@@ -795,11 +915,10 @@ function CaseCoverTransitionLayer({
     updateContentCrossfade();
     return () => window.cancelAnimationFrame(frame);
   }, [
-    active,
-    active?.direction,
-    active?.offscreenReturn,
-    active?.takeoffStartedAt,
-    active?.transitionId,
+    activeDirection,
+    activeOffscreenReturn,
+    activeTakeoffStartedAt,
+    activeTransitionId,
     content,
     replacementContent,
   ]);
@@ -852,14 +971,15 @@ export function SharedCaseCover({
     target &&
     active?.direction === "forward" &&
     active.phase === "handoff";
-  const isReturnHandoff =
-    !target &&
-    active?.direction === "return" &&
-    active.phase === "handoff";
+  // The homepage cover is the same content already held by the persistent
+  // layer. Keep it mounted and visible as soon as home mounts on return; the
+  // fixed layer remains above it until handoff, so there is no first-paint
+  // replacement at the end of the flight.
+  const isReturnCover = !target && active?.direction === "return";
   const isHiddenByTransition =
     participates &&
     !isTargetHandoff &&
-    !isReturnHandoff;
+    !isReturnCover;
 
   useLayoutEffect(() => {
     if (!transitionId || !enabled) return;

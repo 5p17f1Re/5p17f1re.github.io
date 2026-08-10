@@ -240,7 +240,17 @@ function Navigation({ controls }: { controls: HomeNavigationControls }) {
   const refreshNavigationIndicator = useCallback(() => {
     const hoveredNavigationItem = hoveredNavigationItemRef.current;
 
-    if (hoveredNavigationItem) {
+    if (hoveredNavigationItem && !hoveredNavigationItem.isConnected) {
+      hoveredNavigationItemRef.current = null;
+    }
+    if (
+      focusedNavigationItemRef.current &&
+      !focusedNavigationItemRef.current.isConnected
+    ) {
+      focusedNavigationItemRef.current = null;
+    }
+
+    if (hoveredNavigationItem?.isConnected) {
       const hoverCanActivate = !(
         hoveredNavigationItem.dataset.navHome === "true" &&
         isHome &&
@@ -274,8 +284,21 @@ function Navigation({ controls }: { controls: HomeNavigationControls }) {
   }, [isHome]);
 
   useLayoutEffect(() => {
-    refreshNavigationIndicator();
-  }, [controls.view, isHome, refreshNavigationIndicator]);
+    const frame = window.requestAnimationFrame(() => {
+      const navigation = navigationRef.current;
+      if (!navigation) return;
+
+      // A case navigation replaces the back link with the homepage controls.
+      // Rebind the hover target after that DOM handoff instead of animating
+      // from a detached link and falling back to indicator coordinates 0,0.
+      hoveredNavigationItemRef.current = navigation.querySelector<HTMLElement>(
+        "[data-nav-item]:hover",
+      );
+      refreshNavigationIndicator();
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [controls.view, homeLinkWidth, isHome, refreshNavigationIndicator]);
 
   useEffect(() => {
     const navigation = navigationRef.current;

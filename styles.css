@@ -167,6 +167,13 @@ html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][
   overscroll-behavior: none;
 }
 
+/* Scroll restoration must be discrete while the fixed return layer is
+   aligning with the saved homepage card. The site-wide smooth scrolling is
+   restored as soon as the transition attributes are removed. */
+html[data-case-cover-motion-active][data-case-cover-motion-direction="return"] {
+  scroll-behavior: auto;
+}
+
 .shared-case-cover {
   width: 100%;
 }
@@ -234,26 +241,23 @@ html[data-case-cover-motion-active] .project-motion-cell:has(.project[data-case-
   from {
     opacity: 1;
     filter: blur(0);
+    transform: scale(1);
   }
 
   45% {
     opacity: 0.97;
     filter: blur(4px);
+    transform: scale(0.95);
   }
 
   to {
     opacity: 0.9;
     filter: blur(7px);
+    transform: scale(0.9);
   }
 }
 
-html[data-case-cover-motion-direction="forward"] .project:not([data-case-cover-active="true"]) {
-  animation: case-cover-home-context-exit var(--case-cover-context-duration) 16ms cubic-bezier(0.12, 1, 0.2, 1) both;
-}
-
-html[data-case-cover-motion-direction="forward"] .project[data-case-cover-active="true"] .project__header,
-html[data-case-cover-motion-direction="forward"] .project[data-case-cover-active="true"] .project__desc,
-html[data-case-cover-motion-direction="forward"] .project[data-case-cover-active="true"] .project__case-link {
+html[data-case-cover-motion-direction="forward"] .view-layer--current .projects {
   animation: case-cover-home-context-exit var(--case-cover-context-duration) 16ms cubic-bezier(0.12, 1, 0.2, 1) both;
 }
 
@@ -264,21 +268,24 @@ html[data-case-cover-motion-direction="forward"] [data-case-cover-role="target"]
   opacity: 0;
 }
 
-@keyframes case-cover-neighbor-return {
+@keyframes case-cover-projects-return {
   from {
     opacity: 0.33;
     filter: blur(12px);
+    transform: scale(0.9);
   }
 
   to {
     opacity: 1;
     filter: blur(0);
+    transform: scale(1);
   }
 }
 
-html[data-case-cover-motion-direction="return"] .project:not([data-case-cover-active="true"]) {
+html[data-case-cover-motion-direction="return"] .view-layer--current .projects {
   opacity: 0.33;
   filter: blur(12px);
+  transform: scale(0.9);
 }
 
 html[data-case-cover-motion-direction="return"] .project[data-case-cover-active="true"] .project__header,
@@ -287,9 +294,8 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
   opacity: 0;
 }
 
-html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="landing"] .project:not([data-case-cover-active="true"]),
-html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="handoff"] .project:not([data-case-cover-active="true"]) {
-  animation: case-cover-neighbor-return 350ms 150ms cubic-bezier(0.12, 1, 0.2, 1) both;
+html[data-case-cover-motion-direction="return"] .view-layer--current .projects {
+  animation: case-cover-projects-return 450ms cubic-bezier(0.16, 1, 0.3, 1) 0ms both;
 }
 
 @keyframes case-cover-copy-return {
@@ -304,32 +310,28 @@ html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="ha
   }
 }
 
-html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="landing"] .project[data-case-cover-active="true"] .project__header,
-html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="landing"] .project[data-case-cover-active="true"] .project__desc,
-html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="landing"] .project[data-case-cover-active="true"] .project__case-link,
-html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="handoff"] .project[data-case-cover-active="true"] .project__header,
-html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="handoff"] .project[data-case-cover-active="true"] .project__desc,
-html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="handoff"] .project[data-case-cover-active="true"] .project__case-link {
+html[data-case-cover-motion-direction="return"] .project[data-case-cover-active="true"] .project__header,
+html[data-case-cover-motion-direction="return"] .project[data-case-cover-active="true"] .project__desc,
+html[data-case-cover-motion-direction="return"] .project[data-case-cover-active="true"] .project__case-link {
   animation: case-cover-copy-return 150ms 350ms cubic-bezier(0.12, 1, 0.2, 1) both;
 }
 
 @keyframes case-cover-offscreen-return {
   from {
-    opacity: 0.33;
-    filter: blur(12px);
-    transform: scale(1.2);
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
   }
 
   to {
     opacity: 1;
     filter: blur(0);
-    transform: scale(1);
+    transform: none;
   }
 }
 
 html[data-case-cover-motion-offscreen] .project[data-case-cover-active="true"] .shared-case-cover {
   animation: case-cover-offscreen-return 450ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  transform-origin: center;
 }
 
 @property --case-cover-title-reveal {
