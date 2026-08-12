@@ -151,15 +151,17 @@ html[data-case-cover-motion-direction="forward"] .case-motion-route:has(.case-pa
 }
 
 html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"] .case-motion-route:has(.case-page-shell),
-html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="handoff"] .case-motion-route:has(.case-page-shell) {
+html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="handoff"] .case-motion-route:has(.case-page-shell),
+html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="fallback"] .case-motion-route:has(.case-page-shell) {
   visibility: visible;
 }
 
 /* The destination rect is measured while the forward transition is active;
    freeze the viewport so the landing point cannot move under the pointer. */
-html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="takeoff"],
+html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="preflight"],
 html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"],
-html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="takeoff"] body,
+html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="fallback"],
+html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="preflight"] body,
 html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"] body {
   overflow: hidden;
   overscroll-behavior: none;
@@ -186,8 +188,20 @@ html[data-case-cover-motion-active][data-case-cover-motion-direction="return"] {
   height: var(--case-cover-motion-height, 0px);
   z-index: 20;
   pointer-events: none;
-  transform-origin: 50% 50%;
-  will-change: transform, left, top, width, height, opacity, filter;
+  transform-origin: 0 0;
+  will-change: transform, opacity;
+}
+
+.case-cover-motion-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  background: rgb(15 15 20 / 0.08);
+  opacity: calc((1 - var(--case-cover-motion-context-opacity, 1)) * 0.8);
+  backdrop-filter: blur(var(--case-cover-motion-context-blur, 0px));
+  -webkit-backdrop-filter: blur(var(--case-cover-motion-context-blur, 0px));
+  will-change: opacity, backdrop-filter;
 }
 
 .case-cover-motion-layer__content,
@@ -252,7 +266,6 @@ html[data-case-cover-motion-active] .project-motion-cell:has(.project[data-case-
 html[data-case-cover-motion-direction="forward"] .view-layer--current .projects,
 html[data-case-cover-motion-direction="return"] .view-layer--current .projects {
   opacity: var(--case-cover-motion-context-opacity, 1);
-  filter: blur(var(--case-cover-motion-context-blur, 0px));
   transform: scale(var(--case-cover-motion-context-scale, 1));
 }
 
