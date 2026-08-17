@@ -50,6 +50,8 @@ const viewTransitions = {
 } as const;
 
 const telegramChannelUrl = "https://t.me/mybeautifulheaven";
+const telegramRevealDelayMs = 250;
+const initialCardRevealDelay = 0.22;
 
 const initialCardVariants = {
   hidden: { opacity: 0, y: 18 },
@@ -57,7 +59,7 @@ const initialCardVariants = {
     opacity: 1,
     y: 0,
     transition: {
-      delay: 0.06 + row * 0.09,
+      delay: initialCardRevealDelay + row * 0.09,
       duration: 0.56,
       ease: easeOutExpo,
     },
@@ -600,7 +602,7 @@ function BirdView({
               },
             }}
             variants={initialCardVariants}
-            custom={row}
+            custom={row + 1}
           >
             <ProjectCard
               project={project}
@@ -785,25 +787,35 @@ function SnakeView({
     const aboutContent = content;
 
     function orderAboutTextRevealLines() {
-      let nextLineDelayMs = 0;
-
-      aboutContent
-        .querySelectorAll<HTMLElement>(".about-text-reveal__line")
-        .forEach((line) => {
-          const characterCount = line.textContent?.trim().length ?? 0;
-          const durationMs = Math.min(480, Math.max(240, 144 + characterCount * 6));
-
-          line.style.setProperty("--about-text-reveal-duration", `${durationMs}ms`);
-          line.style.setProperty("--about-text-reveal-delay", `${nextLineDelayMs}ms`);
-          nextLineDelayMs += durationMs * 0.07;
-        });
-
       const telegramCta = telegramCtaRef.current;
       if (!telegramCta) return;
 
+      const lines = Array.from(
+        aboutContent.querySelectorAll<HTMLElement>(
+          ".about-text-reveal__line",
+        ),
+      );
+
+      if (!lines.length) {
+        telegramCta.dataset.textRevealReady = "false";
+        return;
+      }
+
+      let nextLineDelayMs = 0;
+
+      lines.forEach((line) => {
+        const characterCount = line.textContent?.trim().length ?? 0;
+        const durationMs = Math.min(480, Math.max(240, 144 + characterCount * 6));
+        const lineDelayMs = reduceMotion ? 0 : nextLineDelayMs;
+
+        line.style.setProperty("--about-text-reveal-duration", `${durationMs}ms`);
+        line.style.setProperty("--about-text-reveal-delay", `${lineDelayMs}ms`);
+        nextLineDelayMs += durationMs * 0.07;
+      });
+
       telegramCta.style.setProperty(
         "--hero-about-telegram-reveal-delay",
-        "350ms",
+        `${reduceMotion ? 0 : telegramRevealDelayMs}ms`,
       );
       telegramCta.dataset.textRevealReady = "true";
     }
@@ -813,7 +825,7 @@ function SnakeView({
     orderAboutTextRevealLines();
 
     return () => observer.disconnect();
-  }, []);
+  }, [reduceMotion]);
 
   return (
     <motion.section

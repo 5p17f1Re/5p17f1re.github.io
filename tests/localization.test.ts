@@ -86,7 +86,14 @@ describe("localized paths", () => {
       readCase: "Смотреть",
       email: "Email",
       copiedToClipboard: "скопировано в буфер",
+      footerLanguageLinkLabel: "In English",
+      footerLanguageLinkAriaLabel: "Open English version",
     });
+
+    expect(getUiText("en").footerLanguageLinkLabel).toBe("По-русски");
+    expect(getUiText("en").footerLanguageLinkAriaLabel).toBe(
+      "Открыть русскую версию",
+    );
   });
 
   it("keeps approved biographies separate from interface copy", () => {

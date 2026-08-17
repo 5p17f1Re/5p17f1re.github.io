@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import type { RefObject } from "react";
 import { contactDetails } from "@/data/contacts";
 import { getLanguageSwitchState } from "@/data/language-switch";
 import type { SiteLocale } from "@/data/locales";
@@ -24,18 +25,22 @@ function formatSiteUpdatedAt(locale: SiteLocale) {
     : `${value("month")} ${value("day")} ${value("year")}`;
 }
 
-export function SiteFooter() {
+export function SiteFooter({
+  contentRef,
+}: {
+  contentRef?: RefObject<HTMLDivElement | null>;
+}) {
   const pathname = usePathname();
-  const locale = getLanguageSwitchState(pathname).currentLocale;
+  const languageSwitch = getLanguageSwitchState(pathname);
+  const locale = languageSwitch.currentLocale;
   const text = getUiText(locale);
   const updatedAt = formatSiteUpdatedAt(locale);
   const version = process.env.NEXT_PUBLIC_SITE_VERSION ?? "1.1";
   const commitCount = process.env.NEXT_PUBLIC_SITE_COMMIT_COUNT ?? "0";
   const isHome = pathname === "/" || pathname === "/ru" || pathname === "/ru/";
-
   return (
     <footer className={`site-footer${isHome ? "" : " site-footer--dark"}`}>
-      <div className="site-footer__content">
+      <div ref={contentRef} className="site-footer__content">
         <p className="site-footer__contact">
           {text.footerContactBeforeTelegram}{"\u00a0"}
           <a
@@ -60,6 +65,18 @@ export function SiteFooter() {
             email
           </a>
         </p>
+        {languageSwitch.targetPath ? (
+          <p className="site-footer__meta site-footer__locale">
+            <a
+              className="site-footer__link site-footer__locale-link"
+              href={languageSwitch.targetPath}
+              lang={languageSwitch.targetLocale}
+              aria-label={text.footerLanguageLinkAriaLabel}
+            >
+              {text.footerLanguageLinkLabel}
+            </a>
+          </p>
+        ) : null}
         <p className="site-footer__meta">
           {text.footerLastUpdated} {updatedAt}
         </p>

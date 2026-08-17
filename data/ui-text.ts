@@ -23,6 +23,8 @@ export type UiText = {
   footerContactBetweenLinks: string;
   footerLastUpdated: string;
   footerVersion: string;
+  footerLanguageLinkLabel: string;
+  footerLanguageLinkAriaLabel: string;
 };
 
 export const uiText: Record<SiteLocale, UiText> = {
@@ -53,6 +55,8 @@ export const uiText: Record<SiteLocale, UiText> = {
     footerContactBetweenLinks: "or",
     footerLastUpdated: "Last Update",
     footerVersion: "Version",
+    footerLanguageLinkLabel: "По-русски",
+    footerLanguageLinkAriaLabel: "Открыть русскую версию",
   },
   ru: {
     portfolioHeading: "Сева Кудрявцев",
@@ -81,6 +85,8 @@ export const uiText: Record<SiteLocale, UiText> = {
     footerContactBetweenLinks: "или",
     footerLastUpdated: "Последнее обновление",
     footerVersion: "Версия",
+    footerLanguageLinkLabel: "In English",
+    footerLanguageLinkAriaLabel: "Open English version",
   },
 };
 
