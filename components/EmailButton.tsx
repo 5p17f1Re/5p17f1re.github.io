@@ -28,16 +28,29 @@ export function EmailButton({
   async function copyEmail() {
     if (timerRef.current) clearTimeout(timerRef.current);
 
+    let copiedSuccessfully = false;
+
     try {
       await navigator.clipboard.writeText(contactDetails.email);
+      copiedSuccessfully = true;
     } catch {
       const textarea = document.createElement("textarea");
       textarea.value = contactDetails.email;
       textarea.style.cssText = "position:fixed;opacity:0";
       document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
-      textarea.remove();
+      try {
+        textarea.select();
+        copiedSuccessfully = document.execCommand("copy");
+      } catch {
+        copiedSuccessfully = false;
+      } finally {
+        textarea.remove();
+      }
+    }
+
+    if (!copiedSuccessfully) {
+      setCopied(false);
+      return;
     }
 
     setCopied(true);

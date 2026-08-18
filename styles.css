@@ -1862,7 +1862,11 @@ html[data-case-cover-motion-direction="return"] .case-page-shell .case-text {
     margin-top: 12px;
   }
 
-  .case-phone-media__surface { min-height: min(920px, 150vw); }
+  .case-phone-media__surface {
+    min-height: 0;
+    padding: 24px 32px;
+  }
+  .case-phone-media__screen { width: min(375px, 100%); }
   .case-phone-media { grid-template-columns: minmax(0, 1fr); gap: 16px; }
 }
 
