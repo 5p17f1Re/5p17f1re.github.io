@@ -4,7 +4,8 @@ import { usePathname } from "next/navigation";
 import type { RefObject } from "react";
 import { contactDetails } from "@/data/contacts";
 import { getLanguageSwitchState } from "@/data/language-switch";
-import type { SiteLocale } from "@/data/locales";
+import { getLocalizedPath, type SiteLocale } from "@/data/locales";
+import { getPublishedPhotos } from "@/data/photos";
 import { getUiText } from "@/data/ui-text";
 import { trackContactIntent, trackOutboundLink } from "./analytics";
 
@@ -38,6 +39,7 @@ export function SiteFooter({
   const version = process.env.NEXT_PUBLIC_SITE_VERSION ?? "1.1";
   const commitCount = process.env.NEXT_PUBLIC_SITE_COMMIT_COUNT ?? "0";
   const isHome = pathname === "/" || pathname === "/ru" || pathname === "/ru/";
+  const hasPublishedPhotos = getPublishedPhotos().length > 0;
   return (
     <footer className={`site-footer${isHome ? "" : " site-footer--dark"}`}>
       <div ref={contentRef} className="site-footer__content">
@@ -74,6 +76,17 @@ export function SiteFooter({
               aria-label={text.footerLanguageLinkAriaLabel}
             >
               {text.footerLanguageLinkLabel}
+            </a>
+          </p>
+        ) : null}
+        {hasPublishedPhotos ? (
+          <p className="site-footer__meta site-footer__photos">
+            <a
+              className="site-footer__link"
+              href={getLocalizedPath({ locale, slug: "photos" })}
+              aria-label={text.photosTitle}
+            >
+              {text.photosTitle}
             </a>
           </p>
         ) : null}

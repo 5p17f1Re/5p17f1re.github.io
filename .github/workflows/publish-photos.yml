@@ -1,0 +1,157 @@
+name: Publish photo batch
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Publication operation
+        required: true
+        default: publish
+        type: choice
+        options:
+          - publish
+          - unpublish
+  # Enable after the first successful manual E2E run:
+  # schedule:
+  #   - cron: "0 17 * * 3" # Wednesday 20:00 Europe/Moscow
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: publish-photos
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.3
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install RAW decoder
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libraw-bin
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck photo publisher Worker
+        run: pnpm --filter photo-publisher-worker typecheck
+
+      - name: Import confirmed photo batch
+        id: import
+        env:
+          PHOTO_PUBLISH_MODE: ${{ inputs.mode || 'publish' }}
+          PHOTO_PUBLISHER_URL: ${{ secrets.PHOTO_PUBLISHER_URL }}
+          PUBLISHER_INTERNAL_TOKEN: ${{ secrets.PUBLISHER_INTERNAL_TOKEN }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: pnpm import-photo-batch
+
+      - name: Commit generated publication
+        if: steps.import.outputs.has_batch == 'true'
+        id: commit
+        env:
+          PHOTO_PUBLISH_MODE: ${{ inputs.mode || 'publish' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/photos.json generated/photo-media-manifest.json public/photos
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo "The batch outputs are already committed; resuming publication."
+          else
+            if [ "$PHOTO_PUBLISH_MODE" = "unpublish" ]; then
+              git commit -m "Unpublish photo batch"
+            else
+              git commit -m "Publish photo batch"
+            fi
+          fi
+          # Protect concurrent site changes while allowing the generated batch
+          # to replace the checked-out publication commit when it is unchanged.
+          git push --force-with-lease=refs/heads/main:$(git rev-parse refs/remotes/origin/main) origin HEAD:main
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Mark batch committed
+        if: steps.commit.outcome == 'success'
+        id: mark-committed
+        env:
+          PHOTO_PUBLISHER_URL: ${{ secrets.PHOTO_PUBLISHER_URL }}
+          PUBLISHER_INTERNAL_TOKEN: ${{ secrets.PUBLISHER_INTERNAL_TOKEN }}
+          COMMIT_SHA: ${{ steps.commit.outputs.sha }}
+          BATCH_ID: ${{ steps.import.outputs.batch_id }}
+        run: |
+          curl --fail-with-body --silent --show-error \
+            -X POST "$PHOTO_PUBLISHER_URL/internal/batches/$BATCH_ID/committed" \
+            -H "Authorization: Bearer $PUBLISHER_INTERNAL_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data "{\"commitSha\":\"$COMMIT_SHA\"}"
+
+      - name: Run site checks
+        if: steps.commit.outcome == 'success'
+        run: |
+          pnpm lint
+          pnpm typecheck
+          pnpm test
+          pnpm build
+
+      - name: Configure Pages
+        if: steps.commit.outcome == 'success'
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        if: steps.commit.outcome == 'success'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+      - name: Deploy Pages
+        if: steps.commit.outcome == 'success'
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Mark batch published
+        if: steps.deployment.outcome == 'success'
+        env:
+          PHOTO_PUBLISHER_URL: ${{ secrets.PHOTO_PUBLISHER_URL }}
+          PUBLISHER_INTERNAL_TOKEN: ${{ secrets.PUBLISHER_INTERNAL_TOKEN }}
+          COMMIT_SHA: ${{ steps.commit.outputs.sha }}
+          BATCH_ID: ${{ steps.import.outputs.batch_id }}
+        run: |
+          curl --fail-with-body --silent --show-error \
+            -X POST "$PHOTO_PUBLISHER_URL/internal/batches/$BATCH_ID/published" \
+            -H "Authorization: Bearer $PUBLISHER_INTERNAL_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data "{\"commitSha\":\"$COMMIT_SHA\"}"
+
+      - name: Release batch after failure
+        if: failure() && steps.import.outputs.has_batch == 'true'
+        env:
+          PHOTO_PUBLISHER_URL: ${{ secrets.PHOTO_PUBLISHER_URL }}
+          PUBLISHER_INTERNAL_TOKEN: ${{ secrets.PUBLISHER_INTERNAL_TOKEN }}
+          BATCH_ID: ${{ steps.import.outputs.batch_id }}
+        run: |
+          curl --fail-with-body --silent --show-error \
+            -X POST "$PHOTO_PUBLISHER_URL/internal/batches/$BATCH_ID/failed" \
+            -H "Authorization: Bearer $PUBLISHER_INTERNAL_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data '{"error":"GitHub Actions photo publish workflow failed"}' || true

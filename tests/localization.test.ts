@@ -66,6 +66,19 @@ describe("localized paths", () => {
     expect(caseSwitch.targetPath).toBe("/ru/starter-foodhalls/");
   });
 
+  it("keeps the photo section paired across locales", () => {
+    expect(getLanguageSwitchState("/photos/")).toMatchObject({
+      currentLocale: "en",
+      targetLocale: "ru",
+      targetPath: "/ru/photos/",
+    });
+    expect(getLanguageSwitchState("/ru/photos/")).toMatchObject({
+      currentLocale: "ru",
+      targetLocale: "en",
+      targetPath: "/photos/",
+    });
+  });
+
   it("uses approved localized card copy when it is available", () => {
     const [englishProject] = getProjects("en");
     const [russianProject] = getProjects("ru");

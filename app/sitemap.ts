@@ -1,11 +1,12 @@
 import type { MetadataRoute } from "next";
+import { getPublishedPhotos } from "@/data/photos";
 
 const baseUrl = "https://sevakudryavtsev.com";
 
 export const dynamic = "force-static";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [
+  const routes: MetadataRoute.Sitemap = [
     {
       url: `${baseUrl}/`,
       changeFrequency: "monthly",
@@ -52,4 +53,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
   ];
+
+  if (getPublishedPhotos().length > 0) {
+    routes.push(
+      {
+        url: `${baseUrl}/photos/`,
+        changeFrequency: "weekly",
+        priority: 0.8,
+      },
+      {
+        url: `${baseUrl}/ru/photos/`,
+        changeFrequency: "weekly",
+        priority: 0.7,
+      },
+    );
+  }
+
+  return routes;
 }

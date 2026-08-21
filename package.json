@@ -5,11 +5,13 @@
   "scripts": {
     "prepare-media": "node scripts/prepare-media.mjs",
     "prepare-media:force": "node scripts/prepare-media.mjs --force",
+    "import-photo-batch": "node scripts/import-photo-batch.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit --incremental false",
+    "publisher:typecheck": "pnpm --dir publisher-worker typecheck",
     "test": "vitest run"
   },
   "dependencies": {
@@ -27,6 +29,7 @@
     "@types/node": "^22.15.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
+    "exifr": "^7.1.3",
     "eslint": "^9.39.4",
     "eslint-config-next": "16.2.2",
     "sharp": "^0.35.2",

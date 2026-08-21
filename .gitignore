@@ -5,6 +5,7 @@ out
 .turbo
 coverage
 .vercel
+.wrangler
 
 # Originals stay in the local iCloud workspace. Git stores only publishable
 # optimized media from public/media/.
@@ -22,6 +23,7 @@ content-drafts/
 # The public manifest is committed; local incremental-build state is not.
 generated/*
 !generated/media-manifest.json
+!generated/photo-media-manifest.json
 
 # Local editor and diagnostic output.
 .idea/
@@ -32,6 +34,7 @@ generated/*
 .env
 .env.*
 !.env.example
+publisher-worker/.dev.vars
 *.pem
 *.key
 *.p12

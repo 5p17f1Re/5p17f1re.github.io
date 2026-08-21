@@ -7,15 +7,22 @@
 - код и данные сайта: `app/`, `components/`, `data/`, `styles.css`, `mdx-components.tsx`;
 - инструменты сборки и проверки: `scripts/`, `tests/`, `package.json`, `pnpm-lock.yaml`, конфигурацию TypeScript, ESLint и Next.js;
 - workflow публикации: `.github/workflows/`;
+- код и миграции photo publishing backend: `publisher-worker/`;
 - документацию по устройству и обновлению сайта: `docs/` и `media-originals/README.md`;
 - только готовые публичные изображения и видео из `public/media/`;
-- публичный индекс медиа `generated/media-manifest.json`.
+- готовые публичные производные фотографий из `public/photos/`;
+- публичные индексы медиа `generated/media-manifest.json` и
+  `generated/photo-media-manifest.json`;
+- публикационные записи фотографий из `data/photos.json` и типизированный доступ
+  к ним из `data/photos.ts`.
 
 ## Не отправляем в Git
 
 - Personal OS и его материалы: вакансии, резюме, заметки, исследования, черновики, `raw/`, `wiki/`, `private/`, `work/`;
 - черновики публикационных текстов: `content-drafts/`; утверждённый канон остаётся в Personal OS;
 - локальные оригиналы изображений и видео из `media-originals/`;
+- временные копии фотографий из Cloudflare R2: R2 остаётся внешним приватным
+  staging и никогда не синхронизируется в Git;
 - результаты сборки и локальное состояние медиапайплайна: `.next/`, `out/`, `generated/media-state.json`;
 - локальные зависимости, настройки и диагностику: `node_modules/`, `.DS_Store`, `.idea/`, `.vscode/`, логи и отчёты покрытия;
 - секреты и учётные данные: `.env*` (кроме `.env.example`), ключи и сертификаты.

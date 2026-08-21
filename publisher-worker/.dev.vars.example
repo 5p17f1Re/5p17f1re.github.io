@@ -1,0 +1,4 @@
+TELEGRAM_BOT_TOKEN=replace-with-bot-token
+TELEGRAM_WEBHOOK_SECRET=replace-with-long-random-secret
+INTERNAL_API_TOKEN=replace-with-long-random-secret
+OWNER_CHAT_ID=replace-with-telegram-chat-id

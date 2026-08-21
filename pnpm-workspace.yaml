@@ -1,4 +1,8 @@
+packages:
+  - "publisher-worker"
+
 allowBuilds:
   esbuild: true
   sharp: true
   unrs-resolver: true
+  workerd: set this to true or false

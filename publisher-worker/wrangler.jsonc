@@ -1,0 +1,30 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "photo-publisher-5555",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-20",
+  "observability": {
+    "enabled": true
+  },
+  "triggers": {
+    "crons": ["0 1 * * *"]
+  },
+  "vars": {
+    "MAX_FILE_BYTES": "20971520",
+    "GITHUB_REPOSITORY": "5p17f1Re/5p17f1re.github.io"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "photo-publisher-5555-db",
+      "database_id": "714544f1-e3ea-4402-865b-7af71a5d0ed2",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "PHOTO_STAGING",
+      "bucket_name": "photo-publisher-5555-staging"
+    }
+  ]
+}

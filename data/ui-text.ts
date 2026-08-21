@@ -23,6 +23,11 @@ export type UiText = {
   footerContactBetweenLinks: string;
   footerLastUpdated: string;
   footerVersion: string;
+  photosEyebrow: string;
+  photosTitle: string;
+  photosDescription: string;
+  photosEmpty: string;
+  photosLocation: string;
   footerLanguageLinkLabel: string;
   footerLanguageLinkAriaLabel: string;
 };
@@ -55,6 +60,11 @@ export const uiText: Record<SiteLocale, UiText> = {
     footerContactBetweenLinks: "or",
     footerLastUpdated: "Last Update",
     footerVersion: "Version",
+    photosEyebrow: "Personal space",
+    photosTitle: "Photos",
+    photosDescription: "A slow collection of photographs, gathered over time.",
+    photosEmpty: "The first photographs will appear here after the next publication batch.",
+    photosLocation: "Location",
     footerLanguageLinkLabel: "По-русски",
     footerLanguageLinkAriaLabel: "Открыть русскую версию",
   },
@@ -85,6 +95,11 @@ export const uiText: Record<SiteLocale, UiText> = {
     footerContactBetweenLinks: "или",
     footerLastUpdated: "Последнее обновление",
     footerVersion: "Версия",
+    photosEyebrow: "Личное пространство",
+    photosTitle: "Фотографии",
+    photosDescription: "Медленная коллекция фотографий, собранная со временем.",
+    photosEmpty: "Первые фотографии появятся здесь после ближайшего batch публикации.",
+    photosLocation: "Место",
     footerLanguageLinkLabel: "In English",
     footerLanguageLinkAriaLabel: "Open English version",
   },

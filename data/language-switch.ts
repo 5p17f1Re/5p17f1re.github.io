@@ -44,6 +44,15 @@ export function getLanguageSwitchState(pathname: string): LanguageSwitchState {
     };
   }
 
+  if (slug === "photos" && availableHomeLocales.includes(targetLocale)) {
+    return {
+      currentLocale,
+      targetLocale,
+      targetPath: getLocalizedPath({ locale: targetLocale, slug: "photos" }),
+      unavailableMessage,
+    };
+  }
+
   if (caseDefinition?.availableLocales.includes(targetLocale)) {
     return {
       currentLocale,
