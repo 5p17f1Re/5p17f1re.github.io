@@ -1,1 +1,64 @@
-[]
+[
+  {
+    "id": "4ce7d440-beda-4751-a47a-a05aca3ab745",
+    "assetKey": "4ce7d440-beda-4751-a47a-a05aca3ab745",
+    "date": "2026-08-21",
+    "year": "2026",
+    "month": "08",
+    "title": null,
+    "caption": "a bird",
+    "alt": "Фотография",
+    "location": null,
+    "metadata": {
+      "width": 853,
+      "height": 1280
+    }
+  },
+  {
+    "id": "d0f412f1-6bed-4894-9591-d6a793d135ea",
+    "assetKey": "d0f412f1-6bed-4894-9591-d6a793d135ea",
+    "date": "2026-08-21",
+    "year": "2026",
+    "month": "08",
+    "title": null,
+    "caption": "a bird",
+    "alt": "Фотография",
+    "location": null,
+    "metadata": {
+      "width": 853,
+      "height": 1280
+    }
+  },
+  {
+    "id": "a9b11533-d794-4aed-8db5-c360697d0d21",
+    "assetKey": "a9b11533-d794-4aed-8db5-c360697d0d21",
+    "date": "2026-08-21",
+    "year": "2026",
+    "month": "08",
+    "title": null,
+    "caption": "the views",
+    "alt": "Фотография",
+    "location": null,
+    "metadata": {
+      "width": 853,
+      "height": 1280
+    }
+  },
+  {
+    "id": "568ee863-d3b8-411d-b878-f3b9692f0ffd",
+    "assetKey": "568ee863-d3b8-411d-b878-f3b9692f0ffd",
+    "date": "2026-01-31",
+    "year": "2026",
+    "month": "01",
+    "title": null,
+    "caption": "winter moscow from the window",
+    "alt": "Фотография",
+    "location": null,
+    "metadata": {
+      "width": 4896,
+      "height": 3264,
+      "camera": "FUJIFILM X-T1",
+      "lens": "FUJIFILM XF18-55mmF2.8-4 R LM OIS"
+    }
+  }
+]
