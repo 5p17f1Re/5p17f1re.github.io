@@ -1,8 +1,9 @@
 # План сервиса публикации фотографий
 
-Статус: Worker, D1, R2 и Telegram webhook настроены; review-flow и управление
-снятием публикации реализованы, но ручной E2E полного цикла публикации и снятия
-с сайта ещё не завершён.
+Статус: Worker, D1, R2 и Telegram webhook настроены. Базовый реальный E2E
+публикации пройден 2026-08-21 на batch из четырёх фотографий: Telegram → R2/D1
+→ GitHub Actions → commit → GitHub Pages → callback Worker. Управление снятием
+публикации, RAW/GPS-проверки, failed/empty batch и weekly cron ещё не закрыты.
 
 Этот документ — канонический план для Telegram → Cloudflare → GitHub Pages
 пайплайна. В следующих чатах сначала нужно читать этот файл и
@@ -13,6 +14,47 @@
 Практическая настройка Cloudflare, Telegram и GitHub Secrets вынесена в
 [`photo-publishing-setup.md`](photo-publishing-setup.md), чтобы не смешивать
 архитектуру с одноразовыми командами.
+
+## 0. Текущий контекст и карта возврата
+
+### Что уже подтверждено
+
+- Реальный batch из четырёх фотографий успешно прошёл весь путь до публичного
+  Pages deploy. Подтверждение: [GitHub Actions run 32477021777](https://github.com/5p17f1Re/5p17f1re.github.io/actions/runs/32477021777).
+- Сгенерированные JSON и публичные производные записаны одним публикационным
+  commit [`dded24b`](https://github.com/5p17f1Re/5p17f1re.github.io/commit/dded24bff723b5194d48389d99dcb541f114caa3).
+- Worker получил callback со статусом `published`; сайт доступен на
+  [`https://sevakudryavtsev.com/photos/`](https://sevakudryavtsev.com/photos/).
+- Live browser-check подтвердил заголовок `Photos`, четыре записи фотографий и
+  отсутствие ошибок/предупреждений в консоли.
+
+### Что пока не считается закрытым
+
+- ручной E2E `/published` → `/unpublish` → commit → Pages → callback;
+- реальный RAW-файл и конвертация через `libraw-bin`;
+- отдельная проверка, что GPS не попадает в публичные JSON/HTML/производные;
+- повторный, пустой и ошибочный batch;
+- включение среды cron;
+- причина медленной первой загрузки custom domain. Страница после ожидания
+  открывается, но TLS/маршрут до `sevakudryavtsev.com` может быть медленным или
+  нестабильным; это пока наблюдение, а не решение менять DNS или архитектуру.
+
+### Если понадобится изменить решение
+
+| Что меняем | Где обновить источник правды | Что отдельно проверить |
+| --- | --- | --- |
+| UX Telegram, подпись, подтверждение, удаление сообщений | раздел 3.1 и последняя запись в `decision-log.md` | новый ручной Telegram E2E |
+| команды `/q`, `/publish`, cancel, `/published`, `/unpublish` | раздел 3.1, `photo-publishing-setup.md`, `publisher-worker/src/` | parser tests и команды в реальном боте |
+| дата, EXIF, GPS, место, alt | раздел 5 и `scripts/import-photo-batch.mjs` | публичный JSON/HTML и EXIF fixtures |
+| очередь, статусы и повторный запуск | раздел 4 и D1 migrations | failed/empty/retry batch |
+| R2, D1, секреты или безопасность | разделы 2 и 7, затем setup-инструкция | доступы, health, отсутствие секретов в Git |
+| GitHub Pages, public assets или скорость сайта | раздел 6 и отдельная запись в журнале | Pages deploy и browser/network check |
+| расписание среды или `/publish` | раздел 3.2, setup и workflow | один ручной запуск и пустая очередь |
+| VPS, публичный R2/CDN, auth или AI-описание | раздел 8 и новая архитектурная запись | отдельный plan-first review до реализации |
+
+Старую запись в журнале не переписываем: если решение меняется, добавляем новую
+датированную запись с формулировкой «заменяет решение от ...». Это сохраняет
+причину, границу и возможность вернуться к предыдущему варианту.
 
 ## 1. Что мы строим
 
@@ -289,7 +331,8 @@ scripts/import-photo-batch.mjs
   `/published` и `/unpublish`;
 - [x] описать переменные и ручную настройку секретов;
 - [x] создать внешние Cloudflare resources и применить миграцию review-сессии;
-- [ ] выполнить ручной E2E загрузки, редактирования и публикации.
+- [x] выполнить базовый ручной E2E загрузки и публикации на реальном batch из
+  четырёх фотографий; снятие публикации остаётся отдельным E2E.
 
 ### Этап B — batch и медиа
 
@@ -301,7 +344,8 @@ scripts/import-photo-batch.mjs
 - [x] добавить workflow ручного запуска без cron;
 - [x] подготовить один commit и Pages deploy в том же workflow;
 - [x] добавить второй режим workflow для снятия публикации без удаления D1-истории;
-- [ ] проверить реальный R2 download и callback статусов.
+- [x] проверить реальный R2 download и callback статусов на успешном publish
+  batch 2026-08-21.
 
 ### Этап C — раздел сайта
 
@@ -318,7 +362,8 @@ scripts/import-photo-batch.mjs
 - [x] проверить, что в репозитории присутствуют только placeholders, а не secrets;
 - [x] проверить browser-render `/photos/` и `/ru/photos/`, локализацию и console logs;
 - [ ] проверить отсутствие GPS на реальном batch output;
-- вручную пройти Telegram → R2 → batch → commit → Pages → callback;
+- [x] вручную пройти Telegram → R2 → batch → commit → Pages → callback на
+  реальных фотографиях;
 - вручную пройти `/published` → `/unpublish 1` → batch → Pages и проверить,
   что производные исчезли, а D1-запись сохранилась;
 - проверить повторный запуск, пустой batch и failed batch;
