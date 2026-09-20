@@ -33,62 +33,99 @@ export function CaseVideo({
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const frameRequestRef = useRef<number | null>(null);
+  const playbackIntentRef = useRef<"play" | "pause" | null>(null);
+  const isHero = Boolean(transitionId);
   const poster = getMediaAsset(posterAssetKey);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasRenderedVideoFrame, setHasRenderedVideoFrame] = useState(false);
+  const [isNearViewport, setIsNearViewport] = useState(isHero);
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(hasAudio || isHero);
   const text = getUiText(locale);
 
   useEffect(() => {
     const video = videoRef.current;
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
+    if (!video || hasAudio) return;
 
-    if (!video || hasAudio || prefersReducedMotion) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsNearViewport(entry.isIntersecting);
+        if (entry.isIntersecting) setShouldLoadVideo(true);
+      },
+      { rootMargin: "200px 0px", threshold: 0.01 },
+    );
 
-    const revealAfterRenderedFrame = () => {
-      if (frameRequestRef.current !== null) return;
-      if (video.requestVideoFrameCallback) {
-        frameRequestRef.current = video.requestVideoFrameCallback(() => {
-          frameRequestRef.current = null;
-          setHasRenderedVideoFrame(true);
-        });
-      } else if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
-        setHasRenderedVideoFrame(true);
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, [hasAudio]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const syncPlayback = () => {
+      // Videos with sound remain entirely controlled by their native controls.
+      if (hasAudio) return;
+      const allowsPlayback =
+        shouldLoadVideo &&
+        isNearViewport &&
+        document.visibilityState === "visible" &&
+        playbackIntentRef.current !== "pause" &&
+        (!reducedMotion.matches || playbackIntentRef.current === "play");
+
+      if (allowsPlayback) {
+        void video.play().catch(() => {});
+      } else {
+        video.pause();
       }
     };
 
-    void video
-      .play()
-      .then(() => {
-        setIsPlaying(true);
-        revealAfterRenderedFrame();
-      })
-      .catch(() => {});
+    syncPlayback();
+    document.addEventListener("visibilitychange", syncPlayback);
+    reducedMotion.addEventListener("change", syncPlayback);
 
     return () => {
+      document.removeEventListener("visibilitychange", syncPlayback);
+      reducedMotion.removeEventListener("change", syncPlayback);
+      video.pause();
       if (
         frameRequestRef.current !== null &&
         video.cancelVideoFrameCallback
       ) {
         video.cancelVideoFrameCallback(frameRequestRef.current);
+        frameRequestRef.current = null;
       }
     };
-  }, [hasAudio]);
+  }, [hasAudio, isNearViewport, shouldLoadVideo, src]);
 
-  async function toggleSilentVideo() {
+  function revealAfterRenderedFrame(video: HTMLVideoElement) {
+    if (frameRequestRef.current !== null) return;
+    if (video.requestVideoFrameCallback) {
+      frameRequestRef.current = video.requestVideoFrameCallback(() => {
+        frameRequestRef.current = null;
+        if (videoRef.current !== video) return;
+        setHasRenderedVideoFrame(true);
+      });
+    } else if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+      setHasRenderedVideoFrame(true);
+    }
+  }
+
+  function toggleSilentVideo() {
     const video = videoRef.current;
 
     if (!video || hasAudio) return;
 
     if (video.paused) {
-      await video.play().catch(() => {});
-      setIsPlaying(!video.paused);
+      playbackIntentRef.current = "play";
+      setShouldLoadVideo(true);
+      if (!shouldLoadVideo) return;
+      void video.play().catch(() => {});
       return;
     }
 
+    playbackIntentRef.current = "pause";
     video.pause();
-    setIsPlaying(false);
   }
 
   return (
@@ -114,14 +151,14 @@ export function CaseVideo({
                     ? "(max-width: 800px) 100vw, 1156px"
                     : "100vw"
               }
-              eager
+              eager={isHero}
             />
           ) : null}
           <video
             ref={videoRef}
             className="case-media__video"
-            src={src}
-            poster={poster.fallback}
+            src={shouldLoadVideo ? src : undefined}
+            poster={hasAudio ? poster.fallback : undefined}
             aria-label={title}
             controls={hasAudio}
             controlsList="nodownload noremoteplayback"
@@ -129,18 +166,19 @@ export function CaseVideo({
             muted={!hasAudio}
             loop={!hasAudio}
             playsInline
-            preload="metadata"
+            preload={shouldLoadVideo ? "metadata" : "none"}
             style={{ aspectRatio: aspectRatio ?? `${poster.width} / ${poster.height}` }}
             onError={() => setHasRenderedVideoFrame(false)}
             onPause={() => setIsPlaying(false)}
             onPlay={() => setIsPlaying(true)}
+            onPlaying={(event) => revealAfterRenderedFrame(event.currentTarget)}
           />
           {!hasAudio && showToggle ? (
             <button
               className="case-video__toggle"
               type="button"
               aria-label={isPlaying ? text.pauseVideo : text.playVideo}
-              onClick={() => void toggleSilentVideo()}
+              onClick={toggleSilentVideo}
             >
               <span className="case-video__control" aria-hidden="true">
                 {isPlaying ? text.pauseVideoLabel : text.playVideoLabel}

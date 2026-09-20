@@ -9,6 +9,7 @@ type ProjectBase = ProjectContent & {
   slug?: string;
   transitionId?: string;
   transitionCoverAsset?: string;
+  transitionCoverSizes?: string;
   tag: string;
   localizedContent?: Partial<Record<SiteLocale, ProjectContent>>;
 };
@@ -43,6 +44,7 @@ export const projects: Project[] = [
     slug: "yandex-eats-smartreserve",
     transitionId: "yandex-eats-smartreserve",
     transitionCoverAsset: "yandex-eats-smartreserve/01-cover",
+    transitionCoverSizes: "(max-width: 800px) 100vw, 1156px",
     mediaType: "image",
     tag: "b2b",
     title: "Yandex Eats Analytics",
@@ -54,43 +56,6 @@ export const projects: Project[] = [
         title: "Аналитика в Яндекс Еде",
         description:
           "Аналитика для ресторанов в Яндекс Еде: рабочий кабинет с данными о гостях, зале и прогнозах",
-      },
-    },
-  },
-  {
-    slug: "starter-foodhalls",
-    transitionId: "starter-foodhalls",
-    transitionCoverAsset: "starter-foodhalls/01-cover",
-    mediaType: "image",
-    tag: "b2b",
-    title: "Starter for Food Halls",
-    image: "starter-foodhalls",
-    description:
-      "A food hall ordering flow where one basket hides the complexity of ordering from several corners",
-    localizedContent: {
-      ru: {
-        title: "Стартер для фудхоллов",
-        description:
-          "Сценарий заказа из фудхолла, где одна корзина скрывает сложный процесс заказа из нескольких корнеров",
-      },
-    },
-  },
-  {
-    slug: "starter-stories",
-    transitionId: "starter-stories",
-    transitionCoverAsset: "starter-stories/01-cover",
-    mediaType: "video",
-    tag: "product",
-    title: "Starter Stories",
-    video: "/media/videos/starter-stories/16-web-demo.mp4",
-    poster: "starter-stories/16-video-poster",
-    description:
-      "Stories inside restaurant apps and websites: a familiar format for events, promotions and menu updates",
-    localizedContent: {
-      ru: {
-        title: "Сторис в Стартере",
-        description:
-          "Сторис внутри ресторанных приложений и сайтов: привычный формат, чтобы рассказать о событиях, акциях и новинках меню",
       },
     },
   },
@@ -113,6 +78,7 @@ export const projects: Project[] = [
     slug: "pye-try-on-app",
     transitionId: "pye-try-on-app",
     transitionCoverAsset: "pye-tryon-app/01-cover-poster",
+    transitionCoverSizes: "(max-width: 800px) 100vw, 1156px",
     mediaType: "video",
     tag: "app",
     title: "PYE Home Try-On",
@@ -125,6 +91,45 @@ export const projects: Project[] = [
         title: "Приложение PYE",
         description:
           "Приложение для выбора и примерки очков: AR-примерка, избранное и заказ оправ домой",
+      },
+    },
+  },
+  {
+    slug: "starter-foodhalls",
+    transitionId: "starter-foodhalls",
+    transitionCoverAsset: "starter-foodhalls/01-cover",
+    transitionCoverSizes: "100vw",
+    mediaType: "image",
+    tag: "b2b",
+    title: "Starter for Food Halls",
+    image: "starter-foodhalls",
+    description:
+      "A food hall ordering flow where one basket hides the complexity of ordering from several corners",
+    localizedContent: {
+      ru: {
+        title: "Стартер для фудхоллов",
+        description:
+          "Сценарий заказа из фудхолла, где одна корзина скрывает сложный процесс заказа из нескольких корнеров",
+      },
+    },
+  },
+  {
+    slug: "starter-stories",
+    transitionId: "starter-stories",
+    transitionCoverAsset: "starter-stories/01-cover",
+    transitionCoverSizes: "100vw",
+    mediaType: "video",
+    tag: "product",
+    title: "Starter Stories",
+    video: "/media/videos/starter-stories/16-web-demo.mp4",
+    poster: "starter-stories/16-video-poster",
+    description:
+      "Stories inside restaurant apps and websites: a familiar format for events, promotions and menu updates",
+    localizedContent: {
+      ru: {
+        title: "Сторис в Стартере",
+        description:
+          "Сторис внутри ресторанных приложений и сайтов: привычный формат, чтобы рассказать о событиях, акциях и новинках меню",
       },
     },
   },

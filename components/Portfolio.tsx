@@ -159,8 +159,8 @@ function ProjectMedia({
       <OptimizedImage
         assetKey={project.transitionCoverAsset}
         alt=""
-        sizes={sizes}
-        eager
+        sizes={project.transitionCoverSizes ?? "100vw"}
+        prefetch
       />
     ) : null;
 
@@ -212,12 +212,8 @@ function ProjectMedia({
           <OptimizedImage
             assetKey={project.transitionCoverAsset}
             alt=""
-            sizes={
-              view === "snakeview"
-                ? "(max-width: 998px) calc(100vw - 64px), 934px"
-                : "(max-width: 600px) 50vw, (max-width: 800px) 50vw, 33vw"
-            }
-            eager
+            sizes={project.transitionCoverSizes ?? "100vw"}
+            prefetch
           />
         ) : null
       }

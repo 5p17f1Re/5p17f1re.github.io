@@ -11,15 +11,6 @@
   --color-accent-green: #137547;
   --color-nav-gray: rgba(135, 135, 135, 0.3);
   --color-nav-black: rgba(0, 0, 0, 0.4);
-  --case-cover-motion-eased: 0;
-  --case-cover-motion-context-opacity: 1;
-  --case-cover-motion-context-blur: 0px;
-  --case-cover-motion-context-scale: 1;
-  --case-cover-motion-copy-opacity: 0;
-  --case-cover-motion-copy-blur: 12px;
-  --case-cover-motion-title-progress: 0%;
-  --case-cover-motion-outgoing-opacity: 1;
-  --case-cover-motion-outgoing-blur: 0px;
   --mobile-nav-footer-offset: 0px;
 }
 
@@ -145,39 +136,14 @@ img { display: block; max-width: 100%; }
   min-width: 0;
 }
 
-/* Keep the server-rendered case behind the shared cover until the image has
-   landed. This prevents a visible first paint followed by React handoff. */
-html[data-case-cover-motion-direction="forward"] .case-motion-route:has(.case-page-shell) {
+/* Preparation owns visibility until the real destination has been measured. */
+html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="preflight"] .case-motion-route:has(.case-page-shell) {
   visibility: hidden;
 }
 
-html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"] .case-motion-route:has(.case-page-shell),
-html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="handoff"] .case-motion-route:has(.case-page-shell),
-html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="fallback"] .case-motion-route:has(.case-page-shell) {
-  visibility: visible;
-}
-
-/* The destination rect is measured while the forward transition is active;
-   freeze the viewport so the landing point cannot move under the pointer. */
-html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="preflight"],
-html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"],
-html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="fallback"],
-html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="preflight"] body,
-html[data-case-cover-motion-active][data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="landing"] body {
-  overflow: hidden;
-  overscroll-behavior: none;
-}
-
-/* Scroll restoration must be discrete while the fixed return layer is
-   aligning with the saved homepage card. The site-wide smooth scrolling is
-   restored as soon as the transition attributes are removed. */
-html[data-case-cover-motion-active][data-case-cover-motion-direction="return"] {
+html[data-case-cover-motion-active],
+html[data-case-cover-motion-active] body {
   scroll-behavior: auto;
-  overflow: hidden;
-  overscroll-behavior: none;
-}
-
-html[data-case-cover-motion-active][data-case-cover-motion-direction="return"] body {
   overflow: hidden;
   overscroll-behavior: none;
 }
@@ -186,37 +152,33 @@ html[data-case-cover-motion-active][data-case-cover-motion-direction="return"] b
   width: 100%;
 }
 
-/* One persistent cover survives the route handoff. The route-local covers
-   keep their layout boxes, but stay hidden until this layer has landed. */
+/* The destination layout box stays fixed. Motion animates its full transform. */
 .case-cover-motion-layer {
   position: fixed;
-  left: var(--case-cover-motion-left, 0px);
-  top: var(--case-cover-motion-top, 0px);
-  width: var(--case-cover-motion-width, 0px);
-  height: var(--case-cover-motion-height, 0px);
   z-index: 20;
   pointer-events: none;
   transform-origin: 0 0;
   will-change: transform, opacity;
 }
 
+/* A small, constant viewport blur replaces animated filters on long pages.
+   Its opacity is animated locally, without inherited per-frame CSS variables. */
 .case-cover-motion-backdrop {
   position: fixed;
   inset: 0;
   z-index: 10;
   pointer-events: none;
   background: rgb(15 15 20 / 0.08);
-  opacity: calc((1 - var(--case-cover-motion-context-opacity, 1)) * 0.8);
-  backdrop-filter: blur(var(--case-cover-motion-context-blur, 0px));
-  -webkit-backdrop-filter: blur(var(--case-cover-motion-context-blur, 0px));
-  will-change: opacity, backdrop-filter;
+  opacity: 0;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
-/* Return uses a real filter on the homepage canvas below. Applying a second
-   backdrop blur here makes the scale/balance harder to read. */
-html[data-case-cover-motion-direction="return"] .case-cover-motion-backdrop {
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+@media (max-width: 600px) {
+  .case-cover-motion-backdrop {
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+  }
 }
 
 .case-cover-motion-layer__content,
@@ -278,26 +240,26 @@ html[data-case-cover-motion-active] .project-motion-cell:has(.project[data-case-
   z-index: 1;
 }
 
-html[data-case-cover-motion-direction="forward"] .view-layer--current .projects,
-html[data-case-cover-motion-direction="return"] .view-layer--current .projects {
-  opacity: var(--case-cover-motion-context-opacity, 1);
-  transform: scale(var(--case-cover-motion-context-scale, 1));
+/* Keep natural geometry during preparation. Only the active card is hidden;
+   the next frame starts the canvas and cover springs together. */
+html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="preflight"] .view-layer--current .projects {
+  opacity: 0.33;
 }
 
-/* A backdrop filter only softens what sits behind it, which made return blur
-   almost invisible. Blur the homepage canvas itself for this short 400 ms
-   return so it resolves in lockstep with the canvas scale. */
-html[data-case-cover-motion-direction="return"] .view-layer--current .projects {
-  filter: blur(var(--case-cover-motion-context-blur, 0px));
-  will-change: transform, opacity, filter;
+html[data-case-cover-motion-direction="forward"] [data-case-cover-role="target"][data-case-cover-motion],
+html[data-case-cover-motion-direction="return"] .project[data-case-cover-active="true"] [data-case-cover-role="source"] {
+  visibility: hidden;
 }
 
-/* The route-local cover stays hidden for the entire forward transition,
-   including handoff. The persistent target image is the only visible cover;
-   the route-local image is revealed on the first idle frame after it unmounts. */
-html[data-case-cover-motion-direction="forward"]
-  [data-case-cover-role="target"][data-case-cover-motion] {
-  opacity: 0;
+html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="handoff"] [data-case-cover-role="target"][data-case-cover-motion],
+html[data-case-cover-motion-direction="forward"][data-case-cover-motion-phase="fallback"] [data-case-cover-role="target"][data-case-cover-motion],
+html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="handoff"] .project[data-case-cover-active="true"] [data-case-cover-role="source"],
+html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="fallback"] .project[data-case-cover-active="true"] [data-case-cover-role="source"] {
+  visibility: visible;
+}
+
+html[data-case-cover-motion-offscreen][data-case-cover-motion-phase="preflight"] .case-cover-motion-layer {
+  visibility: hidden;
 }
 
 html[data-case-cover-motion-direction="return"] .project[data-case-cover-active="true"] .project__header,
@@ -308,48 +270,7 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
   animation: none;
 }
 
-@property --case-cover-title-reveal {
-  syntax: "<percentage>";
-  inherits: false;
-  initial-value: 0%;
-}
-
-html[data-case-cover-motion-direction="forward"] .case-title h1 {
-  opacity: var(--case-cover-motion-copy-opacity, 0);
-  filter: blur(var(--case-cover-motion-copy-blur, 12px));
-  --case-cover-title-reveal: var(--case-cover-motion-title-progress, 0%);
-  -webkit-mask-image: linear-gradient(
-    90deg,
-    #000 0%,
-    #000 var(--case-cover-title-reveal),
-    transparent calc(var(--case-cover-title-reveal) + 10%),
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    90deg,
-    #000 0%,
-    #000 var(--case-cover-title-reveal),
-    transparent calc(var(--case-cover-title-reveal) + 10%),
-    transparent 100%
-  );
-}
-
-/* Reveal every body block from the same root timeline. The hero cover is not
-   part of .case-content: it remains owned by the persistent transition layer. */
-html[data-case-cover-motion-direction="forward"] .case-page-shell .case-content > * {
-  opacity: var(--case-cover-motion-copy-opacity, 0);
-  filter: blur(var(--case-cover-motion-copy-blur, 12px));
-}
-
-html[data-case-cover-motion-direction="return"] .case-page-shell .case-title,
-html[data-case-cover-motion-direction="return"] .case-page-shell .case-text {
-  opacity: var(--case-cover-motion-outgoing-opacity, 1);
-  filter: blur(var(--case-cover-motion-outgoing-blur, 0px));
-  transition: none;
-}
-
-/* Reused by the independent About Telegram reveal. The case return copy is
-   driven by the shared motion variables above and does not use this keyframe. */
+/* Independent About Telegram reveal; case transitions do not use this clock. */
 @keyframes case-cover-copy-return {
   from {
     opacity: 0;
