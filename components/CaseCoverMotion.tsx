@@ -45,7 +45,9 @@ const storageKey = "case-cover-motion-snapshot";
 const recoveryTimeoutMs = 5000;
 const preparationAttempts = 30;
 const coverFadeSeconds = 0.12;
-const springDuration = { forward: 0.55, return: 0.45, offscreen: 0.32 };
+// A return is a rare spatial landing, not an immediate micro-interaction.
+// Offscreen uses the same calm settling tempo after the homepage has painted.
+const springDuration = { forward: 0.55, return: 0.48, offscreen: 0.45 };
 const CaseCoverMotionContext = createContext<CaseCoverMotionContextValue | null>(null);
 // Registration does not subscribe every media component to phase changes.
 const CaseCoverActionsContext = createContext<CaseCoverActions | null>(null);
@@ -156,6 +158,9 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
   ) => {
     const registered = registryRef.current.get(snapshot.transitionId);
     const token = ++nextTokenRef.current;
+    // The case cover has no spatial route once it is offscreen. Keep that
+    // fallback visually owned by the final homepage-card cover from its first
+    // frame; only forward motion receives a replacement crossfade.
     setContent(registered?.source ?? registered?.target ?? null);
     setReplacementContent(direction === "forward" ? registered?.target ?? null : null);
     setTransition({
