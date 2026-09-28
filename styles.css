@@ -276,6 +276,29 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
   animation: none;
 }
 
+@property --case-cover-title-reveal {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+html[data-case-cover-motion-direction="forward"] .case-title h1 {
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    #000 0%,
+    #000 var(--case-cover-title-reveal),
+    transparent calc(var(--case-cover-title-reveal) + 10%),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    #000 0%,
+    #000 var(--case-cover-title-reveal),
+    transparent calc(var(--case-cover-title-reveal) + 10%),
+    transparent 100%
+  );
+}
+
 /* Independent About Telegram reveal; case transitions do not use this clock. */
 @keyframes case-cover-copy-return {
   from {

@@ -408,6 +408,13 @@ function CaseCoverTransitionLayer({ active, content, replacementContent, onFinis
             opacity: [0, 1], filter: ["blur(12px)", "blur(0px)"],
           }, { duration: 0.36, delay: 0.168, ease: returnContextEase })));
         }
+        const title = document.querySelector<HTMLElement>(".case-page-shell .case-title h1");
+        if (title && isInViewport(title)) {
+          preserveStyles(title, ["--case-cover-title-reveal"]);
+          sceneAnimations.push(track(animate(title, {
+            "--case-cover-title-reveal": ["0%", "100%"],
+          }, { duration: 0.36, delay: 0.168, ease: returnContextEase })));
+        }
       }
       if (backdrop) sceneAnimations.push(track(animate(backdrop, {
         opacity: active.direction === "return" ? [0.536, 0] : [0, 0.08],
