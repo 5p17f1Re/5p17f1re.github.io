@@ -52,7 +52,8 @@ const returnEase = [0.12, 1, 0.2, 1] as const;
 const returnContextEase = [0.4, 0, 0.6, 1] as const;
 const coverFade = {
   forward: { delay: 0.048, duration: 0.16 },
-  return: { delay: 0.064, duration: 0.2 },
+  // Center the return blend in the 480 ms cover flight.
+  return: { delay: 0.16, duration: 0.16 },
 };
 const CaseCoverMotionContext = createContext<CaseCoverMotionContextValue | null>(null);
 // Registration does not subscribe every media component to phase changes.
@@ -119,6 +120,34 @@ function isInViewport(element: Element) {
     rect.right > 0 && rect.left < window.innerWidth;
 }
 
+function captureVisibleVideoFrame(cover: HTMLElement): ReactNode | null {
+  const video = cover.querySelector<HTMLVideoElement>(
+    '.case-video[data-rendered-frame="true"] video',
+  );
+  if (!video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA ||
+    !video.videoWidth || !video.videoHeight) return null;
+
+  try {
+    const canvas = document.createElement("canvas");
+    const rect = video.getBoundingClientRect();
+    const width = Math.min(video.videoWidth, Math.ceil(rect.width * Math.min(devicePixelRatio, 2)));
+    canvas.width = width;
+    canvas.height = Math.round(width * video.videoHeight / video.videoWidth);
+    const context = canvas.getContext("2d");
+    if (!context) return null;
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // A canvas data URL is already the decoded frame, so image optimization
+    // would introduce a new request and lose the instant visual match.
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={canvas.toDataURL("image/webp", 0.9)} alt="" style={{
+      display: "block", width: "100%", height: "100%", objectFit: "cover",
+    }} />;
+  } catch {
+    // The registered poster remains available if the browser denies capture.
+    return null;
+  }
+}
+
 export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -161,13 +190,14 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
   const begin = useCallback((
     snapshot: TransitionSnapshot, direction: Direction,
     sourceCoverRect?: CoverRect, offscreenReturn = false,
+    capturedContent?: ReactNode,
   ) => {
     const registered = registryRef.current.get(snapshot.transitionId);
     const token = ++nextTokenRef.current;
     // A visible return starts with the artwork the visitor is looking at.
     // Offscreen return has no visible source and uses the homepage card only.
     setContent(direction === "return" && !offscreenReturn
-      ? registered?.target ?? registered?.source ?? null
+      ? capturedContent ?? registered?.target ?? registered?.source ?? null
       : registered?.source ?? registered?.target ?? null);
     setReplacementContent(direction === "forward"
       ? registered?.target ?? null
@@ -220,7 +250,8 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     try { localStorage.setItem("portfolio-view", snapshot.view); } catch { /* In-memory view still restores. */ }
     const cover = getVisibleCover(snapshot.transitionId, "target");
     const visible = !offscreen && cover && isInViewport(cover);
-    return begin(snapshot, "return", visible ? snapshotCoverRect(cover.getBoundingClientRect()) : undefined, !visible);
+    return begin(snapshot, "return", visible ? snapshotCoverRect(cover.getBoundingClientRect()) : undefined,
+      !visible, visible ? captureVisibleVideoFrame(cover) : null);
   }, [begin]);
 
   const returnHome = useCallback<CaseCoverActions["returnHome"]>((event) => {
