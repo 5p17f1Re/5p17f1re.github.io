@@ -5,7 +5,7 @@ import {
   createContext, type MouseEvent as ReactMouseEvent, type ReactNode,
   useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState,
 } from "react";
-import { spring as createSpring, type AnimationPlaybackControls } from "motion";
+import { type AnimationPlaybackControls } from "motion";
 import { animate } from "motion/mini";
 import { useReducedMotion } from "motion/react";
 import {
@@ -44,10 +44,16 @@ type CaseCoverMotionContextValue = CaseCoverActions & { active: ActiveTransition
 const storageKey = "case-cover-motion-snapshot";
 const recoveryTimeoutMs = 5000;
 const preparationAttempts = 30;
-const coverFadeSeconds = 0.12;
-// A return is a rare spatial landing, not an immediate micro-interaction.
-// Offscreen uses the same calm settling tempo after the homepage has painted.
-const springDuration = { forward: 0.55, return: 0.48, offscreen: 0.45 };
+// Match the approved local flight while retaining the cancelable route and
+// image-readiness lifecycle. Motion owns completion, not an elapsed timer.
+const motionDuration = { forward: 0.64, return: 0.48, offscreen: 0.45 };
+const forwardEase = [0.16, 1, 0.3, 1] as const;
+const returnEase = [0.12, 1, 0.2, 1] as const;
+const returnContextEase = [0.4, 0, 0.6, 1] as const;
+const coverFade = {
+  forward: { delay: 0.064, duration: 0.08 },
+  return: { delay: 0.08, duration: 0.16 },
+};
 const CaseCoverMotionContext = createContext<CaseCoverMotionContextValue | null>(null);
 // Registration does not subscribe every media component to phase changes.
 const CaseCoverActionsContext = createContext<CaseCoverActions | null>(null);
@@ -158,11 +164,14 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
   ) => {
     const registered = registryRef.current.get(snapshot.transitionId);
     const token = ++nextTokenRef.current;
-    // The case cover has no spatial route once it is offscreen. Keep that
-    // fallback visually owned by the final homepage-card cover from its first
-    // frame; only forward motion receives a replacement crossfade.
-    setContent(registered?.source ?? registered?.target ?? null);
-    setReplacementContent(direction === "forward" ? registered?.target ?? null : null);
+    // A visible return starts with the artwork the visitor is looking at.
+    // Offscreen return has no visible source and uses the homepage card only.
+    setContent(direction === "return" && !offscreenReturn
+      ? registered?.target ?? registered?.source ?? null
+      : registered?.source ?? registered?.target ?? null);
+    setReplacementContent(direction === "forward"
+      ? registered?.target ?? null
+      : offscreenReturn ? null : registered?.source ?? null);
     setTransition({
       ...snapshot, token, direction, phase: "preflight", sourceCoverRect, offscreenReturn,
       destinationCoverRect: direction === "return" ? snapshot.sourceCoverRect : undefined,
@@ -349,10 +358,10 @@ function CaseCoverTransitionLayer({ active, content, replacementContent, onFinis
     const { signal } = controller;
     const animations: AnimationPlaybackControls[] = [];
     const styleCleanup: (() => void)[] = [];
-    const duration = active.offscreenReturn ? springDuration.offscreen : springDuration[active.direction];
+    const duration = active.offscreenReturn ? motionDuration.offscreen : motionDuration[active.direction];
     // The native mini path preserves CSS `none` and does not register transient
     // transforms in the React motion component's persistent MotionValues.
-    const spring = { type: createSpring, bounce: 0, duration };
+    const coverMotion = { duration, ease: active.direction === "forward" ? forwardEase : returnEase };
     const layer = layerRef.current;
     const backdrop = backdropRef.current;
     const source = sourceRef.current;
@@ -381,30 +390,36 @@ function CaseCoverTransitionLayer({ active, content, replacementContent, onFinis
         ? document.querySelector<HTMLElement>(".view-layer--current .projects") : null;
       if (projects) {
         const rect = projects.getBoundingClientRect();
-        preserveStyles(projects, ["transform", "transform-origin", "opacity"]);
+        preserveStyles(projects, ["transform", "transform-origin", "opacity", "filter"]);
         projects.style.transformOrigin = `${window.innerWidth / 2 - rect.left}px ${window.innerHeight / 2 - rect.top}px`;
         sceneAnimations.push(track(animate(projects, {
           // `none` also releases the containing block for viewport-fixed cursors.
-          transform: ["scale(0.94)", "none"], opacity: [0.33, 1],
-        }, spring)));
+          transform: ["scale(0.94)", "none"],
+        }, coverMotion)));
+        sceneAnimations.push(track(animate(projects, {
+          opacity: [0.33, 1], filter: ["blur(18px)", "blur(0px)"],
+        }, { duration, ease: returnContextEase })));
       }
       if (active.direction === "forward") {
         const blocks = [...document.querySelectorAll<HTMLElement>(".case-page-shell .case-title, .case-page-shell .case-content > *")].filter(isInViewport);
         for (const block of blocks) {
-          preserveStyles(block, ["opacity", "transform"]);
+          preserveStyles(block, ["opacity", "filter"]);
           sceneAnimations.push(track(animate(block, {
-            opacity: [0, 1], transform: ["translateY(6px)", "none"],
-          }, { ...spring, duration: duration * 0.8, delay: duration * 0.15 })));
+            opacity: [0, 1], filter: ["blur(12px)", "blur(0px)"],
+          }, { duration: 0.36, delay: 0.168, ease: returnContextEase })));
         }
       }
-      if (backdrop) sceneAnimations.push(track(animate(backdrop, { opacity: [1, 0] }, { duration, ease: "easeInOut" })));
+      if (backdrop) sceneAnimations.push(track(animate(backdrop, {
+        opacity: active.direction === "return" ? [0.536, 0] : [0, 0.08],
+      }, { duration, ease: returnContextEase })));
       // Full transform goes through Motion's native DOM animation path. No RAF
       // writes to inherited root variables and no React updates per frame.
+      const geometryStartedAt = performance.now();
       const geometryFinished = track(animate(layer, {
         transform: [initialTransform, settledCoverTransform],
-      }, spring));
+      }, coverMotion));
       const crossfadeFinished = (async () => {
-        if (active.direction !== "forward" || !source || !replacement) return;
+        if (active.offscreenReturn || !source || !replacement) return;
         const ready = await Promise.all([
           waitForCoverImages(replacement, signal), waitForCoverImages(destination, signal),
         ]);
@@ -414,16 +429,20 @@ function CaseCoverTransitionLayer({ active, content, replacementContent, onFinis
           if (!signal.aborted) {
             preserveStyles(destination, ["visibility"]);
             destination.style.visibility = "visible";
-            await track(animate(layer, { opacity: [1, 0] }, { duration: coverFadeSeconds }));
+            await track(animate(layer, { opacity: [1, 0] }, { duration: coverFade[active.direction].duration }));
           }
           return;
         }
-        // Establish spatial movement before swapping different card/hero artwork.
-        if (!await nextMotionFrame(signal) || !await nextMotionFrame(signal)) return;
-        await Promise.all([
-          track(animate(source, { opacity: [1, 0] }, { duration: coverFadeSeconds })),
-          track(animate(replacement, { opacity: [0, 1] }, { duration: coverFadeSeconds })),
-        ]);
+        // The local reference starts blending inside the first part of the
+        // flight. Image decode may consume that delay, but never restarts it.
+        const fade = coverFade[active.direction];
+        const remainingDelay = Math.max(0, fade.delay - (performance.now() - geometryStartedAt) / 1000);
+        // Keep the lower image opaque while the new one fades over it. Fading
+        // both layers exposes the route canvas at the midpoint of the blend.
+        await track(animate(replacement, { opacity: [0, 1] }, {
+          duration: fade.duration, delay: remainingDelay, ease: returnContextEase,
+        }));
+        if (!signal.aborted) source.style.opacity = "0";
       })();
       await Promise.all([geometryFinished, crossfadeFinished, ...sceneAnimations]);
       if (!signal.aborted) onFinish(active.token);
