@@ -236,6 +236,14 @@ html[data-case-cover-motion-direction="return"] .case-cover-motion-backdrop {
   opacity: 1 !important;
 }
 
+/* The return layer uses the card's destination box. At takeoff its outer
+   transform restores the wider case geometry; cover-cropping inside the
+   narrower box would change the image before the crossfade begins. */
+html[data-case-cover-motion-direction="return"] .case-cover-motion-layer__content:not(.case-cover-motion-layer__content--replacement) .optimized-image__img,
+html[data-case-cover-motion-direction="return"] .case-cover-motion-layer__content:not(.case-cover-motion-layer__content--replacement) .case-media__video {
+  object-fit: fill;
+}
+
 html[data-case-cover-motion-active] .project-motion-cell {
   opacity: 1 !important;
   transform: none !important;
