@@ -51,8 +51,8 @@ const forwardEase = [0.16, 1, 0.3, 1] as const;
 const returnEase = [0.12, 1, 0.2, 1] as const;
 const returnContextEase = [0.4, 0, 0.6, 1] as const;
 const coverFade = {
-  forward: { delay: 0.064, duration: 0.08 },
-  return: { delay: 0.08, duration: 0.16 },
+  forward: { delay: 0.048, duration: 0.16 },
+  return: { delay: 0.064, duration: 0.2 },
 };
 const CaseCoverMotionContext = createContext<CaseCoverMotionContextValue | null>(null);
 // Registration does not subscribe every media component to phase changes.
@@ -427,11 +427,12 @@ function CaseCoverTransitionLayer({ active, content, replacementContent, onFinis
       }, coverMotion));
       const crossfadeFinished = (async () => {
         if (active.offscreenReturn || !source || !replacement) return;
-        const ready = await Promise.all([
-          waitForCoverImages(replacement, signal), waitForCoverImages(destination, signal),
-        ]);
+        // The overlay is the image the visitor sees during the flight. The
+        // route image can finish decoding independently before the handoff;
+        // waiting for it here made the blend start late on a cold visit.
+        const replacementReady = await waitForCoverImages(replacement, signal);
         if (signal.aborted) return;
-        if (!ready.every(Boolean)) {
+        if (!replacementReady) {
           await geometryFinished;
           if (!signal.aborted) {
             preserveStyles(destination, ["visibility"]);
@@ -452,6 +453,9 @@ function CaseCoverTransitionLayer({ active, content, replacementContent, onFinis
         if (!signal.aborted) source.style.opacity = "0";
       })();
       await Promise.all([geometryFinished, crossfadeFinished, ...sceneAnimations]);
+      // Keep the overlay in place until the real cover can take over without
+      // revealing an unloaded image at the end of the transition.
+      if (!signal.aborted) await waitForCoverImages(destination, signal);
       if (!signal.aborted) onFinish(active.token);
     };
     void run().catch(() => {
