@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
@@ -947,12 +948,23 @@ function SnakeView({
 }
 
 export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
+  const router = useRouter();
   const { active: activeCoverMotion } = useCaseCoverMotion();
   const skipAboutTextRevealRef = useRef(
     activeCoverMotion?.direction === "return",
   );
   const [activeLocale, setActiveLocale] = useState<SiteLocale>(locale);
   const projects = getProjects(activeLocale);
+  useEffect(() => {
+    // Cards below the fold are prefetched by Link only after they enter the
+    // viewport. Prepare the four case routes while the visitor explores home
+    // so the cover flight does not wait for a cold route request on click.
+    for (const project of getProjects(activeLocale)) {
+      if (project.slug && project.transitionId) {
+        router.prefetch(getCasePath({ locale: activeLocale, slug: project.slug }));
+      }
+    }
+  }, [activeLocale, router]);
   const about = getAbout(activeLocale);
   const text = getUiText(activeLocale);
   const showAbout = true;
