@@ -16,6 +16,8 @@ import {
   useRef,
   useState,
 } from "react";
+import { type AnimationPlaybackControls } from "motion";
+import { animate } from "motion";
 import { EmailButton } from "./EmailButton";
 import { LocaleTextTransition } from "./LocaleTextTransition";
 import { getLanguageSwitchState } from "@/data/language-switch";
@@ -124,10 +126,6 @@ export function useNavigationViewControls({
     },
     [register],
   );
-}
-
-function easeOutQuint(progress: number) {
-  return 1 - Math.pow(1 - progress, 5);
 }
 
 function findNavigationItem(target: EventTarget | null) {
@@ -296,44 +294,25 @@ function Navigation({ controls }: { controls: HomeNavigationControls }) {
     }
 
     const startPosition = window.scrollY;
-    const duration = Math.min(700, Math.max(320, startPosition / 4));
-    const startTime = performance.now();
-    const root = document.documentElement;
-    const previousScrollBehavior = root.style.scrollBehavior;
-    let animationFrame = 0;
+    const duration = Math.min(0.7, Math.max(0.32, startPosition / 4000));
+    let controls: AnimationPlaybackControls | null = null;
     let isFinished = false;
-
-    root.style.scrollBehavior = "auto";
 
     function cleanup() {
       if (isFinished) return;
       isFinished = true;
-      cancelAnimationFrame(animationFrame);
-      root.style.scrollBehavior = previousScrollBehavior;
       window.removeEventListener("wheel", cancel, { capture: true });
       window.removeEventListener("touchstart", cancel, { capture: true });
       window.removeEventListener("pointerdown", cancel, { capture: true });
       window.removeEventListener("keydown", cancel, { capture: true });
+      if (cancelScrollAnimationRef.current === cancel) {
+        cancelScrollAnimationRef.current = () => undefined;
+      }
     }
 
     function cancel() {
+      controls?.cancel();
       cleanup();
-    }
-
-    function updateScroll(currentTime: number) {
-      const progress = Math.min(1, (currentTime - startTime) / duration);
-      const easedProgress = easeOutQuint(progress);
-
-      window.scrollTo({
-        top: startPosition * (1 - easedProgress),
-        behavior: "instant",
-      });
-
-      if (progress < 1) {
-        animationFrame = requestAnimationFrame(updateScroll);
-      } else {
-        cleanup();
-      }
     }
 
     window.addEventListener("wheel", cancel, { capture: true, passive: true });
@@ -346,8 +325,16 @@ function Navigation({ controls }: { controls: HomeNavigationControls }) {
       passive: true,
     });
     window.addEventListener("keydown", cancel, { capture: true });
-    animationFrame = requestAnimationFrame(updateScroll);
-    cancelScrollAnimationRef.current = cleanup;
+    cancelScrollAnimationRef.current = cancel;
+    controls = animate(startPosition, 0, {
+      type: "spring",
+      duration,
+      bounce: 0,
+      onUpdate: (scrollTop) => {
+        window.scrollTo({ top: scrollTop, behavior: "instant" });
+      },
+      onComplete: cleanup,
+    });
   }
 
   function handleHomeClick(event: MouseEvent<HTMLAnchorElement>) {

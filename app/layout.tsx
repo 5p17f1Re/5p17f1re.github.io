@@ -72,7 +72,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
+    <html lang="en" data-scroll-behavior="auto" suppressHydrationWarning>
       <body className={`${inter.variable} ${interTight.variable}`}>
         <SquircleNoScript />
         <Script id="portfolio-view" strategy="beforeInteractive">

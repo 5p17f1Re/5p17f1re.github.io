@@ -11,13 +11,14 @@ import {
   useRef,
   useState,
 } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion, useReducedMotion, type Variants } from "motion/react";
 import { getCasePath } from "@/data/cases";
 import { getAbout } from "@/data/about";
 import { getLocalizedPath } from "@/data/locales";
 import { getProjects, type Project } from "@/data/projects";
 import type { SiteLocale } from "@/data/locales";
 import { getUiText, type UiText } from "@/data/ui-text";
+import { stepZeroBounceSpring } from "@/lib/zero-bounce-spring";
 import { OptimizedImage } from "./OptimizedImage";
 import { OptimizedVideo } from "./OptimizedVideo";
 import { LocaleTextTransition } from "./LocaleTextTransition";
@@ -31,8 +32,6 @@ import { trackContactIntent, trackEvent, trackOutboundLink } from "./analytics";
 type ViewMode = "birdview" | "snakeview";
 type ViewLayerState = "current" | "outgoing" | "incoming" | "hidden";
 
-const easeOutExpo = [0.16, 1, 0.3, 1] as const;
-const viewTransitionEase = [0.22, 1, 0.36, 1] as const;
 const viewTransitions = {
   snakeviewToBirdview: {
     snakeviewExitScale: 0.9,
@@ -47,14 +46,13 @@ const viewTransitions = {
     snakeviewRowGapTo: "120px",
   },
   duration: 0.32,
-  totalDurationMs: 320,
 } as const;
 
 const telegramChannelUrl = "https://t.me/mybeautifulheaven";
 const telegramRevealDelayMs = 250;
 const initialCardRevealDelay = 0.22;
 
-const initialCardVariants = {
+const initialCardVariants: Variants = {
   hidden: { opacity: 0, y: 18 },
   visible: (row: number) => ({
     opacity: 1,
@@ -62,7 +60,8 @@ const initialCardVariants = {
     transition: {
       delay: initialCardRevealDelay + row * 0.09,
       duration: 0.56,
-      ease: easeOutExpo,
+      type: "spring" as const,
+      bounce: 0,
     },
   }),
 };
@@ -262,8 +261,10 @@ function ProjectCard({
   const projectCaseLinkRef = useRef<HTMLSpanElement>(null);
   const cursorAnimationFrameRef = useRef<number | null>(null);
   const cursorPositionRef = useRef<{ x: number; y: number } | null>(null);
+  const cursorVelocityRef = useRef({ x: 0, y: 0 });
   const cursorTargetRef = useRef<{ x: number; y: number } | null>(null);
   const isCursorReturningRef = useRef(false);
+  const cursorLastFrameTimeRef = useRef<number | null>(null);
 
   function setProjectCursorPosition(clientX: number, clientY: number) {
     const interactiveCard = interactiveCardRef.current;
@@ -285,9 +286,10 @@ function ProjectCard({
       cancelAnimationFrame(cursorAnimationFrameRef.current);
       cursorAnimationFrameRef.current = null;
     }
+    cursorLastFrameTimeRef.current = null;
   }
 
-  function runProjectCursorAnimation() {
+  function runProjectCursorAnimation(frameTime: number) {
     const interactiveCard = interactiveCardRef.current;
     const cursorPosition = cursorPositionRef.current;
     const cursorTarget = cursorTargetRef.current;
@@ -297,34 +299,57 @@ function ProjectCard({
       return;
     }
 
-    const easing = isCursorReturningRef.current ? 0.18 : 0.35;
-    const deltaX = cursorTarget.x - cursorPosition.x;
-    const deltaY = cursorTarget.y - cursorPosition.y;
+    const lastFrameTime = cursorLastFrameTimeRef.current ?? frameTime;
+    const deltaSeconds = Math.min((frameTime - lastFrameTime) / 1000, 0.05);
+    const angularFrequency = isCursorReturningRef.current ? 28 : 42;
+    const nextX = stepZeroBounceSpring(
+      { value: cursorPosition.x, velocity: cursorVelocityRef.current.x },
+      cursorTarget.x,
+      deltaSeconds,
+      angularFrequency,
+    );
+    const nextY = stepZeroBounceSpring(
+      { value: cursorPosition.y, velocity: cursorVelocityRef.current.y },
+      cursorTarget.y,
+      deltaSeconds,
+      angularFrequency,
+    );
 
-    cursorPosition.x += deltaX * easing;
-    cursorPosition.y += deltaY * easing;
+    cursorPosition.x = nextX.value;
+    cursorPosition.y = nextY.value;
+    cursorVelocityRef.current = { x: nextX.velocity, y: nextY.velocity };
+    cursorLastFrameTimeRef.current = frameTime;
     setProjectCursorPosition(cursorPosition.x, cursorPosition.y);
 
-    if (
-      isCursorReturningRef.current &&
-      Math.hypot(deltaX, deltaY) < 0.75
-    ) {
-      setProjectCursorPosition(cursorTarget.x, cursorTarget.y);
-      const projectCaseLink = projectCaseLinkRef.current;
+    const distance = Math.hypot(
+      cursorTarget.x - cursorPosition.x,
+      cursorTarget.y - cursorPosition.y,
+    );
+    const speed = Math.hypot(nextX.velocity, nextY.velocity);
 
-      if (projectCaseLink) {
-        projectCaseLink.style.setProperty("transition", "none");
-        projectCaseLink.style.setProperty("opacity", "1");
+    if (distance < 0.5 && speed < 4) {
+      setProjectCursorPosition(cursorTarget.x, cursorTarget.y);
+      cursorPosition.x = cursorTarget.x;
+      cursorPosition.y = cursorTarget.y;
+      cursorVelocityRef.current = { x: 0, y: 0 };
+      cursorLastFrameTimeRef.current = null;
+
+      if (isCursorReturningRef.current) {
+        const projectCaseLink = projectCaseLinkRef.current;
+        if (projectCaseLink) {
+          projectCaseLink.style.setProperty("transition", "none");
+          projectCaseLink.style.setProperty("opacity", "1");
+        }
+        delete interactiveCard.dataset.projectCursorState;
+        interactiveCard.dataset.projectCursorHandoff = "true";
+        requestAnimationFrame(() => {
+          projectCaseLink?.style.removeProperty("transition");
+          projectCaseLink?.style.removeProperty("opacity");
+          delete interactiveCard.dataset.projectCursorHandoff;
+        });
+        cursorPositionRef.current = null;
+        cursorTargetRef.current = null;
       }
-      delete interactiveCard.dataset.projectCursorState;
-      interactiveCard.dataset.projectCursorHandoff = "true";
-      requestAnimationFrame(() => {
-        projectCaseLink?.style.removeProperty("transition");
-        projectCaseLink?.style.removeProperty("opacity");
-        delete interactiveCard.dataset.projectCursorHandoff;
-      });
-      cursorPositionRef.current = null;
-      cursorTargetRef.current = null;
       cursorAnimationFrameRef.current = null;
       return;
     }
@@ -355,18 +380,21 @@ function ProjectCard({
 
     if (!interactiveCard || !projectCaseLink) return;
 
-    const buttonBounds = projectCaseLink.getBoundingClientRect();
-    cancelProjectCursorAnimation();
+    if (!cursorPositionRef.current) {
+      const buttonBounds = projectCaseLink.getBoundingClientRect();
+      cursorPositionRef.current = {
+        x: buttonBounds.left + buttonBounds.width / 2,
+        y: buttonBounds.top + buttonBounds.height / 2,
+      };
+      cursorVelocityRef.current = { x: 0, y: 0 };
+      setProjectCursorPosition(
+        cursorPositionRef.current.x,
+        cursorPositionRef.current.y,
+      );
+    }
 
-    const sourcePosition = {
-      x: buttonBounds.left + buttonBounds.width / 2,
-      y: buttonBounds.top + buttonBounds.height / 2,
-    };
-
-    cursorPositionRef.current = sourcePosition;
     cursorTargetRef.current = { x: event.clientX, y: event.clientY };
     isCursorReturningRef.current = false;
-    setProjectCursorPosition(sourcePosition.x, sourcePosition.y);
     projectCaseLink.style.setProperty("opacity", "0");
     interactiveCard.dataset.projectCursorState = "active";
     startProjectCursorAnimation();
@@ -545,8 +573,9 @@ function BirdView({
           layout="position"
           transition={{
             layout: {
-              duration: isLocaleLayoutTransitionActive ? 0.24 : 0,
-              ease: viewTransitionEase,
+              ...(isLocaleLayoutTransitionActive
+                ? { type: "spring" as const, duration: 0.24, bounce: 0 }
+                : { duration: 0 }),
             },
           }}
           variants={initialCardVariants}
@@ -594,8 +623,9 @@ function BirdView({
             layout="position"
             transition={{
               layout: {
-                duration: isLocaleLayoutTransitionActive ? 0.24 : 0,
-                ease: viewTransitionEase,
+                ...(isLocaleLayoutTransitionActive
+                  ? { type: "spring" as const, duration: 0.24, bounce: 0 }
+                  : { duration: 0 }),
               },
             }}
             variants={initialCardVariants}
@@ -653,6 +683,8 @@ function SnakeView({
   const telegramCursorTargetRef = useRef<{ x: number; y: number } | null>(
     null,
   );
+  const telegramCursorVelocityRef = useRef({ x: 0, y: 0 });
+  const telegramCursorLastFrameTimeRef = useRef<number | null>(null);
   const telegramCursorIsReturningRef = useRef(false);
 
   function setTelegramCursorPosition(x: number, y: number) {
@@ -669,9 +701,10 @@ function SnakeView({
       cancelAnimationFrame(telegramCursorAnimationFrameRef.current);
       telegramCursorAnimationFrameRef.current = null;
     }
+    telegramCursorLastFrameTimeRef.current = null;
   }
 
-  function animateTelegramCursor() {
+  function animateTelegramCursor(frameTime: number) {
     const cursorPosition = telegramCursorPositionRef.current;
     const cursorTarget = telegramCursorTargetRef.current;
 
@@ -680,16 +713,42 @@ function SnakeView({
       return;
     }
 
-    const easing = telegramCursorIsReturningRef.current ? 0.18 : 0.35;
-    cursorPosition.x += (cursorTarget.x - cursorPosition.x) * easing;
-    cursorPosition.y += (cursorTarget.y - cursorPosition.y) * easing;
+    const lastFrameTime = telegramCursorLastFrameTimeRef.current ?? frameTime;
+    const deltaSeconds = Math.min((frameTime - lastFrameTime) / 1000, 0.05);
+    const angularFrequency = telegramCursorIsReturningRef.current ? 28 : 42;
+    const nextX = stepZeroBounceSpring(
+      { value: cursorPosition.x, velocity: telegramCursorVelocityRef.current.x },
+      cursorTarget.x,
+      deltaSeconds,
+      angularFrequency,
+    );
+    const nextY = stepZeroBounceSpring(
+      { value: cursorPosition.y, velocity: telegramCursorVelocityRef.current.y },
+      cursorTarget.y,
+      deltaSeconds,
+      angularFrequency,
+    );
+    cursorPosition.x = nextX.value;
+    cursorPosition.y = nextY.value;
+    telegramCursorVelocityRef.current = {
+      x: nextX.velocity,
+      y: nextY.velocity,
+    };
+    telegramCursorLastFrameTimeRef.current = frameTime;
     setTelegramCursorPosition(cursorPosition.x, cursorPosition.y);
 
-    if (
-      Math.hypot(cursorTarget.x - cursorPosition.x, cursorTarget.y - cursorPosition.y) <
-      0.5
-    ) {
+    const distance = Math.hypot(
+      cursorTarget.x - cursorPosition.x,
+      cursorTarget.y - cursorPosition.y,
+    );
+    const speed = Math.hypot(nextX.velocity, nextY.velocity);
+
+    if (distance < 0.5 && speed < 4) {
       setTelegramCursorPosition(cursorTarget.x, cursorTarget.y);
+      cursorPosition.x = cursorTarget.x;
+      cursorPosition.y = cursorTarget.y;
+      telegramCursorVelocityRef.current = { x: 0, y: 0 };
+      telegramCursorLastFrameTimeRef.current = null;
       if (telegramCursorIsReturningRef.current) {
         const telegramCta = telegramCtaRef.current;
         delete telegramCta?.dataset.cursorState;
@@ -728,19 +787,19 @@ function SnakeView({
     if (!telegramCta) return;
 
     const bounds = telegramCta.getBoundingClientRect();
-    const targetPosition = {
+    if (!telegramCursorPositionRef.current) {
+      telegramCursorPositionRef.current = {
+        x: bounds.width / 2,
+        y: bounds.height / 2,
+      };
+      telegramCursorVelocityRef.current = { x: 0, y: 0 };
+      setTelegramCursorPosition(bounds.width / 2, bounds.height / 2);
+    }
+    telegramCursorTargetRef.current = {
       x: event.clientX - bounds.left,
       y: event.clientY - bounds.top,
     };
-
-    cancelTelegramCursorAnimation();
-    telegramCursorPositionRef.current = {
-      x: bounds.width / 2,
-      y: bounds.height / 2,
-    };
-    telegramCursorTargetRef.current = targetPosition;
     telegramCursorIsReturningRef.current = false;
-    setTelegramCursorPosition(bounds.width / 2, bounds.height / 2);
     telegramCta.dataset.cursorState = "active";
     startTelegramCursorAnimation();
   }
@@ -841,8 +900,9 @@ function SnakeView({
           layout="position"
           transition={{
             layout: {
-              duration: isLocaleLayoutTransitionActive ? 0.24 : 0,
-              ease: viewTransitionEase,
+              ...(isLocaleLayoutTransitionActive
+                ? { type: "spring" as const, duration: 0.24, bounce: 0 }
+                : { duration: 0 }),
             },
           }}
           variants={initialAboutVariants}
@@ -925,8 +985,9 @@ function SnakeView({
           layout="position"
           transition={{
             layout: {
-              duration: isLocaleLayoutTransitionActive ? 0.24 : 0,
-              ease: viewTransitionEase,
+              ...(isLocaleLayoutTransitionActive
+                ? { type: "spring" as const, duration: 0.24, bounce: 0 }
+                : { duration: 0 }),
             },
           }}
           variants={initialCardVariants}
@@ -973,6 +1034,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
   const [revealAboutTextOnLoad, setRevealAboutTextOnLoad] = useState(false);
   const [alternateViewPrepared, setAlternateViewPrepared] = useState(false);
   const [nextView, setNextView] = useState<ViewMode | null>(null);
+  const [viewTransitionId, setViewTransitionId] = useState(0);
   const [containerHeight, setContainerHeight] = useState<number>();
   const [localeTextTransitionId, setLocaleTextTransitionId] = useState(0);
   const [isLocaleLayoutTransitionActive, setIsLocaleLayoutTransitionActive] =
@@ -980,23 +1042,26 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
   const reduceMotion = useReducedMotion();
   const switchingRef = useRef(false);
   const transitionIdRef = useRef(0);
-  const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const localeLayoutTransitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const completedViewLayersRef = useRef(new Set<ViewMode>());
   const birdviewLayerRef = useRef<HTMLDivElement>(null);
   const snakeviewLayerRef = useRef<HTMLDivElement>(null);
   const heightCacheRef = useRef<Partial<Record<ViewMode, number>>>({});
 
   const startLocaleLayoutTransition = useCallback(() => {
-    if (localeLayoutTransitionTimerRef.current) {
-      clearTimeout(localeLayoutTransitionTimerRef.current);
-    }
-
     setIsLocaleLayoutTransitionActive(true);
-    localeLayoutTransitionTimerRef.current = setTimeout(() => {
-      localeLayoutTransitionTimerRef.current = null;
-      setIsLocaleLayoutTransitionActive(false);
-    }, 180);
   }, []);
+
+  useLayoutEffect(() => {
+    if (!isLocaleLayoutTransitionActive) return;
+
+    // Motion reads this spring configuration when the locale reflow starts;
+    // clearing it on the next frame avoids enabling layout springs for view switches.
+    const frame = requestAnimationFrame(() => {
+      setIsLocaleLayoutTransitionActive(false);
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [isLocaleLayoutTransitionActive, localeTextTransitionId]);
 
   const switchLocale = useCallback(
     (nextLocale: SiteLocale) => {
@@ -1100,17 +1165,6 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
   }, []);
 
   useEffect(() => {
-    return () => {
-      if (completionTimerRef.current) {
-        clearTimeout(completionTimerRef.current);
-      }
-      if (localeLayoutTransitionTimerRef.current) {
-        clearTimeout(localeLayoutTransitionTimerRef.current);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const mode = entry.target.closest(".view-layer--birdview")
@@ -1155,10 +1209,25 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
     }
 
     switchingRef.current = false;
-    completionTimerRef.current = null;
+    completedViewLayersRef.current.clear();
     setView(next);
     setNextView(null);
     setContainerHeight(undefined);
+  }
+
+  function finishViewLayer(mode: ViewMode, transitionId: number) {
+    if (
+      !switchingRef.current ||
+      transitionId !== transitionIdRef.current ||
+      !nextView
+    ) {
+      return;
+    }
+
+    completedViewLayersRef.current.add(mode);
+    if (completedViewLayersRef.current.size === 2) {
+      finishSwitch(nextView, transitionId);
+    }
   }
 
   function toggleView() {
@@ -1175,17 +1244,19 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
     }
 
     if (reduceMotion) {
+      transitionIdRef.current += 1;
+      switchingRef.current = false;
+      completedViewLayersRef.current.clear();
       setView(next);
+      setNextView(null);
+      setContainerHeight(undefined);
       return;
-    }
-
-    if (completionTimerRef.current) {
-      clearTimeout(completionTimerRef.current);
-      completionTimerRef.current = null;
     }
 
     const transitionId = transitionIdRef.current + 1;
     transitionIdRef.current = transitionId;
+    setViewTransitionId(transitionId);
+    completedViewLayersRef.current.clear();
     switchingRef.current = true;
 
     const currentHeight =
@@ -1210,9 +1281,6 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
     setContainerHeight(targetHeight ?? currentHeight);
     setView(transitionSource);
     setNextView(next);
-    completionTimerRef.current = setTimeout(() => {
-      finishSwitch(next, transitionId);
-    }, viewTransitions.totalDurationMs);
   }
 
   const displayedView = nextView ?? view;
@@ -1291,7 +1359,8 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
   const viewLayerTransition = {
     delay: 0,
     duration: viewTransitions.duration,
-    ease: viewTransitionEase,
+    type: "spring" as const,
+    bounce: 0,
   };
 
   return (
@@ -1308,6 +1377,9 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
               initial={false}
               animate={layerAnimation("birdview") as Record<string, string | number>}
               transition={viewLayerTransition}
+              onAnimationComplete={() =>
+                finishViewLayer("birdview", viewTransitionId)
+              }
               aria-hidden={displayedView !== "birdview"}
             >
               <BirdView
@@ -1332,6 +1404,9 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
               initial={false}
               animate={layerAnimation("snakeview") as Record<string, string | number>}
               transition={viewLayerTransition}
+              onAnimationComplete={() =>
+                finishViewLayer("snakeview", viewTransitionId)
+              }
               aria-hidden={displayedView !== "snakeview"}
             >
               <SnakeView

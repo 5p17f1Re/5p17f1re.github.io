@@ -2,10 +2,10 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import {
-  createContext, type MouseEvent as ReactMouseEvent, type ReactNode,
+  createContext, createElement, type MouseEvent as ReactMouseEvent, type ReactNode,
   useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState,
 } from "react";
-import { type AnimationPlaybackControls } from "motion";
+import { spring, type AnimationPlaybackControls } from "motion";
 import { animate } from "motion/mini";
 import { useReducedMotion } from "motion/react";
 import {
@@ -44,15 +44,13 @@ type CaseCoverMotionContextValue = CaseCoverActions & { active: ActiveTransition
 const storageKey = "case-cover-motion-snapshot";
 const recoveryTimeoutMs = 5000;
 const preparationAttempts = 30;
-// Match the approved local flight while retaining the cancelable route and
-// image-readiness lifecycle. Motion owns completion, not an elapsed timer.
+// Keep the approved pace while giving the cover a continuous, non-bouncing landing.
 const motionDuration = { forward: 0.64, return: 0.48, offscreen: 0.45 };
-const forwardEase = [0.16, 1, 0.3, 1] as const;
-const returnEase = [0.12, 1, 0.2, 1] as const;
-const returnContextEase = [0.4, 0, 0.6, 1] as const;
+const backgroundMotionDurationRatio = 0.75;
+const caseTextRevealProgress = 0.95;
 const coverFade = {
-  forward: { delay: 0.048, duration: 0.16 },
-  return: { delay: 0.064, duration: 0.2 },
+  forward: { duration: 0.16 },
+  return: { duration: 0.15 },
 };
 const CaseCoverMotionContext = createContext<CaseCoverMotionContextValue | null>(null);
 // Registration does not subscribe every media component to phase changes.
@@ -119,6 +117,89 @@ function isInViewport(element: Element) {
     rect.right > 0 && rect.left < window.innerWidth;
 }
 
+function getSpringProgressTime(durationSeconds: number, progress: number) {
+  const durationMs = durationSeconds * 1000;
+  const generator = spring({
+    keyframes: [0, 100], duration: durationMs, bounce: 0,
+  });
+  let low = 0;
+  let high = durationMs;
+  for (let iteration = 0; iteration < 16; iteration += 1) {
+    const midpoint = (low + high) / 2;
+    if (generator.next(midpoint).value < progress * 100) low = midpoint;
+    else high = midpoint;
+  }
+  return high / 1000;
+}
+
+function getRemainingTimelineDelay(startedAt: number, totalDuration: number, effectDuration: number) {
+  return Math.max(0, totalDuration - effectDuration - (performance.now() - startedAt) / 1000);
+}
+
+function getRemainingCenteredProgressDelay(
+  startedAt: number, totalDuration: number, effectDuration: number, centerProgress: number,
+) {
+  const centerAt = getSpringProgressTime(totalDuration, centerProgress);
+  const startAt = Math.max(0, centerAt - effectDuration / 2);
+  return Math.max(0, startAt - (performance.now() - startedAt) / 1000);
+}
+
+function captureVisibleCoverFrame(cover: HTMLElement): ReactNode | null {
+  // Snapshot the rendered crop, not a newly mounted copy of the route media.
+  const video = cover.querySelector<HTMLVideoElement>(
+    '.case-video[data-rendered-frame="true"] video',
+  );
+  const image = [...cover.querySelectorAll<HTMLImageElement>("img")].find((candidate) => {
+    const rect = candidate.getBoundingClientRect();
+    return candidate.complete && candidate.naturalWidth > 0 && rect.width > 0 &&
+      Number.parseFloat(getComputedStyle(candidate).opacity) > 0;
+  });
+  const media = video && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA &&
+    video.videoWidth && video.videoHeight ? video : image;
+  if (!media) return null;
+
+  const rect = media.getBoundingClientRect();
+  const sourceWidth = media instanceof HTMLVideoElement ? media.videoWidth : media.naturalWidth;
+  const sourceHeight = media instanceof HTMLVideoElement ? media.videoHeight : media.naturalHeight;
+  if (!rect.width || !rect.height || !sourceWidth || !sourceHeight) return null;
+
+  try {
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+    const renderScale = Math.min(pixelRatio, sourceWidth / rect.width, sourceHeight / rect.height);
+    const width = Math.max(1, Math.round(rect.width * renderScale));
+    const height = Math.max(1, Math.round(rect.height * renderScale));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d");
+    if (!context) return null;
+    const style = getComputedStyle(media);
+    if (style.objectFit === "cover") {
+      const frameRatio = width / height;
+      const mediaRatio = sourceWidth / sourceHeight;
+      const cropWidth = mediaRatio > frameRatio ? sourceHeight * frameRatio : sourceWidth;
+      const cropHeight = mediaRatio < frameRatio ? sourceWidth / frameRatio : sourceHeight;
+      const cropLeft = (sourceWidth - cropWidth) / 2;
+      const cropTop = (sourceHeight - cropHeight) / 2;
+      context.drawImage(media, cropLeft, cropTop, cropWidth, cropHeight, 0, 0, width, height);
+    } else {
+      context.drawImage(media, 0, 0, width, height);
+    }
+    return createElement("img", {
+      src: canvas.toDataURL("image/webp", 0.95),
+      alt: "",
+      style: {
+        display: "block", position: "absolute", left: 0, top: "50%", width: "100%",
+        height: "auto", objectFit: "fill", transform: "translateY(-50%)",
+      },
+    });
+  } catch {
+    return null;
+  }
+}
+
+const caseTextRevealDelay = getSpringProgressTime(motionDuration.forward, caseTextRevealProgress);
+
 export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -160,14 +241,14 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
 
   const begin = useCallback((
     snapshot: TransitionSnapshot, direction: Direction,
-    sourceCoverRect?: CoverRect, offscreenReturn = false,
+    sourceCoverRect?: CoverRect, offscreenReturn = false, capturedContent?: ReactNode | null,
   ) => {
     const registered = registryRef.current.get(snapshot.transitionId);
     const token = ++nextTokenRef.current;
     // A visible return starts with the artwork the visitor is looking at.
     // Offscreen return has no visible source and uses the homepage card only.
     setContent(direction === "return" && !offscreenReturn
-      ? registered?.target ?? registered?.source ?? null
+      ? capturedContent ?? registered?.target ?? registered?.source ?? null
       : registered?.source ?? registered?.target ?? null);
     setReplacementContent(direction === "forward"
       ? registered?.target ?? null
@@ -220,7 +301,8 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     try { localStorage.setItem("portfolio-view", snapshot.view); } catch { /* In-memory view still restores. */ }
     const cover = getVisibleCover(snapshot.transitionId, "target");
     const visible = !offscreen && cover && isInViewport(cover);
-    return begin(snapshot, "return", visible ? snapshotCoverRect(cover.getBoundingClientRect()) : undefined, !visible);
+    return begin(snapshot, "return", visible ? snapshotCoverRect(cover.getBoundingClientRect()) : undefined,
+      !visible, visible ? captureVisibleCoverFrame(cover) : null);
   }, [begin]);
 
   const returnHome = useCallback<CaseCoverActions["returnHome"]>((event) => {
@@ -361,7 +443,7 @@ function CaseCoverTransitionLayer({ active, content, replacementContent, onFinis
     const duration = active.offscreenReturn ? motionDuration.offscreen : motionDuration[active.direction];
     // The native mini path preserves CSS `none` and does not register transient
     // transforms in the React motion component's persistent MotionValues.
-    const coverMotion = { duration, ease: active.direction === "forward" ? forwardEase : returnEase };
+    const coverMotion = { type: spring, duration, bounce: 0 };
     const layer = layerRef.current;
     const backdrop = backdropRef.current;
     const source = sourceRef.current;
@@ -381,11 +463,44 @@ function CaseCoverTransitionLayer({ active, content, replacementContent, onFinis
 
     const run = async () => {
       if (active.phase === "fallback" || !layer || !destination || !layoutRect || !content) {
-        if (layer) await track(animate(layer, { opacity: [1, 0] }, { duration: 0.18 }));
+        if (layer) {
+          await track(animate(layer, { opacity: [1, 0] }, {
+            type: spring, duration: 0.18, bounce: 0,
+          }));
+        }
         if (!signal.aborted) onFinish(active.token);
         return;
       }
+      // Start one shared spring clock. Scene timing below is anchored to its
+      // actual playback duration because Motion resolves duration-based springs
+      // to the next 50 ms generator sample.
+      const geometryStartedAt = performance.now();
+      const geometryAnimation = animate(layer, {
+        transform: [initialTransform, settledCoverTransform],
+      }, coverMotion);
+      const geometryFinished = track(geometryAnimation);
+      const sourceRect = active.sourceCoverRect;
+      const sourceScaleX = sourceRect && layoutRect ? sourceRect.width / layoutRect.width : 1;
+      const sourceScaleY = sourceRect && layoutRect ? sourceRect.height / layoutRect.height : 1;
+      const aspectCorrection = active.direction === "return" && !active.offscreenReturn
+        ? sourceScaleX / sourceScaleY : 1;
+      const backgroundMotionDuration = geometryAnimation.duration * backgroundMotionDurationRatio;
+      const backgroundDelay = active.direction === "return"
+        ? getRemainingTimelineDelay(geometryStartedAt, geometryAnimation.duration, backgroundMotionDuration)
+        : 0;
+      const backgroundMotion = {
+        type: spring, duration: backgroundMotionDuration, delay: backgroundDelay, bounce: 0,
+      };
       const sceneAnimations: Promise<unknown>[] = [];
+      // The outer rect morphs to the card ratio; counter-scale its contents so
+      // the moving cover is cropped by that rect instead of stretched with it.
+      if (aspectCorrection !== 1) {
+        for (const imageLayer of [source, replacement]) {
+          if (imageLayer) sceneAnimations.push(track(animate(imageLayer, {
+            transform: [`scaleY(${aspectCorrection})`, "scaleY(1)"],
+          }, coverMotion)));
+        }
+      }
       const projects = active.direction === "return"
         ? document.querySelector<HTMLElement>(".view-layer--current .projects") : null;
       if (projects) {
@@ -395,36 +510,31 @@ function CaseCoverTransitionLayer({ active, content, replacementContent, onFinis
         sceneAnimations.push(track(animate(projects, {
           // `none` also releases the containing block for viewport-fixed cursors.
           transform: ["scale(0.94)", "none"],
-        }, coverMotion)));
+        }, backgroundMotion)));
         sceneAnimations.push(track(animate(projects, {
           opacity: [0.33, 1], filter: ["blur(18px)", "blur(0px)"],
-        }, { duration, ease: returnContextEase })));
+        }, backgroundMotion)));
       }
       if (active.direction === "forward") {
+        const revealDelay = Math.max(0, caseTextRevealDelay - (performance.now() - geometryStartedAt) / 1000);
         const blocks = [...document.querySelectorAll<HTMLElement>(".case-page-shell .case-title, .case-page-shell .case-content > *")].filter(isInViewport);
         for (const block of blocks) {
           preserveStyles(block, ["opacity", "filter"]);
           sceneAnimations.push(track(animate(block, {
             opacity: [0, 1], filter: ["blur(12px)", "blur(0px)"],
-          }, { duration: 0.36, delay: 0.168, ease: returnContextEase })));
+          }, { type: spring, duration: 0.36, delay: revealDelay, bounce: 0 })));
         }
         const title = document.querySelector<HTMLElement>(".case-page-shell .case-title h1");
         if (title && isInViewport(title)) {
           preserveStyles(title, ["--case-cover-title-reveal"]);
           sceneAnimations.push(track(animate(title, {
             "--case-cover-title-reveal": ["0%", "100%"],
-          }, { duration: 0.36, delay: 0.168, ease: returnContextEase })));
+          }, { type: spring, duration: 0.36, delay: revealDelay, bounce: 0 })));
         }
       }
       if (backdrop) sceneAnimations.push(track(animate(backdrop, {
         opacity: active.direction === "return" ? [0.536, 0] : [0, 0.08],
-      }, { duration, ease: returnContextEase })));
-      // Full transform goes through Motion's native DOM animation path. No RAF
-      // writes to inherited root variables and no React updates per frame.
-      const geometryStartedAt = performance.now();
-      const geometryFinished = track(animate(layer, {
-        transform: [initialTransform, settledCoverTransform],
-      }, coverMotion));
+      }, backgroundMotion)));
       const crossfadeFinished = (async () => {
         if (active.offscreenReturn || !source || !replacement) return;
         // The overlay is the image the visitor sees during the flight. The
@@ -437,18 +547,24 @@ function CaseCoverTransitionLayer({ active, content, replacementContent, onFinis
           if (!signal.aborted) {
             preserveStyles(destination, ["visibility"]);
             destination.style.visibility = "visible";
-            await track(animate(layer, { opacity: [1, 0] }, { duration: coverFade[active.direction].duration }));
+            await track(animate(layer, { opacity: [1, 0] }, {
+              type: spring, duration: coverFade[active.direction].duration, bounce: 0,
+            }));
           }
           return;
         }
-        // The local reference starts blending inside the first part of the
-        // flight. Image decode may consume that delay, but never restarts it.
+        // Opening blends early; returning centers on halfway through the spring path.
+        // Waiting for decode consumes the same timeline instead of restarting it.
         const fade = coverFade[active.direction];
-        const remainingDelay = Math.max(0, fade.delay - (performance.now() - geometryStartedAt) / 1000);
+        const remainingDelay = active.direction === "return"
+          ? getRemainingCenteredProgressDelay(
+            geometryStartedAt, geometryAnimation.duration, fade.duration, 0.5,
+          )
+          : 0;
         // Keep the lower image opaque while the new one fades over it. Fading
         // both layers exposes the route canvas at the midpoint of the blend.
         await track(animate(replacement, { opacity: [0, 1] }, {
-          duration: fade.duration, delay: remainingDelay, ease: returnContextEase,
+          type: spring, duration: fade.duration, delay: remainingDelay, bounce: 0,
         }));
         if (!signal.aborted) source.style.opacity = "0";
       })();

@@ -11,6 +11,8 @@
   --color-accent-green: #137547;
   --color-nav-gray: rgba(135, 135, 135, 0.3);
   --color-nav-black: rgba(0, 0, 0, 0.4);
+  /* Motion spring({ keyframes: [0, 1], duration: 320, bounce: 0 }), sampled for CSS. */
+  --spring-zero-bounce-easing: linear(0, 0.2341, 0.5478, 0.761, 0.8812, 0.9433, 0.9736, 0.988, 0.9946, 0.9976, 0.999, 1);
   --mobile-nav-footer-offset: 0px;
 }
 
@@ -20,7 +22,7 @@
 }
 
 /* ─── Base ──────────────────────────────────────────────────────────────── */
-html { scroll-behavior: smooth; }
+html { scroll-behavior: auto; }
 
 .visually-hidden {
   position: absolute;
@@ -71,7 +73,7 @@ a {
   outline: none;
 }
 
-a { color: var(--color-text-primary); text-decoration-line: underline; text-decoration-color: rgba(255, 255, 255, 0.4); text-decoration-thickness: 1px; text-underline-offset: 2px; transition: color 180ms cubic-bezier(0.22, 1, 0.36, 1), text-decoration-color 180ms cubic-bezier(0.22, 1, 0.36, 1); }
+a { color: var(--color-text-primary); text-decoration-line: underline; text-decoration-color: rgba(255, 255, 255, 0.4); text-decoration-thickness: 1px; text-underline-offset: 2px; transition: color 180ms var(--spring-zero-bounce-easing), text-decoration-color 180ms var(--spring-zero-bounce-easing); }
 a:hover { color: var(--color-accent-carrot); text-decoration-color: rgba(240, 75, 25, 0.4); }
 .nav__link, .project, .hero-about__telegram, .not-found-page__desktop-link, .not-found-page__button, .skip-link { text-decoration: none; }
 img { display: block; max-width: 100%; }
@@ -112,7 +114,7 @@ img { display: block; max-width: 100%; }
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: opacity 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 180ms var(--spring-zero-bounce-easing);
 }
 
 .optimized-video__poster {
@@ -158,6 +160,7 @@ html[data-case-cover-motion-active] body {
   z-index: 20;
   pointer-events: none;
   transform-origin: 0 0;
+  overflow: hidden;
   will-change: transform, opacity;
 }
 
@@ -279,7 +282,7 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
 @property --case-cover-title-reveal {
   syntax: "<percentage>";
   inherits: false;
-  initial-value: 0%;
+  initial-value: 100%;
 }
 
 html[data-case-cover-motion-direction="forward"] .case-title h1 {
@@ -316,7 +319,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
 .nav {
   --nav-indicator-width: 0px;
   --nav-indicator-x: 0px;
-  --nav-transition-easing: cubic-bezier(0.22, 1, 0.36, 1);
+  --nav-transition-easing: var(--spring-zero-bounce-easing);
   position: fixed;
   top: 0;
   right: 24px;
@@ -522,7 +525,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   z-index: 9;
   margin: 0 !important;
   pointer-events: none;
-  transition: opacity 180ms ease-out;
+  transition: opacity 180ms var(--spring-zero-bounce-easing);
 }
 
 .locale-text-transition {
@@ -582,7 +585,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   display: inline-flex;
   align-items: center;
   height: 24px;
-  transition: width 300ms ease-out;
+  transition: width 300ms var(--spring-zero-bounce-easing);
 }
 
 .utm-generator__field-content {
@@ -666,8 +669,8 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   letter-spacing: -0.13px;
   cursor: pointer;
   transition:
-    height 100ms ease-out,
-    padding 100ms ease-out;
+    height 100ms var(--spring-zero-bounce-easing),
+    padding 100ms var(--spring-zero-bounce-easing);
 }
 
 @media (hover: hover) {
@@ -807,7 +810,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   }
 
   .view-layer--birdview .project[data-column] {
-    transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform 500ms var(--spring-zero-bounce-easing);
   }
 
   .view-layer--birdview.view-layer--hidden .project[data-column="0"] {
@@ -937,7 +940,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
     transparent calc(var(--about-text-reveal) + 16%),
     transparent 100%
   );
-  animation: about-text-reveal var(--about-text-reveal-duration, 320ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: about-text-reveal var(--about-text-reveal-duration, 320ms) var(--spring-zero-bounce-easing) both;
   animation-delay: var(--about-text-reveal-delay, 0ms);
 }
 
@@ -1012,7 +1015,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
 }
 
 .projects[data-about-text-reveal="true"] .hero-about__telegram[data-text-reveal-ready="true"] {
-  animation: case-cover-copy-return 350ms var(--hero-about-telegram-reveal-delay) cubic-bezier(0.12, 1, 0.2, 1) both;
+  animation: case-cover-copy-return 350ms var(--hero-about-telegram-reveal-delay) var(--spring-zero-bounce-easing) both;
 }
 
 .projects[data-about-text-reveal="true"] .hero-about__telegram:not([data-text-reveal-ready="true"]) {
@@ -1058,7 +1061,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
 
 .hero-about__telegram-title {
   color: var(--color-text-primary);
-  transition: color 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: color 180ms var(--spring-zero-bounce-easing);
 }
 
 .hero-about__telegram-description {
@@ -1072,7 +1075,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
 .hero-about__telegram-description-default,
 .hero-about__telegram-description-hover {
   display: block;
-  transition: opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 180ms var(--spring-zero-bounce-easing);
 }
 
 .hero-about__telegram-description-hover {
@@ -1153,8 +1156,8 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   text-underline-position: from-font;
   text-decoration-skip-ink: auto;
   transition:
-    color 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    text-decoration-color 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    color 180ms var(--spring-zero-bounce-easing),
+    text-decoration-color 180ms var(--spring-zero-bounce-easing);
 }
 
 .site-footer__link:focus-visible {
@@ -1420,8 +1423,8 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   min-height: 24px;
   padding: 2px 12px;
   transition:
-    opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 180ms var(--spring-zero-bounce-easing),
+    box-shadow 180ms var(--spring-zero-bounce-easing);
 }
 
 .project--link:focus-visible .project__case-link {
@@ -1443,9 +1446,9 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
       0
     ) translate(-50%, -50%);
   transition:
-    height 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    padding 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 160ms cubic-bezier(0.22, 1, 0.36, 1);
+    height 180ms var(--spring-zero-bounce-easing),
+    padding 180ms var(--spring-zero-bounce-easing),
+    opacity 160ms var(--spring-zero-bounce-easing);
 }
 
 
@@ -1604,7 +1607,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   opacity: 0;
   pointer-events: none;
   transform: translate3d(var(--not-found-cursor-x), var(--not-found-cursor-y), 0) translate(-50%, -50%) scale(0.8);
-  transition: opacity 160ms cubic-bezier(0.22, 1, 0.36, 1), transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 160ms var(--spring-zero-bounce-easing), transform 180ms var(--spring-zero-bounce-easing);
 }
 
 .not-found-page__cursor[data-visible="true"] {
@@ -1769,7 +1772,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   height: 100%;
   opacity: 1;
   pointer-events: none;
-  transition: opacity 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 180ms var(--spring-zero-bounce-easing);
 }
 
 .case-video[data-rendered-frame="true"] .case-video__poster {
