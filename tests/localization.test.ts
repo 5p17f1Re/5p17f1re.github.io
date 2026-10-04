@@ -80,8 +80,8 @@ describe("localized paths", () => {
   });
 
   it("uses approved localized card copy when it is available", () => {
-    const [englishProject] = getProjects("en");
-    const [russianProject] = getProjects("ru");
+    const englishProject = getProjects("en").find((project) => project.slug === "yandex-eats-smartreserve")!;
+    const russianProject = getProjects("ru").find((project) => project.slug === "yandex-eats-smartreserve")!;
 
     expect(englishProject.description).toBe(
       "Analytics for Yandex Eats restaurants: a partner workspace with guest, hall and forecast data",

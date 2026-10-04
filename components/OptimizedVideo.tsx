@@ -26,22 +26,7 @@ export function OptimizedVideo({
 
   useEffect(() => {
     const video = videoRef.current;
-    const hiddenLayer = video?.closest(".view-layer--hidden");
-
-    if (hiddenLayer) {
-      const layerObserver = new MutationObserver(() => {
-        if (!hiddenLayer.classList.contains("view-layer--hidden")) {
-          setShouldLoadVideo(true);
-        }
-      });
-
-      layerObserver.observe(hiddenLayer, {
-        attributeFilter: ["class"],
-        attributes: true,
-      });
-
-      return () => layerObserver.disconnect();
-    }
+    const layer = video?.closest(".view-layer");
 
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
@@ -71,18 +56,31 @@ export function OptimizedVideo({
       }
     }
 
+    let isIntersecting = false;
+
+    // Layer visibility can change while an eager video's load flag stays true.
+    // Reconcile playback directly instead of relying on another state update.
+    function syncPlayback() {
+      if (!video) return;
+      const isVisible = isIntersecting && !layer?.classList.contains("view-layer--hidden");
+      if (!isVisible) {
+        video.pause();
+        return;
+      }
+      if (!shouldLoadVideo) {
+        setShouldLoadVideo(true);
+        return;
+      }
+      void video.play().then(revealAfterRenderedFrame).catch(() => {});
+    }
+
+    const layerObserver = new MutationObserver(syncPlayback);
+    if (layer) layerObserver.observe(layer, { attributeFilter: ["class"] });
+
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !shouldLoadVideo) {
-          setShouldLoadVideo(true);
-          return;
-        }
-
-        if (entry.isIntersecting) {
-          void video.play().then(revealAfterRenderedFrame).catch(() => {});
-        } else {
-          video.pause();
-        }
+        isIntersecting = entry.isIntersecting;
+        syncPlayback();
       },
       { rootMargin: "200px 0px", threshold: 0.01 },
     );
@@ -91,6 +89,8 @@ export function OptimizedVideo({
 
     return () => {
       observer.disconnect();
+      layerObserver.disconnect();
+      video.pause();
 
       const cancelVideoFrameCallback = (
         video as unknown as {
@@ -100,6 +100,7 @@ export function OptimizedVideo({
 
       if (frameRequestRef.current !== null && cancelVideoFrameCallback) {
         cancelVideoFrameCallback.call(video, frameRequestRef.current);
+        frameRequestRef.current = null;
       }
     };
   }, [shouldLoadVideo, src]);

@@ -156,6 +156,27 @@ function ProjectMedia({
       view === "snakeview"
         ? "(max-width: 998px) calc(100vw - 64px), 934px"
         : "(max-width: 600px) 50vw, (max-width: 800px) 50vw, 33vw";
+    if (project.presentation === "centered-offline-app") {
+      return (
+        <>
+          <div className="project-media-stage project-media-stage--video">
+            <OptimizedVideo
+              src={project.video}
+              posterKey={project.poster}
+              title={project.title}
+              sizes={sizes}
+              eager={eager}
+            />
+          </div>
+          {view === "snakeview" && project.extraImages?.map((assetKey) => (
+            <div className="project-media-stage project-media-stage--image" key={assetKey}>
+              <OptimizedImage assetKey={assetKey} alt={project.title} sizes={sizes} />
+            </div>
+          ))}
+        </>
+      );
+    }
+
     const transitionTarget = project.transitionCoverAsset ? (
       <OptimizedImage
         assetKey={project.transitionCoverAsset}

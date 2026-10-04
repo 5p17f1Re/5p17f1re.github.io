@@ -24,6 +24,7 @@ type VideoProject = ProjectBase & {
   video: string;
   poster: string;
   extraImages?: string[];
+  presentation?: "centered-offline-app";
 };
 
 type TextProject = ProjectBase & {
@@ -40,6 +41,22 @@ export function getProjects(locale: SiteLocale): Project[] {
 }
 
 export const projects: Project[] = [
+  {
+    mediaType: "video",
+    tag: "app",
+    title: "Carrot Signal",
+    video: "/media/videos/carrot-signal/01-demo.mp4",
+    poster: "carrot-signal/01-demo-poster",
+    extraImages: ["carrot-signal/02-interface"],
+    presentation: "centered-offline-app",
+    description: "An app that transcribes recordings offline and separates speech by speaker.",
+    localizedContent: {
+      ru: {
+        title: "Carrot Signal",
+        description: "Приложение, которое расшифровывает записи офлайн и разделяет речь по говорящим.",
+      },
+    },
+  },
   {
     slug: "yandex-eats-smartreserve",
     transitionId: "yandex-eats-smartreserve",

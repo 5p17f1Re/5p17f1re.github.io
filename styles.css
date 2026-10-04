@@ -2145,3 +2145,30 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
     width: 100%;
   }
 }
+
+/* Carrot Signal: scale the whole 934 × 704 composition in both portfolio views. */
+.project-media-stage {
+  width: 100%;
+  aspect-ratio: 934 / 704;
+  display: grid;
+  place-items: center;
+  background: rgb(128 128 128 / 20%);
+  container-type: inline-size;
+}
+
+.project-media-stage--video > .optimized-video {
+  width: calc(624 / 934 * 100%);
+  border-radius: 2.14cqw;
+  overflow: hidden;
+}
+
+/* The supplied 1152 × 512 image is a 2× export; its reference width is 576. */
+.project-media-stage--image > .optimized-image {
+  width: calc(576 / 934 * 100%);
+  border-radius: 0;
+}
+
+/* Only Birdview uses half the original vertical video margins (68 / 704). */
+.projects--birdview .project-media-stage--video > .optimized-video {
+  width: calc(820.444444 / 934 * 100%);
+}
