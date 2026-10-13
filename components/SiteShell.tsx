@@ -18,16 +18,18 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
   const footerContentRef = useRef<HTMLDivElement>(null);
   const locale = getLanguageSwitchState(pathname).currentLocale;
   const text = getUiText(locale);
+  const segments = pathname.split("/").filter(Boolean);
+  const candidateSlug = segments[0] === "ru" ? segments[1] : segments[0];
+  const caseSlug = candidateSlug && getCase(candidateSlug) ? candidateSlug : undefined;
 
   useEffect(() => {
     document.documentElement.lang = locale;
   }, [locale]);
 
   useEffect(() => {
-    const slug = pathname.split("/").filter(Boolean).at(-1);
-    if (!slug || !getCase(slug)) return;
+    if (!caseSlug) return;
 
-    trackEvent("case_viewed", { case_slug: slug, locale });
+    trackEvent("case_viewed", { case_slug: caseSlug, locale });
     const thresholds = [25, 50, 75, 90];
     const reached = new Set<number>();
     const reportReadDepth = () => {
@@ -37,7 +39,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       for (const threshold of thresholds) {
         if (depth >= threshold && !reached.has(threshold)) {
           reached.add(threshold);
-          trackEvent("case_read_depth", { case_slug: slug, locale, read_depth: threshold });
+          trackEvent("case_read_depth", { case_slug: caseSlug, locale, read_depth: threshold });
         }
       }
     };
@@ -45,7 +47,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
     window.addEventListener("scroll", reportReadDepth, { passive: true });
     reportReadDepth();
     return () => window.removeEventListener("scroll", reportReadDepth);
-  }, [locale, pathname]);
+  }, [caseSlug, locale]);
 
   useEffect(() => {
     let frame = 0;

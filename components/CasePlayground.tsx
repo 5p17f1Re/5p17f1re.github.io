@@ -1,11 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { getPlaygroundPaths } from "@/data/playground-path";
 
 const closeDuration = 360;
 
-function playgroundIsOpen() {
-  return new URL(window.location.href).searchParams.get("playground") === "true";
+function playgroundIsOpen(caseSlug: string) {
+  return getPlaygroundPaths(window.location.pathname, caseSlug)?.isOpen ?? false;
 }
 
 export function CasePlayground({
@@ -20,7 +21,7 @@ export function CasePlayground({
   children: ReactNode;
 }) {
   const [isOpen, setIsOpen] = useState(
-    () => typeof window !== "undefined" && playgroundIsOpen(),
+    () => typeof window !== "undefined" && playgroundIsOpen(caseSlug),
   );
   const dialogRef = useRef<HTMLDialogElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -46,7 +47,10 @@ export function CasePlayground({
     }
   }, []);
 
-  const syncFromUrl = useCallback(() => setIsOpen(playgroundIsOpen()), []);
+  const syncFromUrl = useCallback(
+    () => setIsOpen(playgroundIsOpen(caseSlug)),
+    [caseSlug],
+  );
 
   useEffect(() => {
     window.addEventListener("popstate", syncFromUrl);
@@ -110,11 +114,12 @@ export function CasePlayground({
   }, [unlockBody]);
 
   function openPlayground() {
-    if (playgroundIsOpen()) return;
     const url = new URL(window.location.href);
-    url.searchParams.set("playground", "true");
+    const paths = getPlaygroundPaths(url.pathname, caseSlug);
+    if (!paths || paths.isOpen) return;
+    url.pathname = paths.playgroundPath;
     window.history.pushState(
-      { ...window.history.state, casePlayground: caseSlug },
+      { casePlayground: caseSlug },
       "",
       url,
     );
@@ -122,14 +127,15 @@ export function CasePlayground({
   }
 
   function closePlayground() {
-    if (!playgroundIsOpen()) return;
+    const url = new URL(window.location.href);
+    const paths = getPlaygroundPaths(url.pathname, caseSlug);
+    if (!paths?.isOpen) return;
     if (window.history.state?.casePlayground === caseSlug) {
       window.history.back();
       return;
     }
-    const url = new URL(window.location.href);
-    url.searchParams.delete("playground");
-    window.history.replaceState(window.history.state, "", url);
+    url.pathname = paths.casePath;
+    window.history.replaceState(null, "", url);
     setIsOpen(false);
   }
 
