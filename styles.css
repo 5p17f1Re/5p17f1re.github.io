@@ -1,21 +1,60 @@
 /* ─── Reset ─────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* Website palette */
+/* The user's color table defines the light values; the existing palette is the
+   system-dark counterpart. Keep role colors here so the first paint is themed. */
 :root {
-  --color-background: #0f0f14;
-  --color-text-white: #fff;
-  --color-text-primary: rgba(255, 255, 255, 0.85);
-  --color-text-caption: rgba(255, 255, 255, 0.34);
+  color-scheme: light;
+  --color-background: #f1f0ef;
+  --color-text-strong: rgba(0, 0, 0, 0.8);
+  --color-text-primary: rgba(0, 0, 0, 0.8);
+  --color-text-secondary: rgba(0, 0, 0, 0.55);
+  --color-text-caption: rgba(0, 0, 0, 0.4);
+  --color-text-nav: #000;
+  --color-text-on-accent: #fff;
+  --color-text-nav-active: #f1f0ef;
+  --color-text-tooltip: #000;
+  --color-text-not-found: rgba(0, 0, 0, 0.55);
   --color-accent-carrot: #f04b19;
   --color-accent-green: #137547;
-  --color-nav-gray: rgba(135, 135, 135, 0.3);
-  --color-nav-black: rgba(0, 0, 0, 0.4);
+  --color-glass-tint: rgba(128, 128, 128, 0.2);
+  --color-glass-base: transparent;
+  --color-tooltip-base: transparent;
+  --color-link-underline: rgba(0, 0, 0, 0.55);
+  --color-link-underline-muted: rgba(0, 0, 0, 0.55);
+  --color-link-underline-hover: rgba(240, 75, 25, 0.4);
+  --color-focus-ring: #000;
+  --color-case-cover-backdrop: transparent;
+  --color-project-stage: rgb(128 128 128 / 20%);
+  --color-phone-stage: rgb(128 128 128 / 30%);
   --mobile-nav-footer-offset: 0px;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --color-background: #0f0f14;
+    --color-text-strong: #fff;
+    --color-text-primary: rgba(255, 255, 255, 0.85);
+    --color-text-secondary: rgba(255, 255, 255, 0.55);
+    --color-text-caption: rgba(255, 255, 255, 0.34);
+    --color-text-nav: rgba(255, 255, 255, 0.85);
+    --color-text-nav-active: #fff;
+    --color-text-tooltip: #fff;
+    --color-text-not-found: rgba(255, 255, 255, 0.35);
+    --color-glass-tint: rgba(135, 135, 135, 0.3);
+    --color-glass-base: rgba(0, 0, 0, 0.4);
+    --color-tooltip-base: rgba(0, 0, 0, 0.8);
+    --color-link-underline: rgba(255, 255, 255, 0.4);
+    --color-link-underline-muted: rgba(255, 255, 255, 0.1);
+    --color-focus-ring: #fff;
+    --color-case-cover-backdrop: rgb(15 15 20 / 0.08);
+    --color-phone-stage: rgb(128 128 128 / 20%);
+  }
+}
+
 ::selection {
-  color: var(--color-text-white);
+  color: var(--color-text-on-accent);
   background: var(--color-accent-carrot);
 }
 
@@ -51,7 +90,7 @@ html { scroll-behavior: smooth; }
 
 body {
   background: var(--color-background);
-  color: var(--color-text-white);
+  color: var(--color-text-strong);
   font-family: var(--font-inter), "Inter", system-ui, sans-serif;
   font-weight: 500;
   -webkit-font-smoothing: antialiased;
@@ -71,8 +110,8 @@ a {
   outline: none;
 }
 
-a { color: var(--color-text-primary); text-decoration-line: underline; text-decoration-color: rgba(255, 255, 255, 0.4); text-decoration-thickness: 1px; text-underline-offset: 2px; transition: color 180ms cubic-bezier(0.22, 1, 0.36, 1), text-decoration-color 180ms cubic-bezier(0.22, 1, 0.36, 1); }
-a:hover { color: var(--color-accent-carrot); text-decoration-color: rgba(240, 75, 25, 0.4); }
+a { color: var(--color-text-primary); text-decoration-line: underline; text-decoration-color: var(--color-link-underline); text-decoration-thickness: 1px; text-underline-offset: 2px; transition: color 180ms cubic-bezier(0.22, 1, 0.36, 1), text-decoration-color 180ms cubic-bezier(0.22, 1, 0.36, 1); }
+a:hover { color: var(--color-accent-carrot); text-decoration-color: var(--color-link-underline-hover); }
 .nav__link, .project, .hero-about__telegram, .not-found-page__desktop-link, .not-found-page__button, .skip-link { text-decoration: none; }
 img { display: block; max-width: 100%; }
 
@@ -168,7 +207,7 @@ html[data-case-cover-motion-active] body {
   inset: 0;
   z-index: 10;
   pointer-events: none;
-  background: rgb(15 15 20 / 0.08);
+  background: var(--color-case-cover-backdrop);
   opacity: 0;
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
@@ -345,8 +384,8 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   z-index: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(var(--color-nav-gray), var(--color-nav-gray)),
-    linear-gradient(var(--color-nav-black), var(--color-nav-black));
+    linear-gradient(var(--color-glass-tint), var(--color-glass-tint)),
+    linear-gradient(var(--color-glass-base), var(--color-glass-base));
   -webkit-backdrop-filter: blur(36px) saturate(50%);
   backdrop-filter: blur(36px) saturate(50%);
 }
@@ -390,7 +429,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   font-weight: 500;
   letter-spacing: -0.13px;
   line-height: 20px;
-  color: var(--color-text-primary);
+  color: var(--color-text-nav);
   z-index: 2;
   background: transparent;
   border: none;
@@ -423,12 +462,12 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
 .nav__link:focus-visible {
   z-index: 3;
   outline: none;
-  color: #fff;
-  box-shadow: 0 0 0 2px #0f0f14, 0 0 0 4px #fff;
+  color: var(--color-text-nav-active);
+  box-shadow: 0 0 0 2px var(--color-background), 0 0 0 4px var(--color-focus-ring);
 }
 
 .nav__link:active {
-  color: var(--color-text-white);
+  color: var(--color-text-nav-active);
   background-color: var(--color-accent-carrot);
 }
 
@@ -501,10 +540,10 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   box-sizing: border-box;
   border-radius: 32px;
   z-index: 3;
-  color: #fff;
+  color: var(--color-text-tooltip);
   background-image:
-    linear-gradient(rgba(135, 135, 135, 0.3), rgba(135, 135, 135, 0.3)),
-    linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8));
+    linear-gradient(var(--color-glass-tint), var(--color-glass-tint)),
+    linear-gradient(var(--color-tooltip-base), var(--color-tooltip-base));
   -webkit-backdrop-filter: blur(28px);
   backdrop-filter: blur(28px);
   opacity: 0;
@@ -640,6 +679,11 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   background-position: 3px 4px;
   background-size: 11.4142px 7.12132px;
   pointer-events: none;
+  filter: invert(1);
+}
+
+@media (prefers-color-scheme: dark) {
+  .utm-generator__arrow { filter: none; }
 }
 
 .utm-generator__separator {
@@ -648,7 +692,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
 
 .utm-generator__field select:focus-visible,
 .utm-generator__copy:focus-visible {
-  outline: 2px solid #fff;
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: 4px;
 }
 
@@ -665,7 +709,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   padding: 2px 12px;
   border: 0;
   border-radius: 32px;
-  color: #fff;
+  color: var(--color-text-on-accent);
   background: var(--color-accent-green);
   font: inherit;
   font-size: 13px;
@@ -697,10 +741,10 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   min-height: 56px;
   padding: 4px 24px;
   border-radius: 32px;
-  color: #fff;
+  color: var(--color-text-tooltip);
   background-image:
-    linear-gradient(rgba(135, 135, 135, 0.3), rgba(135, 135, 135, 0.3)),
-    linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8));
+    linear-gradient(var(--color-glass-tint), var(--color-glass-tint)),
+    linear-gradient(var(--color-tooltip-base), var(--color-tooltip-base));
   -webkit-backdrop-filter: blur(28px);
   backdrop-filter: blur(28px);
   text-align: center;
@@ -984,7 +1028,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   font-weight: 500;
   line-height: 40px;
   letter-spacing: 0;
-  color: var(--color-text-primary);
+  color: var(--color-text-strong);
   white-space: normal;
   margin-bottom: 0;
 }
@@ -1015,8 +1059,8 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   color: inherit;
   text-decoration: none;
   background:
-    linear-gradient(rgba(135, 135, 135, 0.3), rgba(135, 135, 135, 0.3)),
-    linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4));
+    linear-gradient(var(--color-glass-tint), var(--color-glass-tint)),
+    linear-gradient(var(--color-glass-base), var(--color-glass-base));
 }
 
 .projects[data-about-text-reveal="true"] .hero-about__telegram[data-text-reveal-ready="true"] {
@@ -1094,6 +1138,16 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   width: 14px;
   height: 14px;
   margin: 3px;
+  filter: invert(1);
+}
+
+@media (prefers-color-scheme: dark) {
+  .hero-about__telegram-arrow { filter: none; }
+}
+
+.hero-about__telegram[data-cursor-state="active"] .hero-about__telegram-arrow,
+.hero-about__telegram:focus-visible .hero-about__telegram-arrow {
+  filter: none;
 }
 
 .hero-about__telegram[data-cursor-state="active"] .hero-about__telegram-description-default,
@@ -1108,12 +1162,13 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
 
 .hero-about__telegram[data-cursor-state="active"] .hero-about__telegram-title,
 .hero-about__telegram:focus-visible .hero-about__telegram-title {
-  color: var(--color-text-white);
+  color: var(--color-text-on-accent);
 }
 
 .hero-about__telegram[data-cursor-state="active"] .hero-about__telegram-description-hover,
 .hero-about__telegram:focus-visible .hero-about__telegram-description-hover {
   opacity: 1;
+  color: var(--color-text-on-accent);
 }
 
 .hero-about__telegram[data-cursor-state="active"] {
@@ -1121,7 +1176,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
 }
 
 .hero-about__telegram:focus-visible {
-  outline: 2px solid var(--color-text-white);
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: 4px;
 }
 
@@ -1157,7 +1212,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
 }
 
 .site-footer__link {
-  text-decoration-color: rgba(255, 255, 255, 0.4);
+  text-decoration-color: var(--color-link-underline);
   text-underline-position: from-font;
   text-decoration-skip-ink: auto;
   transition:
@@ -1166,14 +1221,14 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
 }
 
 .site-footer__link:focus-visible {
-  outline: 2px solid var(--color-text-white);
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: 3px;
   border-radius: 2px;
 }
 
 .site-footer__repository-link {
   color: var(--color-text-caption);
-  text-decoration-color: rgba(255, 255, 255, 0.1);
+  text-decoration-color: var(--color-link-underline-muted);
 }
 
 /* ─── Photo publishing section ─────────────────────────────────────────── */
@@ -1222,7 +1277,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
 
 .photo-year__title {
   margin-bottom: 32px;
-  color: var(--color-text-white);
+  color: var(--color-text-strong);
   font-size: 28px;
   font-weight: 500;
   letter-spacing: -0.04em;
@@ -1273,7 +1328,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  color: var(--color-text-white);
+  color: var(--color-text-strong);
 }
 
 .photo-card__heading time,
@@ -1312,7 +1367,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
 @media (hover: hover) {
   .site-footer__link:hover {
     color: var(--color-accent-carrot);
-    text-decoration-color: rgba(240, 75, 25, 0.4);
+    text-decoration-color: var(--color-link-underline-hover);
   }
 }
 
@@ -1416,7 +1471,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   width: fit-content;
   border-radius: 32px;
   background: var(--color-accent-green);
-  color: #fff;
+  color: var(--color-text-on-accent);
   font-size: 13px;
   font-weight: 500;
   line-height: 20px;
@@ -1433,7 +1488,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
 }
 
 .project--link:focus-visible .project__case-link {
-  box-shadow: 0 0 0 2px #0f0f14, 0 0 0 4px #fff;
+  box-shadow: 0 0 0 2px var(--color-background), 0 0 0 4px var(--color-focus-ring);
 }
 
 .project__cursor-read-case {
@@ -1540,13 +1595,13 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   min-height: 100vh;
   overflow: clip;
   background: var(--color-background);
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--color-text-primary);
 }
 
 .not-found-page {
   min-height: 100vh;
   background: var(--color-background);
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--color-text-not-found);
 }
 
 .not-found-page__desktop-link,
@@ -1593,8 +1648,8 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   align-items: center;
   justify-content: center;
   border-radius: 32px;
-  background: #137547;
-  color: #fff;
+  background: var(--color-accent-green);
+  color: var(--color-text-on-accent);
   font-size: 13px;
   font-weight: 500;
   line-height: 20px;
@@ -1786,7 +1841,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
 
 .pye-case-page > .case-media { margin-top: 0; }
 .case-phone-media { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.case-phone-media__surface { display: grid; min-height: 920px; place-items: center; background: #292929; }
+.case-phone-media__surface { display: grid; min-height: 920px; place-items: center; background: var(--color-phone-stage); }
 .case-phone-media__screen { width: min(375px, calc(100% - 64px)); overflow: hidden; aspect-ratio: 375 / 812; background: #17171b; }
 .case-phone-media__image, .case-phone-media__video { display: block; width: 100%; height: 100%; object-fit: cover; }
 
@@ -1835,7 +1890,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
 }
 
 .case-media__caption span {
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--color-text-secondary);
 }
 
 .case-media--platform-pair .case-media__caption {
@@ -1853,11 +1908,11 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
 
 @media (hover: hover) {
   .nav__link:not(:disabled):hover {
-    color: #fff;
+    color: var(--color-text-nav-active);
   }
 
   .nav__home[data-scroll-target-active="false"]:hover {
-    color: #fff;
+    color: var(--color-text-nav-active);
   }
 
   .project--link[data-project-cursor-state] {
@@ -2152,7 +2207,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   aspect-ratio: 934 / 704;
   display: grid;
   place-items: center;
-  background: rgb(128 128 128 / 20%);
+  background: var(--color-project-stage);
   container-type: inline-size;
 }
 
