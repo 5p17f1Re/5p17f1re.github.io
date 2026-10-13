@@ -49,6 +49,9 @@
   --color-text-nav-active: #f1f0ef;
   --color-text-tooltip: #000;
   --color-text-not-found: rgba(0, 0, 0, 0.55);
+  --color-playground-surface: #fff;
+  --color-playground-foreground: #000;
+  --color-playground-muted: rgb(0 0 0 / 0.8);
   --color-accent-carrot: #f04b19;
   --color-accent-green: #137547;
   --color-glass-tint: rgba(128, 128, 128, 0.2);
@@ -99,6 +102,9 @@ body:has(main[lang="ru"]) {
     --color-focus-ring: #fff;
     --color-case-cover-backdrop: rgb(15 15 20 / 0.08);
     --color-phone-stage: rgb(128 128 128 / 20%);
+    --color-playground-surface: #292929;
+    --color-playground-foreground: #fff;
+    --color-playground-muted: rgb(255 255 255 / 0.8);
   }
 }
 
@@ -1907,6 +1913,458 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
 .case-phone-media__surface { display: grid; min-height: 920px; place-items: center; background: var(--color-phone-stage); }
 .case-phone-media__screen { width: min(375px, calc(100% - 64px)); overflow: hidden; aspect-ratio: 375 / 812; background: #17171b; }
 .case-phone-media__image, .case-phone-media__video { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* PYE Playground is a modal layer over the case, with its own scroll position. */
+.case-playground {
+  width: min(1156px, calc(100% - 32px));
+  margin-inline: auto;
+  padding: 160px 0 120px;
+}
+
+.case-playground__teaser {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  min-height: 566px;
+  overflow: hidden;
+  background: rgb(128 128 128 / 0.2);
+}
+
+.case-playground__teaser-copy {
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: min(100%, 488px);
+  padding: 64px;
+  color: #fff;
+}
+
+.case-playground__teaser-copy h2 {
+  margin-bottom: 16px;
+  font-family: var(--type-font-heading, Georgia, "Times New Roman", serif);
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 32px;
+}
+
+.case-playground__teaser-copy p {
+  max-width: 360px;
+  margin-bottom: 32px;
+  color: rgb(255 255 255 / 0.8);
+  font-family: var(--type-font-body-en, "Helvetica Neue", Helvetica, Arial, sans-serif);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+.case-playground__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 24px;
+  padding: 2px 8px 2px 12px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font-family: var(--type-font-body-en, var(--font-inter), "Inter", sans-serif);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.case-playground__trigger span:last-child {
+  font-size: 16px;
+  line-height: 1;
+  transition: transform 180ms ease-out;
+}
+
+.case-playground__trigger:hover span:last-child {
+  transform: translate(2px, -2px);
+}
+
+.case-playground__teaser-art {
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 1;
+}
+
+.pye-playground-teaser-art {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.pye-playground-teaser-art:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -4px;
+}
+
+.pye-playground-teaser-art__card {
+  position: absolute;
+  display: block;
+  transition: top 360ms cubic-bezier(0.22, 1, 0.36, 1), left 360ms cubic-bezier(0.22, 1, 0.36, 1), width 360ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pye-playground-teaser-art__card[data-position="back"] {
+  z-index: 0;
+  top: 25.7%;
+  left: 31.1%;
+  width: 42.7%;
+}
+
+.pye-playground-teaser-art__card[data-position="front"] {
+  z-index: 1;
+  top: 20.6%;
+  left: 13.1%;
+  width: 50%;
+}
+
+.case-playground__trigger:focus-visible,
+.case-playground__close:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+
+.case-playground__dialog {
+  --playground-close-surface: #f0f0f0;
+  --playground-close-text: #333;
+  --playground-media-surface: #e6e6e6;
+  position: fixed;
+  inset: 56px 0 0;
+  width: 100%;
+  max-width: none;
+  height: calc(100dvh - 56px);
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 40px 40px 0 0;
+  corner-shape: squircle;
+  background: var(--color-playground-surface);
+  color: var(--color-playground-foreground);
+  opacity: 0;
+  transform: translateY(100%);
+  transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1), opacity 360ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.case-playground__dialog[data-state="open"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.case-playground__dialog::backdrop {
+  background: rgba(0, 0, 0, 0.65);
+  opacity: 0;
+  transition: opacity 360ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.case-playground__dialog[data-state="open"]::backdrop {
+  opacity: 1;
+}
+
+.case-playground__close {
+  position: absolute;
+  z-index: 2;
+  top: 24px;
+  right: 24px;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--playground-close-surface);
+  color: var(--playground-close-text);
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+  font-size: 25px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.case-playground__scroll {
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.case-playground__header {
+  width: min(520px, calc(100% - 32px));
+  margin: 0 auto 40px;
+  padding-top: 80px;
+}
+
+.case-playground__header h2 {
+  font-family: var(--type-font-heading, Georgia, "Times New Roman", serif);
+  font-size: 36px;
+  font-weight: 400;
+  line-height: 40px;
+}
+
+.pye-playground {
+  display: flex;
+  flex-direction: column;
+  gap: 96px;
+  padding-bottom: 160px;
+}
+
+.pye-playground__text {
+  width: min(520px, calc(100% - 32px));
+  margin-inline: auto;
+  color: var(--color-playground-muted);
+  font-family: var(--type-font-body-ru, "Helvetica Neue", Helvetica, Arial, sans-serif);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+.pye-playground__text h3 {
+  margin-bottom: 16px;
+  color: var(--color-playground-foreground);
+  font-family: var(--type-font-heading, Georgia, "Times New Roman", serif);
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 32px;
+}
+
+.pye-playground__text p + p {
+  margin-top: 12px;
+}
+
+.pye-playground__text blockquote {
+  margin: 40px 0;
+  color: var(--color-playground-foreground);
+  font-family: var(--type-font-heading, Georgia, "Times New Roman", serif);
+  font-size: 24px;
+  line-height: 32px;
+}
+
+.pye-playground__visual {
+  width: min(1156px, 100%);
+  margin-inline: auto;
+}
+
+.pye-playground__stage {
+  display: grid;
+  width: 100%;
+  min-height: 920px;
+  place-items: center;
+  background: var(--playground-media-surface);
+}
+
+.pye-playground__visual > * + * {
+  margin-top: 16px;
+}
+
+.pye-playground__fields {
+  display: grid;
+  gap: 16px;
+}
+
+.pye-playground__fields--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.pye-playground__stage--one {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.pye-playground__stage--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.pye-playground__stage--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  min-height: 720px;
+}
+
+.pye-playground__stage--fragments {
+  min-height: 360px;
+}
+
+.pye-playground__screen {
+  display: block;
+  width: min(375px, calc(100% - 32px));
+  aspect-ratio: 375 / 812;
+  overflow: hidden;
+  background: #17171b;
+}
+
+.pye-playground__screen .optimized-image,
+.pye-playground__screen .optimized-image__img {
+  width: 100%;
+  height: 100%;
+}
+
+.pye-playground__screen--fragment {
+  aspect-ratio: 375 / 296;
+}
+
+.pye-playground__stage--three .pye-playground__screen {
+  width: min(281px, calc(100% - 32px));
+}
+
+.pye-playground__stage--composition {
+  min-height: 0;
+  display: block;
+}
+
+.pye-playground__stage--composition .optimized-image,
+.pye-playground__stage--composition .optimized-image__img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.pye-playground__video-stage {
+  display: grid;
+  width: min(1156px, 100%);
+  min-height: 920px;
+  margin-inline: auto;
+  place-items: center;
+  background: var(--playground-media-surface);
+}
+
+.pye-playground__video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.pye-playground__video-screen {
+  display: block;
+  width: min(395px, calc(100% - 32px));
+  aspect-ratio: 750 / 1624;
+  overflow: hidden;
+  background: #101010;
+}
+
+.pye-playground__video-toggle {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.pye-playground__video-toggle:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .case-playground__dialog {
+    --playground-close-surface: rgb(128 128 128 / 0.2);
+    --playground-close-text: #fff;
+    --playground-media-surface: #242424;
+    color-scheme: dark;
+  }
+}
+
+@media (max-width: 800px) {
+  .case-playground {
+    padding: 96px 0 80px;
+  }
+
+  .case-playground__teaser {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .case-playground__teaser-copy {
+    padding: 32px 24px 16px;
+  }
+
+  .case-playground__trigger {
+    min-height: 32px;
+  }
+
+  .case-playground__teaser-art {
+    width: min(100%, 566px);
+    margin-inline: auto;
+  }
+
+  .case-playground__close {
+    top: 16px;
+    right: 16px;
+  }
+
+  .case-playground__header {
+    padding-top: 80px;
+  }
+
+  .case-playground__header h2 {
+    font-size: 30px;
+    line-height: 36px;
+  }
+
+  .pye-playground {
+    gap: 64px;
+    padding-bottom: 96px;
+  }
+
+  .pye-playground__text {
+    font-size: 17px;
+    line-height: 24px;
+  }
+
+  .pye-playground__visual {
+    width: 100%;
+  }
+
+  .pye-playground__fields--2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pye-playground__stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+    min-height: 0;
+    padding: 24px 16px;
+  }
+
+  .pye-playground__stage--three .pye-playground__screen,
+  .pye-playground__screen {
+    width: min(375px, 100%);
+  }
+
+  .pye-playground__stage--composition {
+    padding: 0;
+  }
+
+  .pye-playground__video-stage {
+    min-height: 0;
+    padding: 24px 16px;
+  }
+
+  .pye-playground__video-screen {
+    width: min(375px, 100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .case-playground__dialog,
+  .case-playground__dialog::backdrop,
+  .case-playground__trigger span:last-child {
+    transition: none;
+  }
+  .pye-playground-teaser-art__card { transition: none; }
+}
 
 .case-video__toggle {
   position: absolute;

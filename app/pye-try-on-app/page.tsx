@@ -3,6 +3,8 @@ import { CaseAccessBoundary } from "@/components/CaseAccessBoundary";
 import { CaseMedia } from "@/components/CaseMedia";
 import { CasePhoneMedia } from "@/components/CasePhoneMedia";
 import { CaseVideo } from "@/components/CaseVideo";
+import { CasePlayground } from "@/components/CasePlayground";
+import { PyePlaygroundContent, PyePlaygroundTeaserArt } from "@/components/PyePlaygroundContent";
 
 const mediaRoot = "pye-tryon-app";
 const slug = "pye-try-on-app";
@@ -169,6 +171,14 @@ export default function PyeTryOnAppPage() {
             </p>
           </section>
         </article>
+
+        <CasePlayground
+          caseSlug={slug}
+          teaserDescription="Alongside the shipped application, we explored a more ambitious vision for its next generation"
+          teaserArtwork={<PyePlaygroundTeaserArt />}
+        >
+          <PyePlaygroundContent />
+        </CasePlayground>
       </main>
     </CaseAccessBoundary>
   );

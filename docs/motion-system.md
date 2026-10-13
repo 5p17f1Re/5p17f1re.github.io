@@ -186,8 +186,19 @@ Target posters подготавливаются только для активн
   `preflight`/`landing`/`handoff`/`fallback`, навигация и shared-cover;
 - `lib/case-cover-motion.ts` — измеренная геометрия, отменяемое ожидание кадров
   и decode изображений; гонки загрузки покрыты `tests/case-cover-motion.test.ts`;
+- `components/CasePlayground.tsx` — URL/history, modal dialog, фокус и блокировка
+  скролла для дополнительного слоя внутри кейса;
 - `components/LocaleTextTransition.tsx` — crossfade локализованного текста;
 - `styles.css` — CSS-маски, blur/opacity и reduced-motion-исключения.
+
+## Playground внутри кейса
+
+Триггер после кейса открывает модальный лист без смены маршрута. URL получает
+`?playground=true`; Back/Forward управляют тем же открытым состоянием. Лист и
+затемнение движутся синхронно за `360 ms` с
+`cubic-bezier(0.22, 1, 0.36, 1)`: лист использует translateY и opacity,
+контент внутри не анимируется отдельно. При `prefers-reduced-motion` переход
+мгновенный. Лист не участвует в shared-cover-таймлайне и не меняет его параметры.
 
 ## Проверка после изменения motion
 

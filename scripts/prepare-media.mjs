@@ -26,8 +26,9 @@ const manifestPath = path.join(generatedDir, "media-manifest.json");
 const statePath = path.join(generatedDir, "media-state.json");
 const publishedMediaPath = path.join(root, "data", "published-media.json");
 const imagePipeline = {
-  version: 1,
+  version: 2,
   widths: [360, 720, 1200, 1600],
+  originalForScreenPng: true,
   placeholderWidth: 96,
   avif: { quality: 72, effort: 5, chromaSubsampling: "4:4:4" },
   webp: { quality: 88, effort: 5, smartSubsample: true },
@@ -267,6 +268,15 @@ for (const { file, source } of imageFiles) {
   ].sort((left, right) => left - right);
   const variants = { avif: [], webp: [] };
   const outputs = [];
+  const preserveOriginal =
+    parsedFile.ext.toLowerCase() === ".png" &&
+    (parsedFile.name.endsWith("-screen") || parsedFile.name.endsWith("-composition") || /-card-(?:front|back)-image$/.test(parsedFile.name));
+
+  if (preserveOriginal) {
+    const originalOutput = path.join(imageOutputDirectory, parsedFile.base);
+    await cp(source, originalOutput);
+    outputs.push(toPosixPath(path.relative(root, originalOutput)));
+  }
 
   for (const width of targetWidths) {
     const base = sharp(source)
@@ -309,6 +319,7 @@ for (const { file, source } of imageFiles) {
     width: sourceWidth,
     height: sourceHeight,
     fallback: `${publicImageDirectory}/${parsedFile.name}-${targetWidths.at(-1)}.webp`,
+    ...(preserveOriginal ? { original: `${publicImageDirectory}/${parsedFile.base}` } : {}),
     avifSrcSet: variants.avif.join(", "),
     webpSrcSet: variants.webp.join(", "),
     placeholder: `data:image/webp;base64,${placeholder.toString("base64")}`,

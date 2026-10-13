@@ -7,6 +7,7 @@ export type MediaAsset = {
   width: number;
   height: number;
   fallback: string;
+  original?: string;
   avifSrcSet: string;
   webpSrcSet: string;
   placeholder: string;
@@ -32,6 +33,7 @@ export function OptimizedImage({
   sizes,
   eager = false,
   prefetch = false,
+  lossless = false,
 }: {
   assetKey: string;
   alt: string;
@@ -39,6 +41,7 @@ export function OptimizedImage({
   sizes: string;
   eager?: boolean;
   prefetch?: boolean;
+  lossless?: boolean;
 }) {
   const asset = getMediaAsset(assetKey);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -75,13 +78,13 @@ export function OptimizedImage({
         backgroundImage: loaded ? "none" : `url("${asset.placeholder}")`,
       }}
     >
-      <source type="image/avif" srcSet={asset.avifSrcSet} sizes={sizes} />
-      <source type="image/webp" srcSet={asset.webpSrcSet} sizes={sizes} />
+      {!lossless && <source type="image/avif" srcSet={asset.avifSrcSet} sizes={sizes} />}
+      {!lossless && <source type="image/webp" srcSet={asset.webpSrcSet} sizes={sizes} />}
       <img
         ref={imageRef}
         className="optimized-image__img"
         data-loaded={loaded ? "true" : undefined}
-        src={asset.fallback}
+        src={lossless ? asset.original ?? asset.fallback : asset.fallback}
         width={asset.width}
         height={asset.height}
         alt={alt}
