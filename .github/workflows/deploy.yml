@@ -42,6 +42,22 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
+      - name: Restore licensed Areal webfonts
+        env:
+          AREAL_REGULAR_A: ${{ secrets.AREAL_REGULAR_A }}
+          AREAL_REGULAR_B: ${{ secrets.AREAL_REGULAR_B }}
+          AREAL_BOLD_A: ${{ secrets.AREAL_BOLD_A }}
+          AREAL_BOLD_B: ${{ secrets.AREAL_BOLD_B }}
+        run: |
+          test -n "$AREAL_REGULAR_A" && test -n "$AREAL_REGULAR_B"
+          test -n "$AREAL_BOLD_A" && test -n "$AREAL_BOLD_B"
+          printf '%s%s' "$AREAL_REGULAR_A" "$AREAL_REGULAR_B" | base64 --decode > app/fonts/ABCAreal-Regular.woff2
+          printf '%s%s' "$AREAL_BOLD_A" "$AREAL_BOLD_B" | base64 --decode > app/fonts/ABCAreal-Bold.woff2
+          printf '%s  %s\n' \
+            '8969ea93c0c8bbc53e5ebb20c8d2ae51a686c9bbf0c5ddd437855ef4792d3054' 'app/fonts/ABCAreal-Regular.woff2' \
+            '89ff1beca5c10f6c46290bbe92066a49cff895007f40db5659f6068b8d85aa4f' 'app/fonts/ABCAreal-Bold.woff2' \
+            | sha256sum --check
+
       - name: Typecheck photo publisher Worker
         run: pnpm --filter photo-publisher-worker typecheck
 

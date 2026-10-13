@@ -22,7 +22,7 @@ export function PhotoFeed({ locale }: { locale: SiteLocale }) {
   const groupedPhotos = groupPhotosByYearAndMonth(getPublishedPhotos());
 
   return (
-    <main className="photo-page">
+    <main className="photo-page" lang={locale}>
       <header className="photo-page__header">
         <p className="photo-page__eyebrow">{text.photosEyebrow}</p>
         <h1 className="photo-page__title">{text.photosTitle}</h1>

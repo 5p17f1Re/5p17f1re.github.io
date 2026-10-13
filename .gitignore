@@ -7,6 +7,11 @@ coverage
 .vercel
 .wrangler
 
+# Dinamo permits web use of ABC Areal but not public Git repositories.
+# Local copies stay outside Git; Pages restores them from repository secrets.
+app/fonts/ABCAreal-Regular.woff2
+app/fonts/ABCAreal-Bold.woff2
+
 # Originals stay in the local iCloud workspace. Git stores only publishable
 # optimized media from public/media/.
 media-originals/*

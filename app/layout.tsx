@@ -12,19 +12,20 @@ const yandexMetricaId = 110991707;
 const shouldLoadGoogleAnalytics = process.env.NODE_ENV === "production";
 const englishAboutDescription = getAbout("en").paragraphs[0];
 
-const inter = localFont({
+const areal = localFont({
   src: [
-    { path: "./fonts/inter-variable.woff2", weight: "500 700" },
+    { path: "./fonts/ABCAreal-Regular.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/ABCAreal-Bold.woff2", weight: "700", style: "normal" },
   ],
-  variable: "--font-inter",
+  variable: "--font-areal",
   display: "swap",
 });
 
-const interTight = localFont({
+const schola = localFont({
   src: [
-    { path: "./fonts/inter-tight-variable.woff2", weight: "500 700" },
+    { path: "./fonts/texgyreschola-regular.otf", weight: "400", style: "normal" },
   ],
-  variable: "--font-inter-tight",
+  variable: "--font-schola",
   display: "swap",
 });
 
@@ -75,8 +76,13 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
-      <body className={`${inter.variable} ${interTight.variable}`}>
+    <html
+      lang="en"
+      className={`${areal.variable} ${schola.variable}`}
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
+      <body>
         <SquircleNoScript />
         <Script id="portfolio-view" strategy="beforeInteractive">
           {`try{document.documentElement.dataset.portfolioView=localStorage.getItem("portfolio-view")==="birdview"?"birdview":"snakeview"}catch(e){document.documentElement.dataset.portfolioView="snakeview"}`}

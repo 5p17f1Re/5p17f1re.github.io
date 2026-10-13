@@ -1316,7 +1316,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
   };
 
   return (
-    <main id="main-content" className="page">
+    <main id="main-content" className="page" lang={activeLocale}>
       <h1 className="visually-hidden">{text.portfolioHeading}</h1>
       <div
         className={`view-stage${nextView ? " view-stage--switching" : ""}`}
