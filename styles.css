@@ -1,11 +1,27 @@
 /* ─── Reset ─────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+@font-face {
+  font-family: "ABC Areal";
+  src: url("/fonts/ABCAreal-Regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "ABC Areal";
+  src: url("/fonts/ABCAreal-Bold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
 /* The user's color table defines the light values; the existing palette is the
    system-dark counterpart. Keep role colors here so the first paint is themed. */
 :root {
   color-scheme: light;
-  --type-font-body-en: var(--font-areal), Arial, sans-serif;
+  --type-font-body-en: "ABC Areal", Arial, sans-serif;
   --type-font-body-ru: "Helvetica Neue", Arial, sans-serif;
   --type-font-body: var(--type-font-body-en);
   --type-font-heading: var(--font-schola), Georgia, serif;

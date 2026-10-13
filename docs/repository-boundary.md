@@ -26,7 +26,7 @@
 - результаты сборки и локальное состояние медиапайплайна: `.next/`, `out/`, `generated/media-state.json`;
 - локальные зависимости, настройки и диагностику: `node_modules/`, `.DS_Store`, `.idea/`, `.vscode/`, логи и отчёты покрытия;
 - секреты и учётные данные: `.env*` (кроме `.env.example`), ключи и сертификаты.
-- файлы `app/fonts/ABCAreal-*.woff2`: бесплатная лицензия Dinamo разрешает веб-использование, но запрещает публикацию файлов шрифта в открытом Git. Для локальной сборки скачай Areal с [официального сайта Dinamo](https://abcdinamo.com/free/areal) и скопируй `ABCAreal-Regular.woff2` и `ABCAreal-Bold.woff2` из папки `WOFF2/` в `app/fonts/`. GitHub Pages получает те же файлы из закрытых Actions secrets перед сборкой.
+- файлы `public/fonts/ABCAreal-*.woff2`: бесплатная лицензия Dinamo разрешает веб-использование, но запрещает публикацию файлов шрифта в открытом Git. Для локальной сборки скачай Areal с [официального сайта Dinamo](https://abcdinamo.com/free/areal) и скопируй `ABCAreal-Regular.woff2` и `ABCAreal-Bold.woff2` из папки `WOFF2/` в `public/fonts/`. GitHub Pages получает те же файлы из закрытых Actions secrets перед сборкой; посетители загружают их с этого сайта по `/fonts/…`.
 
 ## Перед коммитом
 

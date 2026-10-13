@@ -12,15 +12,6 @@ const yandexMetricaId = 110991707;
 const shouldLoadGoogleAnalytics = process.env.NODE_ENV === "production";
 const englishAboutDescription = getAbout("en").paragraphs[0];
 
-const areal = localFont({
-  src: [
-    { path: "./fonts/ABCAreal-Regular.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/ABCAreal-Bold.woff2", weight: "700", style: "normal" },
-  ],
-  variable: "--font-areal",
-  display: "swap",
-});
-
 const schola = localFont({
   src: [
     { path: "./fonts/texgyreschola-regular.otf", weight: "400", style: "normal" },
@@ -78,7 +69,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${areal.variable} ${schola.variable}`}
+      className={schola.variable}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
