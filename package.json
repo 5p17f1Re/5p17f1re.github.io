@@ -6,13 +6,15 @@
     "prepare-media": "node scripts/prepare-media.mjs",
     "prepare-media:force": "node scripts/prepare-media.mjs --force",
     "import-photo-batch": "node scripts/import-photo-batch.mjs",
-    "dev": "next dev",
+    "dev": "node scripts/site-sync.mjs check && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit --incremental false",
     "publisher:typecheck": "pnpm --dir publisher-worker typecheck",
-    "test": "vitest run"
+    "test": "vitest run",
+    "sync:check": "node scripts/site-sync.mjs check",
+    "sync:main": "node scripts/site-sync.mjs sync"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",

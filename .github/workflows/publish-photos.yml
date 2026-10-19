@@ -26,12 +26,14 @@ concurrency:
 
 jobs:
   publish:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: main
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -86,9 +88,8 @@ jobs:
               git commit -m "Publish photo batch"
             fi
           fi
-          # Protect concurrent site changes while allowing the generated batch
-          # to replace the checked-out publication commit when it is unchanged.
-          git push --force-with-lease=refs/heads/main:$(git rev-parse refs/remotes/origin/main) origin HEAD:main
+          # A concurrent site update must reject this push, never be overwritten.
+          git push origin HEAD:main
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Mark batch committed
