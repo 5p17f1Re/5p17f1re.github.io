@@ -1936,7 +1936,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   align-items: flex-start;
   width: min(100%, 488px);
   padding: 64px;
-  color: #fff;
+  color: var(--color-playground-foreground);
 }
 
 .case-playground__teaser-copy h2 {
@@ -1950,7 +1950,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
 .case-playground__teaser-copy p {
   max-width: 360px;
   margin-bottom: 32px;
-  color: rgb(255 255 255 / 0.8);
+  color: var(--color-playground-muted);
   font-family: var(--type-font-body-en, "Helvetica Neue", Helvetica, Arial, sans-serif);
   font-size: 18px;
   font-weight: 400;
@@ -1966,7 +1966,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
   border: 1px solid currentColor;
   border-radius: 999px;
   background: transparent;
-  color: #fff;
+  color: inherit;
   cursor: pointer;
   font-family: var(--type-font-body-en, var(--font-inter), "Inter", sans-serif);
   font-size: 13px;
@@ -2002,7 +2002,7 @@ html[data-case-cover-motion-direction="forward"] .case-title h1 {
 }
 
 .pye-playground-teaser-art:focus-visible {
-  outline: 2px solid #fff;
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: -4px;
 }
 
