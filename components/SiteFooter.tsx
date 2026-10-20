@@ -39,7 +39,7 @@ export function SiteFooter({
   const commitCount = process.env.NEXT_PUBLIC_SITE_COMMIT_COUNT ?? "0";
   const isHome = pathname === "/" || pathname === "/ru" || pathname === "/ru/";
   return (
-    <footer className={`site-footer${isHome ? "" : " site-footer--dark"}`}>
+    <footer className={`site-footer${isHome ? " site-footer--home" : " site-footer--dark"}`}>
       <div ref={contentRef} className="site-footer__content">
         <p className="site-footer__contact">
           {text.footerContactBeforeTelegram}{"\u00a0"}

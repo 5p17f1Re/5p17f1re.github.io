@@ -3,9 +3,11 @@ import type { SiteLocale } from "./locales";
 type ProjectContent = {
   title: string;
   description: string;
+  company?: string;
 };
 
 type ProjectBase = ProjectContent & {
+  year?: string;
   slug?: string;
   transitionId?: string;
   transitionCoverAsset?: string;
@@ -45,6 +47,8 @@ export const projects: Project[] = [
     mediaType: "video",
     tag: "app",
     title: "Carrot Signal",
+    company: "Pet",
+    year: "2026",
     video: "/media/videos/carrot-signal/01-demo.mp4",
     poster: "carrot-signal/01-demo-poster",
     extraImages: ["carrot-signal/02-interface"],
@@ -53,6 +57,7 @@ export const projects: Project[] = [
     localizedContent: {
       ru: {
         title: "Carrot Signal",
+        company: "Пет-проект",
         description: "Приложение, которое расшифровывает записи офлайн и разделяет речь по говорящим.",
       },
     },
@@ -65,12 +70,15 @@ export const projects: Project[] = [
     mediaType: "image",
     tag: "b2b",
     title: "Yandex Eats Analytics",
+    company: "Yandex Eats",
+    year: "2026",
     image: "yandex-eats-panel",
     description:
       "Analytics for Yandex Eats restaurants: a partner workspace with guest, hall and forecast data",
     localizedContent: {
       ru: {
         title: "Аналитика в Яндекс Еде",
+        company: "Яндекс Еда",
         description:
           "Аналитика для ресторанов в Яндекс Еде: рабочий кабинет с данными о гостях, зале и прогнозах",
       },
@@ -80,6 +88,8 @@ export const projects: Project[] = [
     mediaType: "image",
     tag: "ecom",
     title: "Avgvst Jewelry",
+    company: "Breadhead",
+    year: "2021",
     image: "avgvst-jewelry",
     description:
       "A website for jewelry brand AVGVST, bringing shopping together with stories about production and brand character",
@@ -99,6 +109,8 @@ export const projects: Project[] = [
     mediaType: "video",
     tag: "app",
     title: "PYE Home Try-On",
+    company: "Breadhead",
+    year: "2021",
     video: "/media/videos/pye-tryon-app/cover-1156.mp4",
     poster: "pye-tryon-app/01-cover-poster",
     description:
@@ -119,6 +131,8 @@ export const projects: Project[] = [
     mediaType: "image",
     tag: "b2b",
     title: "Starter for Food Halls",
+    company: "Starter",
+    year: "2024",
     image: "starter-foodhalls",
     description:
       "A food hall ordering flow where one basket hides the complexity of ordering from several corners",
@@ -138,6 +152,8 @@ export const projects: Project[] = [
     mediaType: "video",
     tag: "product",
     title: "Starter Stories",
+    company: "Starter",
+    year: "2025",
     video: "/media/videos/starter-stories/16-web-demo.mp4",
     poster: "starter-stories/16-video-poster",
     description:
@@ -154,6 +170,8 @@ export const projects: Project[] = [
     mediaType: "video",
     tag: "promo",
     title: "Samokat",
+    company: "Breadhead",
+    year: "2021",
     video: "/media/videos/samokat-cover.mp4",
     poster: "samokat-1",
     extraImages: ["samokat-2", "samokat-3"],
@@ -171,6 +189,8 @@ export const projects: Project[] = [
     mediaType: "image",
     tag: "editorial",
     title: "Re.View",
+    company: "Breadhead",
+    year: "2025",
     image: "review",
     description:
       "A digital magazine about beauty, health and culture, grown from print into an online publication",
@@ -186,6 +206,8 @@ export const projects: Project[] = [
     mediaType: "image",
     tag: "platform",
     title: "Arxel",
+    company: "Breadhead",
+    year: "2025",
     image: "arxl",
     description:
       "A platform for architects, developers and construction teams, showing the roles and contributions behind a built project",
@@ -201,6 +223,8 @@ export const projects: Project[] = [
     mediaType: "image",
     tag: "place",
     title: "Sevcableport",
+    company: "Breadhead",
+    year: "2020",
     image: "sevcableport",
     description:
       "A website for Sevcableport as a city space: events, territory navigation and places worth visiting",
@@ -216,12 +240,15 @@ export const projects: Project[] = [
     mediaType: "image",
     tag: "product",
     title: "Yandex Eats: Big Orders",
+    company: "Yandex Eats",
+    year: "2025",
     image: "yandex-eats",
     description:
       "A special-courier call flow for large, heavy and oversized orders",
     localizedContent: {
       ru: {
         title: "Большие заказы в Яндекс Еде",
+        company: "Яндекс Еда",
         description:
           "Сценарий вызова спецкурьера для больших, тяжёлых и негабаритных заказов",
       },

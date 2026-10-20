@@ -4,7 +4,7 @@ import { getAbout } from "@/data/about";
 
 const title = "Сева Кудрявцев";
 const description = getAbout("ru").paragraphs[0];
-const portrait = "/media/images/sevakudrytavtsev-600.webp";
+const portrait = "/media/images/seva-portrait-2026-600.webp";
 
 export const metadata: Metadata = {
   title,
