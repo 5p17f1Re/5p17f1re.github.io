@@ -26,7 +26,7 @@ import {
   rememberPortfolioScrollPosition,
   useNavigationViewControls,
 } from "./Navigation";
-import { trackContactIntent, trackEvent, trackOutboundLink } from "./analytics";
+import { trackEvent } from "./analytics";
 
 type ViewMode = "birdview" | "snakeview";
 type ViewLayerState = "current" | "outgoing" | "incoming" | "hidden";
@@ -38,20 +38,18 @@ const viewTransitions = {
     snakeviewExitScale: 0.9,
     birdviewEnterScale: 1.1,
     birdviewRowGapFrom: "174px",
-    birdviewRowGapTo: "120px",
+    birdviewRowGapTo: "80px",
   },
   birdviewToSnakeview: {
     birdviewExitScale: 1.1,
     snakeviewEnterScale: 0.9,
     snakeviewRowGapFrom: "44px",
-    snakeviewRowGapTo: "120px",
+    snakeviewRowGapTo: "80px",
   },
   duration: 0.32,
   totalDurationMs: 320,
 } as const;
 
-const telegramChannelUrl = "https://t.me/mybeautifulheaven";
-const telegramRevealDelayMs = 250;
 const initialCardRevealDelay = 0.22;
 
 const initialCardVariants = {
@@ -65,11 +63,6 @@ const initialCardVariants = {
       ease: easeOutExpo,
     },
   }),
-};
-
-const initialAboutVariants = {
-  hidden: { opacity: 1, y: 0 },
-  visible: { opacity: 1, y: 0 },
 };
 
 function AboutTextReveal({ text }: { text: string }) {
@@ -154,8 +147,8 @@ function ProjectMedia({
   if (project.mediaType === "video") {
     const sizes =
       view === "snakeview"
-        ? "(max-width: 998px) calc(100vw - 64px), 934px"
-        : "(max-width: 600px) 50vw, (max-width: 800px) 50vw, 33vw";
+        ? "(max-width: 998px) calc(100vw - 32px), 934px"
+        : "(max-width: 800px) calc((100vw - 12px) / 2), (max-width: 1440px) calc((100vw - 64px) / 3), 459px";
     if (project.presentation === "centered-offline-app") {
       return (
         <>
@@ -213,7 +206,7 @@ function ProjectMedia({
                 alt={project.title}
                 sizes={
                   view === "snakeview"
-                    ? "(max-width: 998px) calc((100vw - 64px) / 2), 465px"
+                    ? "(max-width: 998px) calc((100vw - 32px) / 2), 465px"
                     : "(max-width: 800px) 50vw, 465px"
                 }
               />
@@ -247,8 +240,8 @@ function ProjectMedia({
         alt={project.title}
         sizes={
           view === "snakeview"
-            ? "(max-width: 998px) calc(100vw - 64px), 934px"
-            : "(max-width: 600px) 50vw, (max-width: 800px) 50vw, 33vw"
+            ? "(max-width: 998px) calc(100vw - 32px), 934px"
+            : "(max-width: 800px) calc((100vw - 12px) / 2), (max-width: 1440px) calc((100vw - 64px) / 3), 459px"
         }
         eager={eager}
       />
@@ -285,6 +278,21 @@ function ProjectCard({
   const cursorPositionRef = useRef<{ x: number; y: number } | null>(null);
   const cursorTargetRef = useRef<{ x: number; y: number } | null>(null);
   const isCursorReturningRef = useRef(false);
+
+  function syncProjectCursorLandingStyle() {
+    const card = interactiveCardRef.current;
+    const button = projectCaseLinkRef.current;
+    if (!card || !button) return;
+    const style = getComputedStyle(button);
+    const cursorLabel = card.querySelector<HTMLElement>(".project__cursor-label");
+    if (view === "birdview" && cursorLabel) {
+      card.style.setProperty("--project-cursor-active-width", `${cursorLabel.offsetWidth + 24}px`);
+    }
+    // The real CTA is the source of truth across views, locales and breakpoints.
+    for (const property of ["width", "height", "padding-top", "padding-right", "padding-bottom", "padding-left", "font-size", "line-height", "letter-spacing", "font-weight"]) {
+      card.style.setProperty(`--project-cursor-landing-${property}`, style.getPropertyValue(property));
+    }
+  }
 
   function setProjectCursorPosition(clientX: number, clientY: number) {
     const interactiveCard = interactiveCardRef.current;
@@ -331,6 +339,12 @@ function ProjectCard({
       Math.hypot(deltaX, deltaY) < 0.75
     ) {
       setProjectCursorPosition(cursorTarget.x, cursorTarget.y);
+      const cursor = interactiveCard.querySelector<HTMLElement>(".project__cursor-read-case");
+      // Short return paths can finish before the pill has finished shrinking.
+      if (cursor?.getAnimations({ subtree: true }).some((animation) => animation.playState === "running" || animation.pending)) {
+        cursorAnimationFrameRef.current = requestAnimationFrame(runProjectCursorAnimation);
+        return;
+      }
       const projectCaseLink = projectCaseLinkRef.current;
 
       if (projectCaseLink) {
@@ -376,6 +390,7 @@ function ProjectCard({
 
     if (!interactiveCard || !projectCaseLink) return;
 
+    syncProjectCursorLandingStyle();
     const buttonBounds = projectCaseLink.getBoundingClientRect();
     cancelProjectCursorAnimation();
 
@@ -410,6 +425,7 @@ function ProjectCard({
 
     if (!interactiveCard || !projectCaseLink) return;
 
+    syncProjectCursorLandingStyle();
     const buttonBounds = projectCaseLink.getBoundingClientRect();
 
     if (!cursorPositionRef.current) return;
@@ -427,31 +443,37 @@ function ProjectCard({
 
   const content = (
     <>
-      <div className="project__header">
-        <h3 className="project__title">
-          <LocaleTextTransition transitionId={localeTextTransitionId}>
-            {project.title}
-          </LocaleTextTransition>
-        </h3>
-      </div>
+      <h3 className="visually-hidden">{project.title}</h3>
       <ProjectMedia
         project={project}
         eager={eager}
         view={view}
         sharedCoverEnabled={sharedCoverEnabled}
       />
-      <p className="project__desc">
-        <LocaleTextTransition transitionId={localeTextTransitionId} block>
-          {project.description}
-        </LocaleTextTransition>
-      </p>
-      {project.slug ? (
-        <span ref={projectCaseLinkRef} className="project__case-link">
-          <LocaleTextTransition transitionId={localeTextTransitionId}>
-            {text.readCase}
+      <div className="project__caption">
+        <p className="project__desc">
+          <LocaleTextTransition transitionId={localeTextTransitionId} block>
+            {project.description}
           </LocaleTextTransition>
-        </span>
-      ) : null}
+        </p>
+        {project.company || project.year ? (
+          <p className="project__meta">
+            {project.company ? <span>{project.company}</span> : null}
+            {project.year ? <span>{project.year}</span> : null}
+          </p>
+        ) : null}
+        {project.slug ? (
+          <span ref={projectCaseLinkRef} className="project__case-link" aria-hidden="true">
+            {view === "birdview" ? (
+              <span className="project__expand-icon" />
+            ) : (
+              <LocaleTextTransition transitionId={localeTextTransitionId}>
+                {text.readCase}
+              </LocaleTextTransition>
+            )}
+          </span>
+        ) : null}
+      </div>
     </>
   );
 
@@ -509,9 +531,12 @@ function ProjectCard({
         className="project__cursor-read-case"
         aria-hidden="true"
       >
-        <LocaleTextTransition transitionId={localeTextTransitionId}>
-          {text.readCase}
-        </LocaleTextTransition>
+        {view === "birdview" ? <span className="project__expand-icon" /> : null}
+        <span className="project__cursor-label">
+          <LocaleTextTransition transitionId={localeTextTransitionId}>
+            {text.readCase}
+          </LocaleTextTransition>
+        </span>
       </span>
     </Link>
   ) : (
@@ -550,6 +575,15 @@ function BirdView({
   reduceMotion: boolean;
   sharedCoverEnabled: boolean;
 }) {
+  const [columns, setColumns] = useState(3);
+  useLayoutEffect(() => {
+    const query = window.matchMedia("(max-width: 800px)");
+    const updateColumns = () => setColumns(query.matches ? 2 : 3);
+    updateColumns();
+    query.addEventListener("change", updateColumns);
+    return () => query.removeEventListener("change", updateColumns);
+  }, []);
+
   return (
     <motion.section
       className="projects projects--birdview"
@@ -578,35 +612,29 @@ function BirdView({
             data-row="0"
             data-column="0"
           >
-            <div className="project__header">
-              <h3 className="project__title">
-                <LocaleTextTransition transitionId={localeTextTransitionId} block>
-                  {about.name}
-                </LocaleTextTransition>
-              </h3>
-            </div>
+            <h3 className="visually-hidden">{about.name}</h3>
             <OptimizedImage
               className="project__img"
-              assetKey="sevakudrytavtsev"
+              assetKey="seva-portrait-2026"
               alt={about.name}
-              sizes="(max-width: 800px) 50vw, 33vw"
+              sizes="(max-width: 800px) calc((100vw - 12px) / 2), (max-width: 1440px) calc((100vw - 64px) / 3), 459px"
               eager
             />
-            <p className="project__desc">
-              <LocaleTextTransition
-                transitionId={localeTextTransitionId}
-                block
-              >
-                {about.paragraphs[0]}
-              </LocaleTextTransition>
-            </p>
+            <div className="project__caption">
+              <p className="project__desc">
+                <LocaleTextTransition transitionId={localeTextTransitionId} block>
+                  {about.photoCaption}
+                </LocaleTextTransition>
+              </p>
+              <p className="project__meta">{about.photoYear}</p>
+            </div>
           </article>
         </motion.div>
       ) : null}
 
       {projects.map((project, index) => {
         const gridIndex = index + (showAbout ? 1 : 0);
-        const row = Math.floor(gridIndex / 3);
+        const row = Math.floor(gridIndex / columns);
 
         return (
           <motion.div
@@ -628,8 +656,8 @@ function BirdView({
               localeTextTransitionId={localeTextTransitionId}
               text={text}
               row={row}
-              column={gridIndex % 3}
-              eager={index < 2}
+              column={gridIndex % columns}
+              eager={index < columns - 1}
               view="birdview"
               sharedCoverEnabled={sharedCoverEnabled}
             />
@@ -645,300 +673,30 @@ function SnakeView({
   locale,
   localeTextTransitionId,
   isLocaleLayoutTransitionActive,
-  showAbout,
   text,
-  about,
   viewReady,
   reduceMotion,
-  revealAboutTextOnLoad,
   sharedCoverEnabled,
 }: {
   projects: Project[];
   locale: SiteLocale;
   localeTextTransitionId: number;
   isLocaleLayoutTransitionActive: boolean;
-  showAbout: boolean;
   text: UiText;
-  about: ReturnType<typeof getAbout>;
   viewReady: boolean;
   reduceMotion: boolean;
-  revealAboutTextOnLoad: boolean;
   sharedCoverEnabled: boolean;
 }) {
-  const telegramCtaRef = useRef<HTMLAnchorElement>(null);
-  const aboutContentRef = useRef<HTMLDivElement>(null);
-  const telegramCursorAnimationFrameRef = useRef<number | null>(null);
-  const telegramCursorPositionRef = useRef<{ x: number; y: number } | null>(
-    null,
-  );
-  const telegramCursorTargetRef = useRef<{ x: number; y: number } | null>(
-    null,
-  );
-  const telegramCursorIsReturningRef = useRef(false);
-
-  function setTelegramCursorPosition(x: number, y: number) {
-    const telegramCta = telegramCtaRef.current;
-
-    if (!telegramCta) return;
-
-    telegramCta.style.setProperty("--telegram-cursor-x", `${x}px`);
-    telegramCta.style.setProperty("--telegram-cursor-y", `${y}px`);
-  }
-
-  function cancelTelegramCursorAnimation() {
-    if (telegramCursorAnimationFrameRef.current !== null) {
-      cancelAnimationFrame(telegramCursorAnimationFrameRef.current);
-      telegramCursorAnimationFrameRef.current = null;
-    }
-  }
-
-  function animateTelegramCursor() {
-    const cursorPosition = telegramCursorPositionRef.current;
-    const cursorTarget = telegramCursorTargetRef.current;
-
-    if (!cursorPosition || !cursorTarget) {
-      cancelTelegramCursorAnimation();
-      return;
-    }
-
-    const easing = telegramCursorIsReturningRef.current ? 0.18 : 0.35;
-    cursorPosition.x += (cursorTarget.x - cursorPosition.x) * easing;
-    cursorPosition.y += (cursorTarget.y - cursorPosition.y) * easing;
-    setTelegramCursorPosition(cursorPosition.x, cursorPosition.y);
-
-    if (
-      Math.hypot(cursorTarget.x - cursorPosition.x, cursorTarget.y - cursorPosition.y) <
-      0.5
-    ) {
-      setTelegramCursorPosition(cursorTarget.x, cursorTarget.y);
-      if (telegramCursorIsReturningRef.current) {
-        const telegramCta = telegramCtaRef.current;
-        delete telegramCta?.dataset.cursorState;
-        telegramCta?.style.removeProperty("--telegram-cursor-x");
-        telegramCta?.style.removeProperty("--telegram-cursor-y");
-        telegramCursorPositionRef.current = null;
-        telegramCursorTargetRef.current = null;
-      }
-      telegramCursorAnimationFrameRef.current = null;
-      return;
-    }
-
-    telegramCursorAnimationFrameRef.current = requestAnimationFrame(
-      animateTelegramCursor,
-    );
-  }
-
-  function startTelegramCursorAnimation() {
-    if (telegramCursorAnimationFrameRef.current !== null) return;
-
-    telegramCursorAnimationFrameRef.current = requestAnimationFrame(
-      animateTelegramCursor,
-    );
-  }
-
-  function showTelegramCursor(event: ReactPointerEvent<HTMLAnchorElement>) {
-    if (
-      event.pointerType !== "mouse" ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
-      return;
-    }
-
-    const telegramCta = telegramCtaRef.current;
-
-    if (!telegramCta) return;
-
-    const bounds = telegramCta.getBoundingClientRect();
-    const targetPosition = {
-      x: event.clientX - bounds.left,
-      y: event.clientY - bounds.top,
-    };
-
-    cancelTelegramCursorAnimation();
-    telegramCursorPositionRef.current = {
-      x: bounds.width / 2,
-      y: bounds.height / 2,
-    };
-    telegramCursorTargetRef.current = targetPosition;
-    telegramCursorIsReturningRef.current = false;
-    setTelegramCursorPosition(bounds.width / 2, bounds.height / 2);
-    telegramCta.dataset.cursorState = "active";
-    startTelegramCursorAnimation();
-  }
-
-  function moveTelegramCursor(event: ReactPointerEvent<HTMLAnchorElement>) {
-    if (event.pointerType !== "mouse") return;
-
-    const telegramCta = telegramCtaRef.current;
-
-    if (!telegramCta) return;
-
-    const bounds = telegramCta.getBoundingClientRect();
-    telegramCursorTargetRef.current = {
-      x: event.clientX - bounds.left,
-      y: event.clientY - bounds.top,
-    };
-    telegramCursorIsReturningRef.current = false;
-    startTelegramCursorAnimation();
-  }
-
-  function hideTelegramCursor() {
-    const telegramCta = telegramCtaRef.current;
-    const cursorPosition = telegramCursorPositionRef.current;
-
-    if (!telegramCta || !cursorPosition) return;
-
-    const bounds = telegramCta.getBoundingClientRect();
-    telegramCursorTargetRef.current = {
-      x: bounds.width / 2,
-      y: bounds.height / 2,
-    };
-    telegramCursorIsReturningRef.current = true;
-    startTelegramCursorAnimation();
-  }
-
-  useEffect(() => cancelTelegramCursorAnimation, []);
-
-  useLayoutEffect(() => {
-    const content = aboutContentRef.current;
-    if (!content) return;
-    const aboutContent = content;
-
-    function orderAboutTextRevealLines() {
-      const telegramCta = telegramCtaRef.current;
-      if (!telegramCta) return;
-
-      const lines = Array.from(
-        aboutContent.querySelectorAll<HTMLElement>(
-          ".about-text-reveal__line",
-        ),
-      );
-
-      if (!lines.length) {
-        telegramCta.dataset.textRevealReady = "false";
-        return;
-      }
-
-      let nextLineDelayMs = 0;
-
-      lines.forEach((line) => {
-        const characterCount = line.textContent?.trim().length ?? 0;
-        const durationMs = Math.min(480, Math.max(240, 144 + characterCount * 6));
-        const lineDelayMs = reduceMotion ? 0 : nextLineDelayMs;
-
-        line.style.setProperty("--about-text-reveal-duration", `${durationMs}ms`);
-        line.style.setProperty("--about-text-reveal-delay", `${lineDelayMs}ms`);
-        nextLineDelayMs += durationMs * 0.07;
-      });
-
-      telegramCta.style.setProperty(
-        "--hero-about-telegram-reveal-delay",
-        `${reduceMotion ? 0 : telegramRevealDelayMs}ms`,
-      );
-      telegramCta.dataset.textRevealReady = "true";
-    }
-
-    const observer = new MutationObserver(orderAboutTextRevealLines);
-    observer.observe(aboutContent, { childList: true, subtree: true });
-    orderAboutTextRevealLines();
-
-    return () => observer.disconnect();
-  }, [reduceMotion]);
-
   return (
     <motion.section
       className="projects projects--snakeview"
       aria-labelledby="snakeview-heading"
-      data-about-text-reveal={revealAboutTextOnLoad ? "true" : undefined}
       initial={false}
       animate={viewReady || reduceMotion ? "visible" : "hidden"}
     >
       <h2 id="snakeview-heading" className="visually-hidden">
         {text.snakeview}
       </h2>
-      {showAbout ? (
-        <motion.article
-          className="project hero-about"
-          layout="position"
-          transition={{
-            layout: {
-              duration: isLocaleLayoutTransitionActive ? 0.24 : 0,
-              ease: viewTransitionEase,
-            },
-          }}
-          variants={initialAboutVariants}
-        >
-          <div className="hero-about__content" ref={aboutContentRef}>
-            <div className="hero-about__header">
-              <h3 className="hero-about__title">
-                <LocaleTextTransition transitionId={localeTextTransitionId}>
-                  <AboutTextReveal text={about.name} />
-                </LocaleTextTransition>
-              </h3>
-            </div>
-            <p className="hero-about__desc">
-              <LocaleTextTransition transitionId={localeTextTransitionId} block>
-                <AboutTextReveal text={about.paragraphs[0]} />
-              </LocaleTextTransition>
-            </p>
-            {about.paragraphs.slice(1).map((paragraph) => (
-              <p className="hero-about__desc gray" key={paragraph}>
-                <LocaleTextTransition transitionId={localeTextTransitionId} block>
-                  <AboutTextReveal text={paragraph} />
-                </LocaleTextTransition>
-            </p>
-            ))}
-            <a
-              ref={telegramCtaRef}
-              className="hero-about__telegram"
-              href={telegramChannelUrl}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={text.telegramChannelLinkLabel}
-              onClick={() => {
-                trackOutboundLink("telegram", "snakeview_about_cta");
-                trackContactIntent("telegram", "snakeview_about_cta");
-              }}
-              onPointerEnter={showTelegramCursor}
-              onPointerMove={moveTelegramCursor}
-              onPointerLeave={hideTelegramCursor}
-            >
-              <span className="hero-about__telegram-inner">
-                <img
-                  className="hero-about__telegram-logo"
-                  src="/assets/telegram/mybeautifulheaven-logo.png"
-                  alt=""
-                />
-                <span className="hero-about__telegram-copy">
-                  <span className="hero-about__telegram-title">
-                    <LocaleTextTransition transitionId={localeTextTransitionId}>
-                      {text.telegramChannelTitle}
-                    </LocaleTextTransition>
-                  </span>
-                  <span className="hero-about__telegram-description">
-                    <span className="hero-about__telegram-description-default">
-                      <LocaleTextTransition transitionId={localeTextTransitionId}>
-                        {text.telegramChannelDescription}
-                      </LocaleTextTransition>
-                    </span>
-                    <span className="hero-about__telegram-description-hover">
-                      <LocaleTextTransition transitionId={localeTextTransitionId}>
-                        {text.telegramChannelHoverDescription}
-                      </LocaleTextTransition>
-                    </span>
-                  </span>
-                </span>
-                <img
-                  className="hero-about__telegram-arrow"
-                  src="/assets/telegram/external-arrow.svg"
-                  alt=""
-                />
-              </span>
-            </a>
-          </div>
-        </motion.article>
-      ) : null}
-
       {projects.map((project, index) => (
         <motion.div
           key={getProjectIdentity(project)}
@@ -965,6 +723,69 @@ function SnakeView({
         </motion.div>
       ))}
     </motion.section>
+  );
+}
+
+function PortfolioIntro({ about, localeTextTransitionId, reveal, reduceMotion }: {
+  about: ReturnType<typeof getAbout>;
+  localeTextTransitionId: number;
+  reveal: boolean;
+  reduceMotion: boolean;
+}) {
+  const aboutContentRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const content = aboutContentRef.current;
+    if (!content) return;
+    const aboutContent = content;
+
+    function orderAboutTextRevealLines() {
+      const lines = Array.from(
+        aboutContent.querySelectorAll<HTMLElement>(
+          ".about-text-reveal__line",
+        ),
+      );
+
+      if (!lines.length) return;
+
+      let nextLineDelayMs = 0;
+
+      lines.forEach((line) => {
+        const characterCount = line.textContent?.trim().length ?? 0;
+        const durationMs = Math.min(480, Math.max(240, 144 + characterCount * 6));
+        const lineDelayMs = reduceMotion ? 0 : nextLineDelayMs;
+
+        line.style.setProperty("--about-text-reveal-duration", `${durationMs}ms`);
+        line.style.setProperty("--about-text-reveal-delay", `${lineDelayMs}ms`);
+        nextLineDelayMs += durationMs * 0.07;
+      });
+    }
+
+    const observer = new MutationObserver(orderAboutTextRevealLines);
+    observer.observe(aboutContent, { childList: true, subtree: true });
+    orderAboutTextRevealLines();
+
+    return () => observer.disconnect();
+  }, [reduceMotion]);
+
+  return (
+    <section className="portfolio-intro" aria-label={about.name}
+      data-about-text-reveal={reveal ? "true" : undefined}>
+      <div ref={aboutContentRef} className="hero-about__content">
+        <h2 className="hero-about__title">
+          <LocaleTextTransition transitionId={localeTextTransitionId}>
+            <AboutTextReveal text={about.name} />
+          </LocaleTextTransition>
+        </h2>
+        {about.paragraphs.map((paragraph, index) => (
+          <p className={`hero-about__desc${index ? " gray" : ""}`} key={index}>
+            <LocaleTextTransition transitionId={localeTextTransitionId} block>
+              <AboutTextReveal text={paragraph} />
+            </LocaleTextTransition>
+          </p>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -1006,6 +827,32 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
   const birdviewLayerRef = useRef<HTMLDivElement>(null);
   const snakeviewLayerRef = useRef<HTMLDivElement>(null);
   const heightCacheRef = useRef<Partial<Record<ViewMode, number>>>({});
+  const switchScrollRef = useRef<{
+    target: ViewMode;
+    stageTop: number;
+    sourceHeight: number;
+    scroll: number;
+  } | null>(null);
+
+  useLayoutEffect(() => {
+    const pending = switchScrollRef.current;
+    if (!pending || nextView || view !== pending.target) return;
+    const targetLayer = pending.target === "birdview"
+      ? birdviewLayerRef.current
+      : snakeviewLayerRef.current;
+    const targetHeight = targetLayer?.querySelector<HTMLElement>(".projects")?.offsetHeight;
+    if (!targetHeight) return;
+    switchScrollRef.current = null;
+    if (pending.scroll <= pending.stageTop) return;
+    const footerHeight = document.querySelector(".site-footer")?.getBoundingClientRect().height ?? 0;
+    const sourceMax = Math.max(1, pending.sourceHeight + footerHeight - window.innerHeight);
+    const targetMax = Math.max(0, targetHeight + footerHeight - window.innerHeight);
+    const progress = Math.min(1, Math.max(0, pending.scroll - pending.stageTop) / sourceMax);
+    // Scroll after the target layout is committed, so the browser cannot clamp
+    // the desired position to the shorter outgoing document.
+    window.scrollTo({ top: pending.stageTop + progress * targetMax, behavior: "instant" });
+  }, [nextView, view]);
+
 
   const startLocaleLayoutTransition = useCallback(() => {
     if (localeLayoutTransitionTimerRef.current) {
@@ -1065,7 +912,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
     /* eslint-disable react-hooks/set-state-in-effect -- The client-only preference is applied after hydration. */
     setView(initialView);
     setRevealAboutTextOnLoad(
-      initialView === "snakeview" && !skipAboutTextRevealRef.current,
+      !skipAboutTextRevealRef.current,
     );
     setViewReady(true);
     /* eslint-enable react-hooks/set-state-in-effect */
@@ -1195,6 +1042,17 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
       setAlternateViewPrepared(true);
     }
 
+    const sourceHeight = getProjectsHeight(transitionSource);
+    const stage = getLayer(transitionSource)?.parentElement;
+    if (sourceHeight && stage) {
+      switchScrollRef.current = {
+        target: next,
+        stageTop: stage.getBoundingClientRect().top + window.scrollY,
+        sourceHeight,
+        scroll: window.scrollY,
+      };
+    }
+
     if (reduceMotion) {
       setView(next);
       return;
@@ -1215,18 +1073,6 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
     const targetHeight =
       heightCacheRef.current[next] ??
       getProjectsHeight(next);
-
-    if (currentHeight && targetHeight) {
-      const viewportHeight = window.innerHeight;
-      const currentMax = Math.max(1, currentHeight - viewportHeight);
-      const targetMax = Math.max(0, targetHeight - viewportHeight);
-      const progress = Math.min(1, window.scrollY / currentMax);
-
-      window.scrollTo({
-        top: progress * targetMax,
-        behavior: "instant",
-      });
-    }
 
     setContainerHeight(targetHeight ?? currentHeight);
     setView(transitionSource);
@@ -1318,6 +1164,8 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
   return (
     <main id="main-content" className="page" lang={activeLocale}>
       <h1 className="visually-hidden">{text.portfolioHeading}</h1>
+      <PortfolioIntro about={about} localeTextTransitionId={localeTextTransitionId}
+        reveal={revealAboutTextOnLoad} reduceMotion={Boolean(reduceMotion)} />
       <div
         className={`view-stage${nextView ? " view-stage--switching" : ""}`}
         data-view-ready={viewReady ? "true" : "false"}
@@ -1330,6 +1178,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
               animate={layerAnimation("birdview") as Record<string, string | number>}
               transition={viewLayerTransition}
               aria-hidden={displayedView !== "birdview"}
+              inert={displayedView !== "birdview"}
             >
               <BirdView
                 projects={projects}
@@ -1354,20 +1203,18 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
               animate={layerAnimation("snakeview") as Record<string, string | number>}
               transition={viewLayerTransition}
               aria-hidden={displayedView !== "snakeview"}
+              inert={displayedView !== "snakeview"}
             >
               <SnakeView
                 projects={projects}
                 locale={activeLocale}
                 localeTextTransitionId={localeTextTransitionId}
                 isLocaleLayoutTransitionActive={isLocaleLayoutTransitionActive}
-                showAbout={showAbout}
                 text={text}
-                about={about}
                 viewReady={
                   viewReady || activeCoverMotion?.direction === "return"
                 }
                 reduceMotion={Boolean(reduceMotion)}
-                revealAboutTextOnLoad={revealAboutTextOnLoad}
                 sharedCoverEnabled={displayedView === "snakeview"}
               />
             </motion.div> : null}

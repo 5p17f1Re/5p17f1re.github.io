@@ -2,26 +2,28 @@ import type { SiteLocale } from "./locales";
 
 export type AboutContent = {
   name: string;
+  photoCaption: string;
+  photoYear: string;
   paragraphs: string[];
 };
 
 const aboutByLocale: Record<SiteLocale, AboutContent> = {
   en: {
     name: "Seva Kudryavtsev",
+    photoCaption: "Photo of Seva Kudryavtsev",
+    photoYear: "2026",
     paragraphs: [
-      "Designer who combines the quality of consumer interfaces with the systems thinking behind complex products.",
-      "I design digital products from early concepts to launch, shaping how they look, behave, and communicate.",
-      "Currently I design products for restaurants at Yandex Eats.",
-      "Before that, I led product design at Starter. Earlier, I designed and launched digital products for P·Y·E, AVGVST, Samokat and Auto.ru.",
+      "Digital Designer — combines the quality of consumer interfaces with the systems thinking behind complex products.",
+      "Currently I design products for restaurants at Yandex Eats. Before that, I led product design at Starter. Earlier, I designed and launched digital products for ecom, foodtech and bigtech.",
     ],
   },
   ru: {
     name: "Сева Кудрявцев",
+    photoCaption: "Фото Севы Кудрявцева",
+    photoYear: "2026",
     paragraphs: [
-      "Дизайнер, который сочетает качество потребительских интерфейсов с системным мышлением, необходимым для сложных продуктов.",
-      "Веду продукт от идеи до запуска: определяю, как он выглядит, работает и ощущается.",
-      "Сейчас проектирую продукты для ресторанов в Яндекс Еде.",
-      "До этого руководил продуктовым дизайном в Starter. Ранее проектировал и запускал цифровые продукты для P·Y·E, Avgvst, Самоката и Auto.ru.",
+      "Продуктовый дизайнер — создаю сложные сервисы, сохраняя удобство потребительских продуктов.",
+      "Сейчас проектирую продукты для ресторанов в Яндекс Еде. До этого руководил продуктовым дизайном в Starter. Ранее проектировал и запускал цифровые продукты для екома, фудтеха и бигтеха.",
     ],
   },
 };

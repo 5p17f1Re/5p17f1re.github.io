@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
   icons: {
     icon: {
-      url: "/media/images/sevakudrytavtsev-360.webp",
+      url: "/media/images/seva-portrait-2026-360.webp",
       type: "image/webp",
     },
   },
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     description: englishAboutDescription,
     images: [
       {
-        url: "/media/images/sevakudrytavtsev-600.webp",
+        url: "/media/images/seva-portrait-2026-600.webp",
         width: 600,
         height: 600,
         alt: "Seva Kudryavtsev",
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Seva Kudryavtsev",
     description: englishAboutDescription,
-    images: ["/media/images/sevakudrytavtsev-600.webp"],
+    images: ["/media/images/seva-portrait-2026-600.webp"],
   },
 };
 
