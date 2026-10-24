@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
   useCallback,
@@ -271,7 +272,7 @@ function ProjectCard({
   view: ViewMode;
   sharedCoverEnabled: boolean;
 }) {
-  const { active: activeCoverMotion, openCase } = useCaseCoverMotion();
+  const { active: activeCoverMotion, pressCase, cancelCasePress, openCase } = useCaseCoverMotion();
   const interactiveCardRef = useRef<HTMLAnchorElement>(null);
   const projectCaseLinkRef = useRef<HTMLSpanElement>(null);
   const cursorAnimationFrameRef = useRef<number | null>(null);
@@ -491,6 +492,19 @@ function ProjectCard({
   const casePath = project.slug
     ? getCasePath({ locale, slug: project.slug })
     : null;
+  const homePath = locale === "ru" ? "/ru/" : "/";
+
+  function handleCasePointerDown(event: ReactPointerEvent<HTMLAnchorElement>) {
+    if (!project.transitionId || event.button !== 0 || !event.isPrimary ||
+      event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    pressCase(event.currentTarget, project.transitionId, homePath, event.pointerId);
+  }
+
+  function handleCaseKeyDown(event: ReactKeyboardEvent<HTMLAnchorElement>) {
+    if (!project.transitionId || event.key !== "Enter" || event.repeat ||
+      event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    pressCase(event.currentTarget, project.transitionId, homePath);
+  }
 
   function handleCaseOpen(event: ReactMouseEvent<HTMLAnchorElement>) {
     if (!project.slug || !project.transitionId || !casePath) return;
@@ -506,7 +520,7 @@ function ProjectCard({
       openCase(event, {
         transitionId: project.transitionId,
         casePath,
-        homePath: locale === "ru" ? "/ru/" : "/",
+        homePath,
         view,
       })
     ) {
@@ -522,9 +536,18 @@ function ProjectCard({
       href={casePath!}
       aria-label={text.openCaseStudy(project.title)}
       onClick={handleCaseOpen}
+      onPointerDown={handleCasePointerDown}
+      onPointerCancel={(event) => project.transitionId && cancelCasePress(project.transitionId, event.pointerId)}
+      onKeyDown={handleCaseKeyDown}
+      onBlur={() => project.transitionId && cancelCasePress(project.transitionId)}
       onPointerEnter={showProjectCursor}
       onPointerMove={moveProjectCursor}
-      onPointerLeave={hideProjectCursor}
+      onPointerLeave={(event) => {
+        hideProjectCursor();
+        if (event.pointerType === "mouse" && project.transitionId) {
+          cancelCasePress(project.transitionId, event.pointerId);
+        }
+      }}
     >
       {content}
       <span

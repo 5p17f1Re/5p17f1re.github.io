@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { getPlaygroundPaths } from "@/data/playground-path";
 
-const closeDuration = 360;
+const closeDuration = 240;
 
 function playgroundIsOpen(caseSlug: string) {
   return getPlaygroundPaths(window.location.pathname, caseSlug)?.isOpen ?? false;

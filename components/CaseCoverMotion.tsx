@@ -31,8 +31,23 @@ type ActiveTransition = TransitionSnapshot & {
   offscreenReturn: boolean;
   destinationCoverRect?: CoverRect;
 };
+type PressPreparation = {
+  transitionId: string;
+  homePath: string;
+  cover: HTMLElement;
+  animation: AnimationPlaybackControls;
+  transform: string;
+  transformOrigin: string;
+  naturalRect: CoverRect;
+  pointerId?: number;
+  ready: boolean;
+  launched: boolean;
+  snapshot?: TransitionSnapshot;
+};
 type CaseCoverActions = {
   registerCoverContent: (id: string, target: boolean, content: ReactNode) => void;
+  pressCase: (target: HTMLAnchorElement, transitionId: string, homePath: string, pointerId?: number) => void;
+  cancelCasePress: (transitionId: string, pointerId?: number) => void;
   openCase: (
     event: ReactMouseEvent<HTMLAnchorElement>,
     snapshot: Omit<TransitionSnapshot, "scrollY" | "sourceCoverRect">,
@@ -44,6 +59,8 @@ type CaseCoverMotionContextValue = CaseCoverActions & { active: ActiveTransition
 const storageKey = "case-cover-motion-snapshot";
 const recoveryTimeoutMs = 5000;
 const preparationAttempts = 30;
+const coverPressScale = 0.95;
+const coverPressDuration = 0.16;
 // Match the approved local flight while retaining the cancelable route and
 // image-readiness lifecycle. Motion owns completion, not an elapsed timer.
 const motionDuration = { forward: 0.64, return: 0.48, offscreen: 0.45 };
@@ -160,7 +177,17 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
   const nextTokenRef = useRef(0);
   const recoveryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navigationFrameRef = useRef<number | null>(null);
+  const pressRef = useRef<PressPreparation | null>(null);
   const registryRef = useRef(new Map<string, { source?: ReactNode; target?: ReactNode }>());
+
+  const cancelPress = useCallback(() => {
+    const press = pressRef.current;
+    if (!press) return;
+    pressRef.current = null;
+    press.animation.cancel();
+    press.cover.style.transform = press.transform;
+    press.cover.style.transformOrigin = press.transformOrigin;
+  }, []);
 
   const setTransition = useCallback((next: ActiveTransition | null) => {
     activeRef.current = next;
@@ -174,6 +201,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
 
   const complete = useCallback((token: number) => {
     if (activeRef.current?.token !== token) return;
+    cancelPress();
     if (activeRef.current.direction === "return") {
       lastSnapshotRef.current = null;
       try { sessionStorage.removeItem(storageKey); } catch { /* Storage is optional. */ }
@@ -185,7 +213,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     setTransition(null);
     setContent(null);
     setReplacementContent(null);
-  }, [setTransition]);
+  }, [cancelPress, setTransition]);
 
   const begin = useCallback((
     snapshot: TransitionSnapshot, direction: Direction,
@@ -228,22 +256,74 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const openCase = useCallback<CaseCoverActions["openCase"]>((event, snapshot) => {
-    if (!isPlainPrimaryClick(event) || reduceMotion) return false;
-    if (activeRef.current) return true;
-    const cover = event.currentTarget.querySelector<HTMLElement>(
-      `[data-case-cover-motion="${CSS.escape(snapshot.transitionId)}"]`,
+  const finishPress = useCallback((press: PressPreparation) => {
+    if (pressRef.current !== press || !press.ready || !press.snapshot || press.launched) return;
+    press.launched = true;
+    const pressedRect = snapshotCoverRect(press.cover.getBoundingClientRect());
+    lastSnapshotRef.current = press.snapshot;
+    writeSnapshot(press.snapshot);
+    const flightToken = begin(press.snapshot, "forward", pressedRect);
+    navigate(press.snapshot.casePath, flightToken);
+  }, [begin, navigate]);
+
+  const pressCase = useCallback<CaseCoverActions["pressCase"]>((target, transitionId, homePath, pointerId) => {
+    if (reduceMotion || activeRef.current) return;
+    if (pressRef.current) {
+      if (pressRef.current.snapshot) return;
+      cancelPress();
+    }
+    const cover = target.querySelector<HTMLElement>(
+      `[data-case-cover-motion="${CSS.escape(transitionId)}"]`,
     );
     const rect = cover?.getBoundingClientRect();
-    if (!rect?.width || !rect.height) return false;
+    if (!cover || !rect?.width || !rect.height) return;
+    const transform = cover.style.transform;
+    const transformOrigin = cover.style.transformOrigin;
+    cover.style.transformOrigin = "center center";
+    const animation = animate(cover, {
+      transform: ["scale(1)", `scale(${coverPressScale})`],
+    }, { duration: coverPressDuration, ease: [0.2, 0, 0.2, 1] });
+    const press: PressPreparation = {
+      transitionId, homePath, cover, animation, transform, transformOrigin,
+      naturalRect: snapshotCoverRect(rect), pointerId, ready: false, launched: false,
+    };
+    pressRef.current = press;
+    void animation.finished.then(() => {
+      if (pressRef.current !== press) return;
+      // The real cover holds its pressed size until the flight takes over.
+      animation.cancel();
+      cover.style.transform = `scale(${coverPressScale})`;
+      press.ready = true;
+      finishPress(press);
+    }).catch(() => { /* A canceled press must not open the case. */ });
+  }, [cancelPress, finishPress, reduceMotion]);
+
+  const cancelCasePress = useCallback<CaseCoverActions["cancelCasePress"]>((transitionId, pointerId) => {
+    const press = pressRef.current;
+    if (press?.transitionId === transitionId && press.pointerId === pointerId && !press.snapshot) cancelPress();
+  }, [cancelPress]);
+
+  const openCase = useCallback<CaseCoverActions["openCase"]>((event, snapshot) => {
+    if (!isPlainPrimaryClick(event) || reduceMotion) {
+      if (pressRef.current && !pressRef.current.snapshot) cancelPress();
+      return false;
+    }
+    if (activeRef.current || pressRef.current?.snapshot) {
+      event.preventDefault();
+      return true;
+    }
+    if (!pressRef.current || pressRef.current.transitionId !== snapshot.transitionId) {
+      pressCase(event.currentTarget, snapshot.transitionId, snapshot.homePath);
+    }
+    const press = pressRef.current;
+    if (!press || press.transitionId !== snapshot.transitionId) return false;
     event.preventDefault();
-    const nextSnapshot = { ...snapshot, scrollY: window.scrollY, sourceCoverRect: snapshotCoverRect(rect) };
-    lastSnapshotRef.current = nextSnapshot;
-    writeSnapshot(nextSnapshot);
-    const token = begin(nextSnapshot, "forward", nextSnapshot.sourceCoverRect);
-    navigate(snapshot.casePath, token);
+    press.snapshot = {
+      ...snapshot, scrollY: window.scrollY, sourceCoverRect: press.naturalRect,
+    };
+    finishPress(press);
     return true;
-  }, [begin, navigate, reduceMotion]);
+  }, [cancelPress, finishPress, pressCase, reduceMotion]);
 
   const prepareReturn = useCallback((snapshot: TransitionSnapshot, offscreen = false) => {
     document.documentElement.dataset.portfolioView = snapshot.view;
@@ -270,6 +350,10 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const handlePopState = () => {
+      if (pressRef.current && !activeRef.current) {
+        cancelPress();
+        return;
+      }
       // History takes priority over a flight, including its pending router push.
       if (activeRef.current) {
         complete(activeRef.current.token);
@@ -282,7 +366,12 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
-  }, [complete, prepareReturn, reduceMotion]);
+  }, [cancelPress, complete, prepareReturn, reduceMotion]);
+
+  useEffect(() => {
+    if (pressRef.current && !activeRef.current &&
+      normalizedPath(pathname) !== normalizedPath(pressRef.current.homePath)) cancelPress();
+  }, [cancelPress, pathname]);
 
   useLayoutEffect(() => {
     if (!active) return;
@@ -339,16 +428,23 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
   }, [active, complete]);
 
   useEffect(() => {
+    if (reduceMotion) {
+      const acceptedPath = !activeRef.current ? pressRef.current?.snapshot?.casePath : undefined;
+      cancelPress();
+      if (acceptedPath) router.push(acceptedPath);
+    }
     if (reduceMotion && activeRef.current) complete(activeRef.current.token);
-  }, [complete, reduceMotion]);
+  }, [cancelPress, complete, reduceMotion, router]);
 
   useEffect(() => () => {
+    cancelPress();
     if (recoveryTimerRef.current !== null) clearTimeout(recoveryTimerRef.current);
     if (navigationFrameRef.current !== null) cancelAnimationFrame(navigationFrameRef.current);
     applyTransitionAttributes(null);
-  }, []);
+  }, [cancelPress]);
 
-  const actions = useMemo(() => ({ registerCoverContent, openCase, returnHome }), [registerCoverContent, openCase, returnHome]);
+  const actions = useMemo(() => ({ registerCoverContent, pressCase, cancelCasePress, openCase, returnHome }),
+    [registerCoverContent, pressCase, cancelCasePress, openCase, returnHome]);
   const context = useMemo(() => ({ ...actions, active }), [actions, active]);
   return (
     <CaseCoverActionsContext.Provider value={actions}>
