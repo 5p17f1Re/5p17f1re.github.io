@@ -68,6 +68,8 @@
   --color-case-cover-backdrop: transparent;
   --color-project-stage: rgb(128 128 128 / 20%);
   --color-phone-stage: rgb(128 128 128 / 30%);
+  --button-press-scale: 0.9;
+  --button-press-duration: 100ms;
   --mobile-nav-footer-offset: 0px;
 }
 
@@ -99,6 +101,8 @@ body:has(main[lang="ru"]) {
     --color-text-nav-active: #fff;
     --color-text-tooltip: #fff;
     --color-text-not-found: rgba(255, 255, 255, 0.35);
+    --color-expand-surface: #292929;
+    --color-expand-icon: #fff;
     --color-glass-tint: rgba(135, 135, 135, 0.3);
     --color-glass-base: rgba(0, 0, 0, 0.4);
     --color-tooltip-base: rgba(0, 0, 0, 0.8);
@@ -116,6 +120,14 @@ body:has(main[lang="ru"]) {
 ::selection {
   color: var(--color-text-on-accent);
   background: var(--color-accent-carrot);
+}
+
+:where(button:not(:disabled)) {
+  transition: scale var(--button-press-duration) ease;
+}
+
+:where(button:not(:disabled):active) {
+  scale: var(--button-press-scale);
 }
 
 /* ─── Base ──────────────────────────────────────────────────────────────── */
@@ -364,6 +376,7 @@ html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="pr
 }
 
 html[data-case-cover-motion-direction="forward"] [data-case-cover-role="target"][data-case-cover-motion],
+html[data-case-cover-motion-direction="forward"] .project[data-case-cover-active="true"] [data-case-cover-role="source"],
 html[data-case-cover-motion-direction="return"] .project[data-case-cover-active="true"] [data-case-cover-role="source"] {
   visibility: hidden;
 }
@@ -432,7 +445,8 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
   transition:
     width var(--nav-transition-duration) var(--nav-transition-easing),
     transform var(--nav-transition-duration) var(--nav-transition-easing),
-    opacity var(--nav-transition-duration) var(--nav-transition-easing);
+    opacity var(--nav-transition-duration) var(--nav-transition-easing),
+    scale var(--button-press-duration) ease;
 }
 
 .nav[data-indicator-visible="true"] .nav__indicator {
@@ -442,6 +456,10 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
 
 .nav[data-indicator-reentering="true"] .nav__indicator {
   transition: none;
+}
+
+.nav:has(.nav__link:active) .nav__indicator {
+  scale: var(--button-press-scale);
 }
 
 .nav__link {
@@ -470,7 +488,8 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
     width var(--nav-transition-duration) var(--nav-transition-easing),
     color var(--nav-transition-duration) var(--nav-transition-easing),
     box-shadow var(--nav-transition-duration) var(--nav-transition-easing),
-    opacity var(--nav-transition-duration) var(--nav-transition-easing);
+    opacity var(--nav-transition-duration) var(--nav-transition-easing),
+    scale var(--button-press-duration) ease;
 }
 
 .nav__link:last-child {
@@ -482,7 +501,11 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
 }
 
 .nav[data-nav-width-ready="false"] .nav__home {
-  transition-property: color, box-shadow, opacity;
+  transition:
+    color var(--nav-transition-duration) var(--nav-transition-easing),
+    box-shadow var(--nav-transition-duration) var(--nav-transition-easing),
+    opacity var(--nav-transition-duration) var(--nav-transition-easing),
+    scale var(--button-press-duration) ease;
 }
 
 .nav__link:focus-visible {
@@ -495,6 +518,7 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
 .nav__link:active {
   color: var(--color-text-nav-active);
   background-color: var(--color-accent-carrot);
+  scale: var(--button-press-scale);
 }
 
 .nav__link:disabled {
@@ -745,7 +769,8 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
   cursor: pointer;
   transition:
     height 100ms ease-out,
-    padding 100ms ease-out;
+    padding 100ms ease-out,
+    scale var(--button-press-duration) ease;
 }
 
 @media (hover: hover) {
@@ -1440,9 +1465,16 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
   color: var(--color-expand-icon);
   width: var(--project-cursor-landing-width, 24px);
   overflow: hidden;
-  transition-property: width, height, padding, font-size, line-height, letter-spacing, opacity, background-color, color;
-  transition-duration: 180ms;
-  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    width 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    height 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    padding 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    font-size 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    line-height 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    letter-spacing 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 180ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .projects--birdview .project__cursor-read-case .project__expand-icon,
 .projects--birdview .project__cursor-label {
@@ -1570,6 +1602,11 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
   margin-top: 24px;
   padding: 13px 12px 15px;
   text-decoration: none;
+  transition: scale var(--button-press-duration) ease;
+}
+
+.not-found-page__button:active {
+  scale: var(--button-press-scale);
 }
 
 @media (max-width: 800px) {
@@ -1844,7 +1881,7 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
 .case-playground__dialog {
   --playground-close-surface: #f0f0f0;
   --playground-close-text: #333;
-  --playground-media-surface: #e6e6e6;
+  --playground-media-surface: rgb(128 128 128 / 20%);
   position: fixed;
   inset: 56px 0 0;
   width: 100%;
@@ -1869,6 +1906,11 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
   transform: translateY(0);
 }
 
+.case-playground__dialog[data-state="closing"] {
+  opacity: 1;
+  transition: transform 240ms cubic-bezier(0.55, 0, 1, 0.45);
+}
+
 .case-playground__dialog::backdrop {
   background: rgba(0, 0, 0, 0.65);
   opacity: 0;
@@ -1877,6 +1919,10 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
 
 .case-playground__dialog[data-state="open"]::backdrop {
   opacity: 1;
+}
+
+.case-playground__dialog[data-state="closing"]::backdrop {
+  transition: opacity 240ms ease-in;
 }
 
 .case-playground__close {
@@ -1949,6 +1995,31 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
   margin-top: 12px;
 }
 
+.pye-playground__chapter-number {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 40px;
+  place-items: center;
+  border-radius: 50%;
+  background: #171717;
+  color: #f1f0ef;
+  font-family: var(--type-font-heading, Georgia, "Times New Roman", serif);
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 32px;
+}
+
+.pye-playground__chapter h3 {
+  margin-bottom: 40px;
+  font-size: 28px;
+  line-height: 32px;
+}
+
+.pye-playground__text strong {
+  font-weight: 700;
+}
+
 .pye-playground__text blockquote {
   margin: 40px 0;
   color: var(--color-playground-foreground);
@@ -1960,6 +2031,127 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
 .pye-playground__visual {
   width: min(1156px, 100%);
   margin-inline: auto;
+}
+
+.pye-playground__caption {
+  width: min(520px, calc(100% - 32px));
+  margin: 8px auto 0;
+  color: var(--color-playground-muted);
+  font-family: var(--type-font-body-ru, "Helvetica Neue", Helvetica, Arial, sans-serif);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.pye-playground__ending-art {
+  display: block;
+  width: 292px;
+  max-width: 100%;
+  height: auto;
+  margin: 64px auto 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .pye-playground__ending-art { filter: invert(1); }
+}
+
+.pye-playground__gallery {
+  width: min(1156px, 100%);
+  margin-inline: auto;
+}
+
+.pye-playground__gallery-track {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.pye-playground__gallery-track::-webkit-scrollbar { display: none; }
+
+.pye-playground__gallery-track:focus-visible {
+  outline: 2px solid var(--color-playground-foreground);
+  outline-offset: -2px;
+}
+
+.pye-playground__gallery-art {
+  display: block;
+  width: 5428px;
+  max-width: none;
+  height: 720px;
+  background: var(--playground-media-surface);
+}
+
+.pye-playground__gallery-controls {
+  --gallery-control-surface: #f0f0f0;
+  --gallery-control-track: rgb(0 0 0 / 0.05);
+  --gallery-control-thumb: rgb(0 0 0 / 0.67);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: max-content;
+  margin-top: 16px;
+  margin-inline: auto;
+  padding: 4px;
+  background: var(--gallery-control-surface);
+}
+
+.pye-playground__gallery-controls button {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 100ms ease, scale var(--button-press-duration) ease;
+}
+
+.pye-playground__gallery-controls button:first-child img {
+  filter: invert(1);
+}
+
+.pye-playground__gallery-controls button:not(:disabled):hover {
+  scale: 1.06;
+  background: var(--color-accent-carrot);
+}
+
+.pye-playground__gallery-controls button:not(:disabled):hover img {
+  filter: invert(1);
+}
+
+.pye-playground__gallery-controls button:first-child:not(:disabled):hover img {
+  filter: none;
+}
+
+.pye-playground__gallery-controls button:not(:disabled):active {
+  scale: var(--button-press-scale);
+}
+
+.pye-playground__gallery-controls button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.pye-playground__gallery-controls button:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+
+.pye-playground__gallery-progress {
+  width: 120px;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 32px;
+  background: var(--gallery-control-track);
+}
+
+.pye-playground__gallery-progress span {
+  display: block;
+  width: 36px;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--gallery-control-thumb);
 }
 
 .pye-playground__stage {
@@ -1981,6 +2173,7 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
 
 .pye-playground__fields--2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .pye-playground__stage--one {
@@ -2082,6 +2275,28 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
     --playground-media-surface: #242424;
     color-scheme: dark;
   }
+
+  .pye-playground__gallery-controls {
+    --gallery-control-surface: #3a3a3a;
+    --gallery-control-track: rgb(255 255 255 / 0.18);
+    --gallery-control-thumb: rgb(255 255 255 / 0.8);
+  }
+
+  .pye-playground__gallery-controls button:first-child img {
+    filter: none;
+  }
+
+  .pye-playground__gallery-controls button:last-child img {
+    filter: invert(1);
+  }
+
+  .pye-playground__gallery-controls button:first-child:not(:disabled):hover img {
+    filter: none;
+  }
+
+  .pye-playground__gallery-controls button:last-child:not(:disabled):hover img {
+    filter: invert(1);
+  }
 }
 
 @media (max-width: 800px) {
@@ -2135,8 +2350,14 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
     width: 100%;
   }
 
+  .pye-playground__gallery-art {
+    width: 2714px;
+    height: 360px;
+  }
+
   .pye-playground__fields--2 {
     grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
   }
 
   .pye-playground__stage {
@@ -2145,30 +2366,43 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
     gap: 24px;
     min-height: 0;
     padding: 24px 16px;
+    max-height: 600px;
   }
 
   .pye-playground__stage--three .pye-playground__screen,
   .pye-playground__screen {
-    width: min(375px, 100%);
+    width: min(255px, 100%);
+  }
+
+  .pye-playground__stage--three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .pye-playground__stage--composition {
     padding: 0;
   }
 
+  .pye-playground__stage--composition .optimized-image {
+    max-width: 755px;
+    margin-inline: auto;
+  }
+
   .pye-playground__video-stage {
     min-height: 0;
+    max-height: 600px;
     padding: 24px 16px;
   }
 
   .pye-playground__video-screen {
-    width: min(375px, 100%);
+    width: min(255px, 100%);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .case-playground__dialog,
+  .case-playground__dialog[data-state="closing"],
   .case-playground__dialog::backdrop,
+  .case-playground__dialog[data-state="closing"]::backdrop,
   .case-playground__trigger span:last-child {
     transition: none;
   }
