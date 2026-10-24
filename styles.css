@@ -1844,7 +1844,7 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
 .case-playground__dialog {
   --playground-close-surface: #f0f0f0;
   --playground-close-text: #333;
-  --playground-media-surface: #e6e6e6;
+  --playground-media-surface: rgb(128 128 128 / 20%);
   position: fixed;
   inset: 56px 0 0;
   width: 100%;
@@ -1949,6 +1949,31 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
   margin-top: 12px;
 }
 
+.pye-playground__chapter-number {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 40px;
+  place-items: center;
+  border-radius: 50%;
+  background: #171717;
+  color: #f1f0ef;
+  font-family: var(--type-font-heading, Georgia, "Times New Roman", serif);
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 32px;
+}
+
+.pye-playground__chapter h3 {
+  margin-bottom: 40px;
+  font-size: 28px;
+  line-height: 32px;
+}
+
+.pye-playground__text strong {
+  font-weight: 700;
+}
+
 .pye-playground__text blockquote {
   margin: 40px 0;
   color: var(--color-playground-foreground);
@@ -1960,6 +1985,123 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
 .pye-playground__visual {
   width: min(1156px, 100%);
   margin-inline: auto;
+}
+
+.pye-playground__caption {
+  width: min(520px, calc(100% - 32px));
+  margin: 8px auto 0;
+  color: var(--color-playground-muted);
+  font-family: var(--type-font-body-ru, "Helvetica Neue", Helvetica, Arial, sans-serif);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.pye-playground__ending-art {
+  display: block;
+  width: 292px;
+  max-width: 100%;
+  height: auto;
+  margin: 64px auto 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .pye-playground__ending-art { filter: invert(1); }
+}
+
+.pye-playground__gallery {
+  width: min(1156px, 100%);
+  margin-inline: auto;
+}
+
+.pye-playground__gallery-track {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.pye-playground__gallery-track::-webkit-scrollbar { display: none; }
+
+.pye-playground__gallery-track:focus-visible {
+  outline: 2px solid var(--color-playground-foreground);
+  outline-offset: -2px;
+}
+
+.pye-playground__gallery-art {
+  display: block;
+  width: 5428px;
+  max-width: none;
+  height: 720px;
+  background: var(--playground-media-surface);
+}
+
+.pye-playground__gallery-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: max-content;
+  margin-top: 16px;
+  margin-inline: auto;
+  padding: 4px;
+  background: #f0f0f0;
+}
+
+.pye-playground__gallery-controls button {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 100ms ease, transform 100ms ease;
+}
+
+.pye-playground__gallery-controls button:first-child img {
+  filter: invert(1);
+}
+
+.pye-playground__gallery-controls button:not(:disabled):hover {
+  background: var(--color-accent-carrot);
+}
+
+.pye-playground__gallery-controls button:not(:disabled):hover img {
+  filter: invert(1);
+}
+
+.pye-playground__gallery-controls button:first-child:not(:disabled):hover img {
+  filter: none;
+}
+
+.pye-playground__gallery-controls button:not(:disabled):active {
+  transform: scale(0.9);
+}
+
+.pye-playground__gallery-controls button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.pye-playground__gallery-controls button:focus-visible {
+  outline: 2px solid #171717;
+  outline-offset: 3px;
+}
+
+.pye-playground__gallery-progress {
+  width: 120px;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 32px;
+  background: rgb(0 0 0 / 0.05);
+}
+
+.pye-playground__gallery-progress span {
+  display: block;
+  width: 36px;
+  height: 4px;
+  border-radius: 4px;
+  background: rgb(0 0 0 / 0.67);
 }
 
 .pye-playground__stage {
@@ -1981,6 +2123,7 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
 
 .pye-playground__fields--2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .pye-playground__stage--one {
@@ -2135,8 +2278,14 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
     width: 100%;
   }
 
+  .pye-playground__gallery-art {
+    width: 2714px;
+    height: 360px;
+  }
+
   .pye-playground__fields--2 {
     grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
   }
 
   .pye-playground__stage {

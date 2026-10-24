@@ -40,7 +40,7 @@ export function CasePlayground({
     body.style.top = bodyStyleRef.current.top;
     body.style.width = bodyStyleRef.current.width;
     bodyLockedRef.current = false;
-    window.scrollTo(0, scrollYRef.current);
+    window.scrollTo({ left: 0, top: scrollYRef.current, behavior: "instant" });
     if (scrollRestorationRef.current !== null) {
       window.history.scrollRestoration = scrollRestorationRef.current;
       scrollRestorationRef.current = null;

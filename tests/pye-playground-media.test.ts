@@ -44,4 +44,16 @@ describe("PYE Playground screen media", () => {
       expect(hasOpaquePixel, name).toBe(true);
     }
   });
+
+  it("keeps the unified gallery artwork transparent and full width", async () => {
+    const { data, info } = await sharp(join(process.cwd(), "public/illustrations/pye-gallery-strip.png"))
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+
+    expect(info.width).toBe(10856);
+    expect(info.height).toBe(1440);
+    expect(info.channels).toBe(4);
+    expect(data[3]).toBe(0);
+    expect(data[(Math.floor(info.height / 2) * info.width + 500) * 4 + 3]).toBe(255);
+  });
 });
