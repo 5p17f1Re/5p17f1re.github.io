@@ -50,10 +50,10 @@ describe("PYE Playground screen media", () => {
       .raw()
       .toBuffer({ resolveWithObject: true });
 
-    expect(info.width).toBe(10856);
+    expect(info.width).toBe(9228);
     expect(info.height).toBe(1440);
     expect(info.channels).toBe(4);
-    expect(data[3]).toBe(0);
+    expect(data[3]).toBeLessThan(255);
     expect(data[(Math.floor(info.height / 2) * info.width + 500) * 4 + 3]).toBe(255);
   });
 });

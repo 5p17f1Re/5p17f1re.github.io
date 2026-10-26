@@ -8,10 +8,8 @@ const src = "/media/videos/pye-tryon-app/playground/09-home-drawer.mp4";
 
 export function PyePlaygroundVideo() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const userPausedRef = useRef(false);
   const [visible, setVisible] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
-  const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -42,48 +40,27 @@ export function PyePlaygroundVideo() {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    if (visible && !reducedMotion && !userPausedRef.current) {
+    if (visible && !reducedMotion) {
       void video.play().catch(() => {});
     } else {
       video.pause();
     }
   }, [visible, reducedMotion]);
 
-  function togglePlayback() {
-    const video = videoRef.current;
-    if (!video) return;
-    if (video.paused) {
-      userPausedRef.current = false;
-      void video.play().catch(() => {});
-    } else {
-      userPausedRef.current = true;
-      video.pause();
-    }
-  }
-
   return (
-    <figure className="pye-playground__video-stage">
+    <figure className="pye-playground__video-stage" aria-label="Видео работы шторки PYE">
       <Squircle cornerRadius={28} className="pye-playground__video-screen">
-        <button
-          className="pye-playground__video-toggle"
-          type="button"
-          aria-label={playing ? "Приостановить видео работы шторки PYE" : "Воспроизвести видео работы шторки PYE"}
-          onClick={togglePlayback}
-        >
-          <video
-            ref={videoRef}
-            className="pye-playground__video"
-            src={visible ? src : undefined}
-            poster={mediaManifest["pye-tryon-app/playground/09-home-drawer-poster"].fallback}
-            aria-hidden="true"
-            muted
-            loop
-            playsInline
-            preload={visible ? "metadata" : "none"}
-            onPlay={() => setPlaying(true)}
-            onPause={() => setPlaying(false)}
-          />
-        </button>
+        <video
+          ref={videoRef}
+          className="pye-playground__video"
+          src={visible ? src : undefined}
+          poster={mediaManifest["pye-tryon-app/playground/09-home-drawer-poster"].fallback}
+          aria-hidden="true"
+          muted
+          loop
+          playsInline
+          preload={visible ? "metadata" : "none"}
+        />
       </Squircle>
     </figure>
   );
