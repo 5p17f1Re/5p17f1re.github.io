@@ -827,6 +827,7 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
 
 .view-stage--switching {
   overflow: hidden;
+  overflow-anchor: none;
 }
 
 .view-layer {

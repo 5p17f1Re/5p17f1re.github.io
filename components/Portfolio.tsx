@@ -51,6 +51,21 @@ const viewTransitions = {
   totalDurationMs: 320,
 } as const;
 
+function measureProjectsHeight(layer: HTMLDivElement | null, finalRowGap = false) {
+  const projects = layer?.querySelector<HTMLElement>(".projects");
+  if (!projects) return undefined;
+  if (!finalRowGap) return projects.offsetHeight;
+
+  // The hidden layout has an entrance gap; measure its settled height without
+  // changing a painted frame or waiting for the gap animation to finish.
+  const previousGap = projects.style.getPropertyValue("--project-row-gap");
+  projects.style.setProperty("--project-row-gap", "80px");
+  const height = projects.offsetHeight;
+  if (previousGap) projects.style.setProperty("--project-row-gap", previousGap);
+  else projects.style.removeProperty("--project-row-gap");
+  return height;
+}
+
 const initialCardRevealDelay = 0.22;
 
 const initialCardVariants = {
@@ -839,6 +854,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
   const [alternateViewPrepared, setAlternateViewPrepared] = useState(false);
   const [nextView, setNextView] = useState<ViewMode | null>(null);
   const [containerHeight, setContainerHeight] = useState<number>();
+  const [outgoingScrollOffset, setOutgoingScrollOffset] = useState(0);
   const [localeTextTransitionId, setLocaleTextTransitionId] = useState(0);
   const [isLocaleLayoutTransitionActive, setIsLocaleLayoutTransitionActive] =
     useState(false);
@@ -859,21 +875,27 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
 
   useLayoutEffect(() => {
     const pending = switchScrollRef.current;
-    if (!pending || nextView || view !== pending.target) return;
+    if (!pending || (nextView ?? view) !== pending.target) return;
     const targetLayer = pending.target === "birdview"
       ? birdviewLayerRef.current
       : snakeviewLayerRef.current;
-    const targetHeight = targetLayer?.querySelector<HTMLElement>(".projects")?.offsetHeight;
+    const targetHeight = measureProjectsHeight(targetLayer, true);
     if (!targetHeight) return;
     switchScrollRef.current = null;
-    if (pending.scroll <= pending.stageTop) return;
+    if (nextView) setContainerHeight(targetHeight);
+    if (pending.scroll <= pending.stageTop) {
+      setOutgoingScrollOffset(0);
+      return;
+    }
     const footerHeight = document.querySelector(".site-footer")?.getBoundingClientRect().height ?? 0;
     const sourceMax = Math.max(1, pending.sourceHeight + footerHeight - window.innerHeight);
     const targetMax = Math.max(0, targetHeight + footerHeight - window.innerHeight);
     const progress = Math.min(1, Math.max(0, pending.scroll - pending.stageTop) / sourceMax);
-    // Scroll after the target layout is committed, so the browser cannot clamp
-    // the desired position to the shorter outgoing document.
-    window.scrollTo({ top: pending.stageTop + progress * targetMax, behavior: "instant" });
+    const targetScroll = pending.stageTop + progress * targetMax;
+    // Move the viewport before the first transition frame. Keep the outgoing
+    // layer visually in place while the incoming layer appears at the new scroll.
+    setOutgoingScrollOffset(nextView ? targetScroll - pending.scroll : 0);
+    window.scrollTo({ top: targetScroll, behavior: "instant" });
   }, [nextView, view]);
 
 
@@ -921,10 +943,6 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
     return mode === "birdview"
       ? birdviewLayerRef.current
       : snakeviewLayerRef.current;
-  }
-
-  function getProjectsHeight(mode: ViewMode) {
-    return getLayer(mode)?.querySelector<HTMLElement>(".projects")?.offsetHeight;
   }
 
   useLayoutEffect(() => {
@@ -1010,12 +1028,6 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
         const height = (entry.target as HTMLElement).offsetHeight;
 
         heightCacheRef.current[mode] = height;
-
-        if (nextView === mode) {
-          setContainerHeight((currentHeight) =>
-            currentHeight === height ? currentHeight : height,
-          );
-        }
       }
     });
 
@@ -1050,6 +1062,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
     setView(next);
     setNextView(null);
     setContainerHeight(undefined);
+    setOutgoingScrollOffset(0);
   }
 
   function toggleView() {
@@ -1065,7 +1078,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
       setAlternateViewPrepared(true);
     }
 
-    const sourceHeight = getProjectsHeight(transitionSource);
+    const sourceHeight = measureProjectsHeight(getLayer(transitionSource));
     const stage = getLayer(transitionSource)?.parentElement;
     if (sourceHeight && stage) {
       switchScrollRef.current = {
@@ -1078,6 +1091,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
 
     if (reduceMotion) {
       setView(next);
+      setContainerHeight(undefined);
       return;
     }
 
@@ -1092,10 +1106,10 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
 
     const currentHeight =
       heightCacheRef.current[transitionSource] ??
-      getProjectsHeight(transitionSource);
+      measureProjectsHeight(getLayer(transitionSource));
     const targetHeight =
       heightCacheRef.current[next] ??
-      getProjectsHeight(next);
+      measureProjectsHeight(getLayer(next));
 
     setContainerHeight(targetHeight ?? currentHeight);
     setView(transitionSource);
@@ -1132,6 +1146,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
     if (state === "outgoing") {
       return {
         opacity: 0,
+        y: outgoingScrollOffset,
         scale:
           transitionDirection === "birdviewToSnakeview"
             ? viewTransitions.birdviewToSnakeview.birdviewExitScale
@@ -1146,6 +1161,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
     if (state === "current") {
       return {
         opacity: 1,
+        y: 0,
         scale: 1,
         "--project-row-gap":
           mode === "birdview"
@@ -1157,6 +1173,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
     if (state === "incoming") {
       return {
         opacity: 1,
+        y: 0,
         scale: 1,
         "--project-row-gap":
           mode === "birdview"
@@ -1167,21 +1184,25 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
 
     return {
       opacity: 0,
+      y: 0,
       scale:
         mode === "birdview"
           ? viewTransitions.snakeviewToBirdview.birdviewEnterScale
           : viewTransitions.birdviewToSnakeview.snakeviewEnterScale,
       "--project-row-gap":
-        mode === "birdview"
-          ? viewTransitions.snakeviewToBirdview.birdviewRowGapFrom
-          : viewTransitions.birdviewToSnakeview.snakeviewRowGapFrom,
+        reduceMotion
+          ? "80px"
+          : mode === "birdview"
+            ? viewTransitions.snakeviewToBirdview.birdviewRowGapFrom
+            : viewTransitions.birdviewToSnakeview.snakeviewRowGapFrom,
     };
   }
 
   const viewLayerTransition = {
     delay: 0,
-    duration: viewTransitions.duration,
+    duration: reduceMotion ? 0 : viewTransitions.duration,
     ease: viewTransitionEase,
+    y: { duration: 0 },
   };
 
   return (
