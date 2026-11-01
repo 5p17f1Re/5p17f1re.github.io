@@ -74,7 +74,7 @@ const initialCardVariants = {
     y: 0,
     transition: {
       delay: initialCardRevealDelay + row * 0.09,
-      duration: 0.56,
+      duration: 1.12,
       ease: easeOutExpo,
     },
   }),
@@ -601,6 +601,7 @@ function BirdView({
   about,
   viewReady,
   reduceMotion,
+  initialReveal,
   sharedCoverEnabled,
 }: {
   projects: Project[];
@@ -612,6 +613,7 @@ function BirdView({
   about: ReturnType<typeof getAbout>;
   viewReady: boolean;
   reduceMotion: boolean;
+  initialReveal: boolean;
   sharedCoverEnabled: boolean;
 }) {
   const [columns, setColumns] = useState(3);
@@ -627,7 +629,7 @@ function BirdView({
     <motion.section
       className="projects projects--birdview"
       aria-labelledby="birdview-heading"
-      initial={false}
+      initial={initialReveal ? "hidden" : false}
       animate={viewReady || reduceMotion ? "visible" : "hidden"}
     >
       <h2 id="birdview-heading" className="visually-hidden">
@@ -715,6 +717,7 @@ function SnakeView({
   text,
   viewReady,
   reduceMotion,
+  initialReveal,
   sharedCoverEnabled,
 }: {
   projects: Project[];
@@ -724,13 +727,14 @@ function SnakeView({
   text: UiText;
   viewReady: boolean;
   reduceMotion: boolean;
+  initialReveal: boolean;
   sharedCoverEnabled: boolean;
 }) {
   return (
     <motion.section
       className="projects projects--snakeview"
       aria-labelledby="snakeview-heading"
-      initial={false}
+      initial={initialReveal ? "hidden" : false}
       animate={viewReady || reduceMotion ? "visible" : "hidden"}
     >
       <h2 id="snakeview-heading" className="visually-hidden">
@@ -791,7 +795,7 @@ function PortfolioIntro({ about, localeTextTransitionId, reveal, reduceMotion }:
 
       lines.forEach((line) => {
         const characterCount = line.textContent?.trim().length ?? 0;
-        const durationMs = Math.min(480, Math.max(240, 144 + characterCount * 6));
+        const durationMs = Math.min(960, Math.max(480, 288 + characterCount * 12));
         const lineDelayMs = reduceMotion ? 0 : nextLineDelayMs;
 
         line.style.setProperty("--about-text-reveal-duration", `${durationMs}ms`);
@@ -830,9 +834,7 @@ function PortfolioIntro({ about, localeTextTransitionId, reveal, reduceMotion }:
 
 export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
   const { active: activeCoverMotion } = useCaseCoverMotion();
-  const skipAboutTextRevealRef = useRef(
-    activeCoverMotion?.direction === "return",
-  );
+  const [skipInitialReveal] = useState(() => activeCoverMotion?.direction === "return");
   const [activeLocale, setActiveLocale] = useState<SiteLocale>(locale);
   const projects = getProjects(activeLocale);
   const about = getAbout(activeLocale);
@@ -943,11 +945,11 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
     /* eslint-disable react-hooks/set-state-in-effect -- The client-only preference is applied after hydration. */
     setView(initialView);
     setRevealAboutTextOnLoad(
-      !skipAboutTextRevealRef.current,
+      !skipInitialReveal,
     );
     setViewReady(true);
     /* eslint-enable react-hooks/set-state-in-effect */
-  }, []);
+  }, [skipInitialReveal]);
 
   useEffect(() => {
     if (!viewReady || alternateViewPrepared) return;
@@ -1059,6 +1061,9 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
     const transitionSource = nextView ?? view;
     const next: ViewMode =
       transitionSource === "birdview" ? "snakeview" : "birdview";
+    // A quick switch during first paint finishes About's load reveal; the
+    // headline stays still throughout the view transition.
+    setRevealAboutTextOnLoad(false);
     persistView(next);
     trackEvent("portfolio_view_changed", {
       portfolio_view: next,
@@ -1110,6 +1115,9 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
   }
 
   const displayedView = nextView ?? view;
+  // The alternate layout may mount later or during a manual switch. Only the
+  // layout selected for the first page reveal should run its entrance.
+  const initialReveal = !skipInitialReveal && !alternateViewPrepared && !nextView;
   const transitionDirection =
     nextView === "birdview"
       ? "snakeviewToBirdview"
@@ -1226,6 +1234,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
                   viewReady || activeCoverMotion?.direction === "return"
                 }
                 reduceMotion={Boolean(reduceMotion)}
+                initialReveal={initialReveal}
                 sharedCoverEnabled={displayedView === "birdview"}
               />
             </motion.div> : null}
@@ -1249,6 +1258,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
                   viewReady || activeCoverMotion?.direction === "return"
                 }
                 reduceMotion={Boolean(reduceMotion)}
+                initialReveal={initialReveal}
                 sharedCoverEnabled={displayedView === "snakeview"}
               />
             </motion.div> : null}

@@ -214,6 +214,11 @@ img { display: block; max-width: 100%; }
   opacity: 1;
 }
 
+/* Decode can finish after the selected layout starts its entrance. */
+.view-stage .optimized-image__img {
+  transition: opacity 360ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .optimized-video {
   position: relative;
   display: block;
@@ -819,10 +824,10 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
   width: 100%;
 }
 
-/* Keep server-rendered project cards visible if client hydration is delayed. */
-.view-stage[data-view-ready="false"] .project-motion-cell {
-  opacity: 1 !important;
-  transform: none !important;
+/* The server renders Snakeview before localStorage is available. Keep that
+   provisional layout out of sight until React installs the saved view. */
+.view-stage[data-view-ready="false"] {
+  visibility: hidden;
 }
 
 .view-stage--switching {
