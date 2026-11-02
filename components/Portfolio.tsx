@@ -65,7 +65,7 @@ function measureProjectsHeight(layer: HTMLDivElement | null, finalRowGap = false
   return height;
 }
 
-const initialCardRevealDelay = 0.22;
+const initialCardRevealDelay = 0.1;
 
 const initialCardVariants = {
   hidden: { opacity: 0, y: 18 },

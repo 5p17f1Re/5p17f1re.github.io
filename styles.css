@@ -982,6 +982,12 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
   animation-delay: var(--about-text-reveal-delay, 0ms);
 }
 
+/* The heading should reveal across its full duration. The shared ease-out
+   exposes almost all of a short name in the first quarter of the animation. */
+.portfolio-intro[data-about-text-reveal="true"] .hero-about__title .about-text-reveal__line {
+  animation-timing-function: linear;
+}
+
 .portfolio-intro {
   width: min(520px, calc(100% - 32px));
   margin: 120px auto 80px;
