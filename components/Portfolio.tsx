@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
@@ -51,7 +50,22 @@ const viewTransitions = {
   totalDurationMs: 320,
 } as const;
 
-const initialCardRevealDelay = 0.22;
+function measureProjectsHeight(layer: HTMLDivElement | null, finalRowGap = false) {
+  const projects = layer?.querySelector<HTMLElement>(".projects");
+  if (!projects) return undefined;
+  if (!finalRowGap) return projects.offsetHeight;
+
+  // The hidden layout has an entrance gap; measure its settled height without
+  // changing a painted frame or waiting for the gap animation to finish.
+  const previousGap = projects.style.getPropertyValue("--project-row-gap");
+  projects.style.setProperty("--project-row-gap", "80px");
+  const height = projects.offsetHeight;
+  if (previousGap) projects.style.setProperty("--project-row-gap", previousGap);
+  else projects.style.removeProperty("--project-row-gap");
+  return height;
+}
+
+const initialCardRevealDelay = 0.1;
 
 const initialCardVariants = {
   hidden: { opacity: 0, y: 18 },
@@ -60,7 +74,7 @@ const initialCardVariants = {
     y: 0,
     transition: {
       delay: initialCardRevealDelay + row * 0.09,
-      duration: 0.56,
+      duration: 1.12,
       ease: easeOutExpo,
     },
   }),
@@ -528,6 +542,8 @@ function ProjectCard({
     }
   }
 
+  // Link prefetches near the visible card in production. Keep that priority;
+  // prefetching every case on mount makes unseen routes compete with it.
   return project.slug ? (
     <Link
       {...props}
@@ -585,6 +601,7 @@ function BirdView({
   about,
   viewReady,
   reduceMotion,
+  initialReveal,
   sharedCoverEnabled,
 }: {
   projects: Project[];
@@ -596,6 +613,7 @@ function BirdView({
   about: ReturnType<typeof getAbout>;
   viewReady: boolean;
   reduceMotion: boolean;
+  initialReveal: boolean;
   sharedCoverEnabled: boolean;
 }) {
   const [columns, setColumns] = useState(3);
@@ -611,7 +629,7 @@ function BirdView({
     <motion.section
       className="projects projects--birdview"
       aria-labelledby="birdview-heading"
-      initial={false}
+      initial={initialReveal ? "hidden" : false}
       animate={viewReady || reduceMotion ? "visible" : "hidden"}
     >
       <h2 id="birdview-heading" className="visually-hidden">
@@ -699,6 +717,7 @@ function SnakeView({
   text,
   viewReady,
   reduceMotion,
+  initialReveal,
   sharedCoverEnabled,
 }: {
   projects: Project[];
@@ -708,13 +727,14 @@ function SnakeView({
   text: UiText;
   viewReady: boolean;
   reduceMotion: boolean;
+  initialReveal: boolean;
   sharedCoverEnabled: boolean;
 }) {
   return (
     <motion.section
       className="projects projects--snakeview"
       aria-labelledby="snakeview-heading"
-      initial={false}
+      initial={initialReveal ? "hidden" : false}
       animate={viewReady || reduceMotion ? "visible" : "hidden"}
     >
       <h2 id="snakeview-heading" className="visually-hidden">
@@ -775,7 +795,7 @@ function PortfolioIntro({ about, localeTextTransitionId, reveal, reduceMotion }:
 
       lines.forEach((line) => {
         const characterCount = line.textContent?.trim().length ?? 0;
-        const durationMs = Math.min(480, Math.max(240, 144 + characterCount * 6));
+        const durationMs = Math.min(960, Math.max(480, 288 + characterCount * 12));
         const lineDelayMs = reduceMotion ? 0 : nextLineDelayMs;
 
         line.style.setProperty("--about-text-reveal-duration", `${durationMs}ms`);
@@ -813,23 +833,10 @@ function PortfolioIntro({ about, localeTextTransitionId, reveal, reduceMotion }:
 }
 
 export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
-  const router = useRouter();
   const { active: activeCoverMotion } = useCaseCoverMotion();
-  const skipAboutTextRevealRef = useRef(
-    activeCoverMotion?.direction === "return",
-  );
+  const [skipInitialReveal] = useState(() => activeCoverMotion?.direction === "return");
   const [activeLocale, setActiveLocale] = useState<SiteLocale>(locale);
   const projects = getProjects(activeLocale);
-  useEffect(() => {
-    // Cards below the fold are prefetched by Link only after they enter the
-    // viewport. Prepare the four case routes while the visitor explores home
-    // so the cover flight does not wait for a cold route request on click.
-    for (const project of getProjects(activeLocale)) {
-      if (project.slug && project.transitionId) {
-        router.prefetch(getCasePath({ locale: activeLocale, slug: project.slug }));
-      }
-    }
-  }, [activeLocale, router]);
   const about = getAbout(activeLocale);
   const text = getUiText(activeLocale);
   const showAbout = true;
@@ -839,6 +846,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
   const [alternateViewPrepared, setAlternateViewPrepared] = useState(false);
   const [nextView, setNextView] = useState<ViewMode | null>(null);
   const [containerHeight, setContainerHeight] = useState<number>();
+  const [outgoingScrollOffset, setOutgoingScrollOffset] = useState(0);
   const [localeTextTransitionId, setLocaleTextTransitionId] = useState(0);
   const [isLocaleLayoutTransitionActive, setIsLocaleLayoutTransitionActive] =
     useState(false);
@@ -859,21 +867,27 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
 
   useLayoutEffect(() => {
     const pending = switchScrollRef.current;
-    if (!pending || nextView || view !== pending.target) return;
+    if (!pending || (nextView ?? view) !== pending.target) return;
     const targetLayer = pending.target === "birdview"
       ? birdviewLayerRef.current
       : snakeviewLayerRef.current;
-    const targetHeight = targetLayer?.querySelector<HTMLElement>(".projects")?.offsetHeight;
+    const targetHeight = measureProjectsHeight(targetLayer, true);
     if (!targetHeight) return;
     switchScrollRef.current = null;
-    if (pending.scroll <= pending.stageTop) return;
+    if (nextView) setContainerHeight(targetHeight);
+    if (pending.scroll <= pending.stageTop) {
+      setOutgoingScrollOffset(0);
+      return;
+    }
     const footerHeight = document.querySelector(".site-footer")?.getBoundingClientRect().height ?? 0;
     const sourceMax = Math.max(1, pending.sourceHeight + footerHeight - window.innerHeight);
     const targetMax = Math.max(0, targetHeight + footerHeight - window.innerHeight);
     const progress = Math.min(1, Math.max(0, pending.scroll - pending.stageTop) / sourceMax);
-    // Scroll after the target layout is committed, so the browser cannot clamp
-    // the desired position to the shorter outgoing document.
-    window.scrollTo({ top: pending.stageTop + progress * targetMax, behavior: "instant" });
+    const targetScroll = pending.stageTop + progress * targetMax;
+    // Move the viewport before the first transition frame. Keep the outgoing
+    // layer visually in place while the incoming layer appears at the new scroll.
+    setOutgoingScrollOffset(nextView ? targetScroll - pending.scroll : 0);
+    window.scrollTo({ top: targetScroll, behavior: "instant" });
   }, [nextView, view]);
 
 
@@ -923,10 +937,6 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
       : snakeviewLayerRef.current;
   }
 
-  function getProjectsHeight(mode: ViewMode) {
-    return getLayer(mode)?.querySelector<HTMLElement>(".projects")?.offsetHeight;
-  }
-
   useLayoutEffect(() => {
     const storedView =
       document.documentElement.dataset.portfolioView ??
@@ -935,11 +945,11 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
     /* eslint-disable react-hooks/set-state-in-effect -- The client-only preference is applied after hydration. */
     setView(initialView);
     setRevealAboutTextOnLoad(
-      !skipAboutTextRevealRef.current,
+      !skipInitialReveal,
     );
     setViewReady(true);
     /* eslint-enable react-hooks/set-state-in-effect */
-  }, []);
+  }, [skipInitialReveal]);
 
   useEffect(() => {
     if (!viewReady || alternateViewPrepared) return;
@@ -1010,12 +1020,6 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
         const height = (entry.target as HTMLElement).offsetHeight;
 
         heightCacheRef.current[mode] = height;
-
-        if (nextView === mode) {
-          setContainerHeight((currentHeight) =>
-            currentHeight === height ? currentHeight : height,
-          );
-        }
       }
     });
 
@@ -1050,12 +1054,16 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
     setView(next);
     setNextView(null);
     setContainerHeight(undefined);
+    setOutgoingScrollOffset(0);
   }
 
   function toggleView() {
     const transitionSource = nextView ?? view;
     const next: ViewMode =
       transitionSource === "birdview" ? "snakeview" : "birdview";
+    // A quick switch during first paint finishes About's load reveal; the
+    // headline stays still throughout the view transition.
+    setRevealAboutTextOnLoad(false);
     persistView(next);
     trackEvent("portfolio_view_changed", {
       portfolio_view: next,
@@ -1065,7 +1073,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
       setAlternateViewPrepared(true);
     }
 
-    const sourceHeight = getProjectsHeight(transitionSource);
+    const sourceHeight = measureProjectsHeight(getLayer(transitionSource));
     const stage = getLayer(transitionSource)?.parentElement;
     if (sourceHeight && stage) {
       switchScrollRef.current = {
@@ -1078,6 +1086,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
 
     if (reduceMotion) {
       setView(next);
+      setContainerHeight(undefined);
       return;
     }
 
@@ -1092,10 +1101,10 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
 
     const currentHeight =
       heightCacheRef.current[transitionSource] ??
-      getProjectsHeight(transitionSource);
+      measureProjectsHeight(getLayer(transitionSource));
     const targetHeight =
       heightCacheRef.current[next] ??
-      getProjectsHeight(next);
+      measureProjectsHeight(getLayer(next));
 
     setContainerHeight(targetHeight ?? currentHeight);
     setView(transitionSource);
@@ -1106,6 +1115,9 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
   }
 
   const displayedView = nextView ?? view;
+  // The alternate layout may mount later or during a manual switch. Only the
+  // layout selected for the first page reveal should run its entrance.
+  const initialReveal = !skipInitialReveal && !alternateViewPrepared && !nextView;
   const transitionDirection =
     nextView === "birdview"
       ? "snakeviewToBirdview"
@@ -1132,6 +1144,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
     if (state === "outgoing") {
       return {
         opacity: 0,
+        y: outgoingScrollOffset,
         scale:
           transitionDirection === "birdviewToSnakeview"
             ? viewTransitions.birdviewToSnakeview.birdviewExitScale
@@ -1146,6 +1159,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
     if (state === "current") {
       return {
         opacity: 1,
+        y: 0,
         scale: 1,
         "--project-row-gap":
           mode === "birdview"
@@ -1157,6 +1171,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
     if (state === "incoming") {
       return {
         opacity: 1,
+        y: 0,
         scale: 1,
         "--project-row-gap":
           mode === "birdview"
@@ -1167,21 +1182,25 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
 
     return {
       opacity: 0,
+      y: 0,
       scale:
         mode === "birdview"
           ? viewTransitions.snakeviewToBirdview.birdviewEnterScale
           : viewTransitions.birdviewToSnakeview.snakeviewEnterScale,
       "--project-row-gap":
-        mode === "birdview"
-          ? viewTransitions.snakeviewToBirdview.birdviewRowGapFrom
-          : viewTransitions.birdviewToSnakeview.snakeviewRowGapFrom,
+        reduceMotion
+          ? "80px"
+          : mode === "birdview"
+            ? viewTransitions.snakeviewToBirdview.birdviewRowGapFrom
+            : viewTransitions.birdviewToSnakeview.snakeviewRowGapFrom,
     };
   }
 
   const viewLayerTransition = {
     delay: 0,
-    duration: viewTransitions.duration,
+    duration: reduceMotion ? 0 : viewTransitions.duration,
     ease: viewTransitionEase,
+    y: { duration: 0 },
   };
 
   return (
@@ -1215,6 +1234,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
                   viewReady || activeCoverMotion?.direction === "return"
                 }
                 reduceMotion={Boolean(reduceMotion)}
+                initialReveal={initialReveal}
                 sharedCoverEnabled={displayedView === "birdview"}
               />
             </motion.div> : null}
@@ -1238,6 +1258,7 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
                   viewReady || activeCoverMotion?.direction === "return"
                 }
                 reduceMotion={Boolean(reduceMotion)}
+                initialReveal={initialReveal}
                 sharedCoverEnabled={displayedView === "snakeview"}
               />
             </motion.div> : null}

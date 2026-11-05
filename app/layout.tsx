@@ -74,6 +74,14 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body>
+        <noscript>
+          <style>{`
+            .view-stage[data-view-ready="false"] { visibility: visible; }
+            .view-stage .project-motion-cell { opacity: 1 !important; transform: none !important; }
+            .optimized-image__img { opacity: 1 !important; }
+            .about-text-reveal[data-lines-ready="false"] { visibility: visible; }
+          `}</style>
+        </noscript>
         <SquircleNoScript />
         <Script id="portfolio-view" strategy="beforeInteractive">
           {`try{document.documentElement.dataset.portfolioView=localStorage.getItem("portfolio-view")==="birdview"?"birdview":"snakeview"}catch(e){document.documentElement.dataset.portfolioView="snakeview"}`}

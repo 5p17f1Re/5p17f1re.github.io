@@ -214,6 +214,11 @@ img { display: block; max-width: 100%; }
   opacity: 1;
 }
 
+/* Decode can finish after the selected layout starts its entrance. */
+.view-stage .optimized-image__img {
+  transition: opacity 360ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .optimized-video {
   position: relative;
   display: block;
@@ -819,14 +824,15 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
   width: 100%;
 }
 
-/* Keep server-rendered project cards visible if client hydration is delayed. */
-.view-stage[data-view-ready="false"] .project-motion-cell {
-  opacity: 1 !important;
-  transform: none !important;
+/* The server renders Snakeview before localStorage is available. Keep that
+   provisional layout out of sight until React installs the saved view. */
+.view-stage[data-view-ready="false"] {
+  visibility: hidden;
 }
 
 .view-stage--switching {
   overflow: hidden;
+  overflow-anchor: none;
 }
 
 .view-layer {
@@ -974,6 +980,12 @@ html[data-case-cover-motion-direction="return"] .project[data-case-cover-active=
   );
   animation: about-text-reveal var(--about-text-reveal-duration, 320ms) cubic-bezier(0.16, 1, 0.3, 1) both;
   animation-delay: var(--about-text-reveal-delay, 0ms);
+}
+
+/* The heading should reveal across its full duration. The shared ease-out
+   exposes almost all of a short name in the first quarter of the animation. */
+.portfolio-intro[data-about-text-reveal="true"] .hero-about__title .about-text-reveal__line {
+  animation-timing-function: linear;
 }
 
 .portfolio-intro {
