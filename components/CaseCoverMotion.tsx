@@ -32,6 +32,7 @@ type ActiveTransition = TransitionSnapshot & {
   destinationCoverRect?: CoverRect;
   pressNaturalRect?: CoverRect;
   pressAnimationTime?: number;
+  sourceReady: boolean;
 };
 type PressPreparation = {
   transitionId: string;
@@ -127,11 +128,13 @@ function applyTransitionAttributes(active: ActiveTransition | null) {
     root.dataset.caseCoverMotionPhase = active.phase;
     root.dataset.caseCoverMotionId = active.transitionId;
     root.toggleAttribute("data-case-cover-motion-offscreen", active.offscreenReturn);
+    root.toggleAttribute("data-case-cover-source-ready", active.direction === "forward" && active.sourceReady);
   } else {
     delete root.dataset.caseCoverMotionDirection;
     delete root.dataset.caseCoverMotionPhase;
     delete root.dataset.caseCoverMotionId;
     root.removeAttribute("data-case-cover-motion-offscreen");
+    root.removeAttribute("data-case-cover-source-ready");
   }
 }
 
@@ -152,7 +155,7 @@ function isInViewport(element: Element) {
 
 function captureVisibleVideoFrame(cover: HTMLElement): ReactNode | null {
   const video = cover.querySelector<HTMLVideoElement>(
-    '.case-video[data-rendered-frame="true"] video',
+    '.case-video[data-rendered-frame="true"] video, .optimized-video[data-rendered-frame="true"] video',
   );
   if (!video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA ||
     !video.videoWidth || !video.videoHeight) return null;
@@ -278,7 +281,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     // Offscreen return has no visible source and uses the homepage card only.
     setContent(direction === "return" && !offscreenReturn
       ? capturedContent ?? registered?.target ?? registered?.source ?? null
-      : registered?.source ?? registered?.target ?? null);
+      : capturedContent ?? registered?.source ?? registered?.target ?? null);
     setReplacementContent(direction === "forward"
       ? registered?.target ?? null
       : offscreenReturn ? null : registered?.source ?? null);
@@ -286,11 +289,18 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       ...snapshot, token, direction, phase: "preflight", sourceCoverRect, offscreenReturn,
       destinationCoverRect: direction === "return" ? snapshot.sourceCoverRect : undefined,
       pressNaturalRect, pressAnimationTime,
+      sourceReady: direction === "return",
     });
     // Recovery only. Normal completion belongs to the animation, never this clock.
-    recoveryTimerRef.current = setTimeout(() => complete(token), recoveryTimeoutMs);
+    recoveryTimerRef.current = setTimeout(() => {
+      // A failed source decode must still honor the accepted click.
+      if (direction === "forward" && activeRef.current?.token === token && !activeRef.current.sourceReady) {
+        complete(token);
+        router.push(snapshot.casePath, { scroll: false });
+      } else complete(token);
+    }, recoveryTimeoutMs);
     return token;
-  }, [complete, setTransition]);
+  }, [complete, router, setTransition]);
 
   const navigate = useCallback((path: string, token: number) => {
     navigationFrameRef.current = requestAnimationFrame(() => {
@@ -298,6 +308,21 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       if (activeRef.current?.token === token) router.push(path, { scroll: false });
     });
   }, [router]);
+
+  const onSourceReady = useCallback((token: number, ready: boolean) => {
+    const current = activeRef.current;
+    if (current?.token !== token || current.direction !== "forward" ||
+      current.phase !== "preflight" || current.sourceReady) return;
+    if (!ready) {
+      complete(token);
+      router.push(current.casePath, { scroll: false });
+      return;
+    }
+    // Keep the real card visible until the overlay image has decoded and
+    // painted. The next frame can then hand the same pixels to the overlay.
+    setTransition({ ...current, sourceReady: true });
+    navigate(current.casePath, token);
+  }, [complete, navigate, router, setTransition]);
 
   const registerCoverContent = useCallback((id: string, target: boolean, node: ReactNode) => {
     registryRef.current.set(id, {
@@ -322,10 +347,12 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     writeSnapshot(press.snapshot);
     // Route preparation now overlaps the remaining press animation. The
     // persistent cover continues that animation after the source unmounts.
-    const flightToken = begin(press.snapshot, "forward", pressedRect, false,
-      undefined, press.ready ? undefined : press.naturalRect, pressAnimationTime);
-    navigate(press.snapshot.casePath, flightToken);
-  }, [begin, navigate]);
+    begin(press.snapshot, "forward", pressedRect, false,
+      captureVisibleVideoFrame(press.cover),
+      press.ready ? undefined : press.naturalRect, pressAnimationTime);
+    // The selected route can load while Safari prepares the overlay source.
+    void router.prefetch(press.snapshot.casePath);
+  }, [begin, router]);
 
   const pressCase = useCallback<CaseCoverActions["pressCase"]>((target, transitionId, homePath, pointerId) => {
     if (reduceMotion || activeRef.current) return;
@@ -526,7 +553,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
         {active ? <CaseCoverTransitionLayer
           key={active.token} active={active} content={content}
           replacementContent={replacementContent} getPressAnimationTime={getPressAnimationTime}
-          onPressReady={onPressReady}
+          onPressReady={onPressReady} onSourceReady={onSourceReady}
           onFinish={finishMotion}
         /> : null}
       </CaseCoverMotionContext.Provider>
@@ -538,12 +565,13 @@ export function CaseMotionRoutes({ children }: { children: ReactNode }) {
   return <div className="case-motion-route">{children}</div>;
 }
 
-function CaseCoverTransitionLayer({ active, content, replacementContent, getPressAnimationTime, onPressReady, onFinish }: {
+function CaseCoverTransitionLayer({ active, content, replacementContent, getPressAnimationTime, onPressReady, onSourceReady, onFinish }: {
   active: ActiveTransition;
   content: ReactNode | null;
   replacementContent: ReactNode | null;
   getPressAnimationTime: (token: number) => number | undefined;
   onPressReady: (token: number) => void;
+  onSourceReady: (token: number, ready: boolean) => void;
   onFinish: (token: number) => void;
 }) {
   const layerRef = useRef<HTMLDivElement>(null);
@@ -557,6 +585,25 @@ function CaseCoverTransitionLayer({ active, content, replacementContent, getPres
       : active.offscreenReturn ? getOffscreenReturnTransform(layoutRect)
       : active.sourceCoverRect ? getCoverTransform(active.sourceCoverRect, layoutRect) : settledCoverTransform
     : settledCoverTransform;
+
+  useEffect(() => {
+    if (active.direction !== "forward" || active.phase !== "preflight" || active.sourceReady) return;
+    const controller = new AbortController();
+    const { signal } = controller;
+    const prepareSource = async () => {
+      const source = sourceRef.current;
+      if (!source || !await waitForCoverImages(source, signal)) {
+        if (!signal.aborted) onSourceReady(active.token, false);
+        return;
+      }
+      // decode() can resolve before WebKit paints a newly mounted image. Let
+      // the overlay paint once while the original card is still underneath it.
+      if (!await nextMotionFrame(signal) || !await nextMotionFrame(signal)) return;
+      onSourceReady(active.token, true);
+    };
+    void prepareSource();
+    return () => controller.abort();
+  }, [active.direction, active.phase, active.sourceReady, active.token, onSourceReady]);
 
   useLayoutEffect(() => {
     if (active.phase !== "preflight" || active.direction !== "forward" ||
