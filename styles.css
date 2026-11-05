@@ -381,7 +381,7 @@ html[data-case-cover-motion-direction="return"][data-case-cover-motion-phase="pr
 }
 
 html[data-case-cover-motion-direction="forward"] [data-case-cover-role="target"][data-case-cover-motion],
-html[data-case-cover-motion-direction="forward"] .project[data-case-cover-active="true"] [data-case-cover-role="source"],
+html[data-case-cover-motion-direction="forward"][data-case-cover-source-ready] .project[data-case-cover-active="true"] [data-case-cover-role="source"],
 html[data-case-cover-motion-direction="return"] .project[data-case-cover-active="true"] [data-case-cover-role="source"] {
   visibility: hidden;
 }
