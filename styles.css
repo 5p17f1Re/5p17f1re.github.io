@@ -300,8 +300,19 @@ html[data-case-cover-motion-direction="return"] .case-cover-motion-backdrop {
   -webkit-backdrop-filter: none;
 }
 
+/* A reversed opening retains the forward scene's blur until it fades away. */
+html[data-case-cover-motion-interrupted] .case-cover-motion-backdrop {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
 @media (max-width: 600px) {
   .case-cover-motion-backdrop {
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+  }
+
+  html[data-case-cover-motion-interrupted] .case-cover-motion-backdrop {
     backdrop-filter: blur(3px);
     -webkit-backdrop-filter: blur(3px);
   }
@@ -324,7 +335,8 @@ html[data-case-cover-motion-direction="return"] .case-cover-motion-backdrop {
   transition: none;
 }
 
-.case-cover-motion-layer__content--replacement {
+.case-cover-motion-layer__content--replacement,
+.case-cover-motion-layer__content--return {
   opacity: 0;
   pointer-events: none;
 }
@@ -359,9 +371,22 @@ html[data-case-cover-motion-direction="return"] .case-cover-motion-backdrop {
 /* The return layer uses the card's destination box. At takeoff its outer
    transform restores the wider case geometry; cover-cropping inside the
    narrower box would change the image before the crossfade begins. */
-html[data-case-cover-motion-direction="return"] .case-cover-motion-layer__content:not(.case-cover-motion-layer__content--replacement) .optimized-image__img,
-html[data-case-cover-motion-direction="return"] .case-cover-motion-layer__content:not(.case-cover-motion-layer__content--replacement) .case-media__video {
+html[data-case-cover-motion-direction="return"]:not([data-case-cover-motion-interrupted]) .case-cover-motion-layer__content:not(.case-cover-motion-layer__content--replacement) .optimized-image__img,
+html[data-case-cover-motion-direction="return"]:not([data-case-cover-motion-interrupted]) .case-cover-motion-layer__content:not(.case-cover-motion-layer__content--replacement) .case-media__video,
+html[data-case-cover-motion-interrupted] .case-cover-motion-layer__content--return .optimized-image__img,
+html[data-case-cover-motion-interrupted] .case-cover-motion-layer__content--return .optimized-video__poster {
   object-fit: fill;
+}
+
+/* The home artwork enters as a decoded poster; a second video decoder is not
+   needed during the brief interrupted flight. */
+.case-cover-motion-layer__content--return video {
+  display: none;
+}
+
+/* Keep the unfinished case page hidden while its previous route is cancelled. */
+html[data-case-cover-motion-interrupted] .case-motion-route:has(.case-page-shell) {
+  visibility: hidden;
 }
 
 html[data-case-cover-motion-active] .project-motion-cell {
