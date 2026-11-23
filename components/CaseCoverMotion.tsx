@@ -26,9 +26,13 @@ type TransitionSnapshot = {
 };
 type ActiveTransition = TransitionSnapshot & {
   token: number;
+  // Direction changes get a new token without remounting painted Safari media.
+  layerKey: number;
   direction: Direction;
   phase: TransitionPhase;
   offscreenReturn: boolean;
+  interruptedReturn?: boolean;
+  returnTargetRect?: CoverRect;
   destinationCoverRect?: CoverRect;
   pressNaturalRect?: CoverRect;
   pressAnimationTime?: number;
@@ -128,12 +132,14 @@ function applyTransitionAttributes(active: ActiveTransition | null) {
     root.dataset.caseCoverMotionPhase = active.phase;
     root.dataset.caseCoverMotionId = active.transitionId;
     root.toggleAttribute("data-case-cover-motion-offscreen", active.offscreenReturn);
+    root.toggleAttribute("data-case-cover-motion-interrupted", Boolean(active.interruptedReturn));
     root.toggleAttribute("data-case-cover-source-ready", active.direction === "forward" && active.sourceReady);
   } else {
     delete root.dataset.caseCoverMotionDirection;
     delete root.dataset.caseCoverMotionPhase;
     delete root.dataset.caseCoverMotionId;
     root.removeAttribute("data-case-cover-motion-offscreen");
+    root.removeAttribute("data-case-cover-motion-interrupted");
     root.removeAttribute("data-case-cover-source-ready");
   }
 }
@@ -188,11 +194,13 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
   const [active, setActive] = useState<ActiveTransition | null>(null);
   const [content, setContent] = useState<ReactNode | null>(null);
   const [replacementContent, setReplacementContent] = useState<ReactNode | null>(null);
+  const [returnContent, setReturnContent] = useState<ReactNode | null>(null);
   const activeRef = useRef<ActiveTransition | null>(null);
   const lastSnapshotRef = useRef<TransitionSnapshot | null>(null);
   const nextTokenRef = useRef(0);
   const recoveryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navigationFrameRef = useRef<number | null>(null);
+  const interruptedReturnReachedHomeRef = useRef(false);
   const pressRef = useRef<PressPreparation | null>(null);
   const preflightRef = useRef<{
     token: number;
@@ -225,7 +233,11 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     preflightRef.current = null;
     setTransition({ ...current,
       phase: pending.fallback ? "fallback" : "landing",
-      destinationCoverRect: pending.destinationRect,
+      // An interrupted flight keeps its original layout box and retargets
+      // only the transform. Resizing that box would recrop a visible image.
+      ...(current.interruptedReturn
+        ? { returnTargetRect: pending.destinationRect }
+        : { destinationCoverRect: pending.destinationRect }),
     });
   }, [setTransition]);
 
@@ -266,6 +278,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     setTransition(null);
     setContent(null);
     setReplacementContent(null);
+    setReturnContent(null);
   }, [cancelPress, setTransition]);
 
   const begin = useCallback((
@@ -286,7 +299,7 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       ? registered?.target ?? null
       : offscreenReturn ? null : registered?.source ?? null);
     setTransition({
-      ...snapshot, token, direction, phase: "preflight", sourceCoverRect, offscreenReturn,
+      ...snapshot, token, layerKey: token, direction, phase: "preflight", sourceCoverRect, offscreenReturn,
       destinationCoverRect: direction === "return" ? snapshot.sourceCoverRect : undefined,
       pressNaturalRect, pressAnimationTime,
       sourceReady: direction === "return",
@@ -424,8 +437,48 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
 
   const returnHome = useCallback<CaseCoverActions["returnHome"]>((event) => {
     if (!isPlainPrimaryClick(event)) return false;
-    if (activeRef.current) {
+    const current = activeRef.current;
+    if (current) {
       event.preventDefault();
+      if (current.direction === "return") return true;
+      const snapshot = lastSnapshotRef.current ?? readSnapshot();
+      const layer = document.querySelector<HTMLElement>(".case-cover-motion-layer");
+      const layoutRect = current.destinationCoverRect ?? current.sourceCoverRect;
+      if (!snapshot || !layer || !layoutRect) {
+        // The cover has not mounted yet. A cancelled opening still honours Back.
+        complete(current.token);
+        router.replace(current.homePath, { scroll: false });
+        return true;
+      }
+      const visibleRect = snapshotCoverRect(layer.getBoundingClientRect());
+      // Keep the already painted image nodes and their current blend alive.
+      // Recreating them can reveal an undecoded frame in Safari.
+      layer.style.transform = getComputedStyle(layer).transform;
+      for (const imageLayer of layer.querySelectorAll<HTMLElement>(".case-cover-motion-layer__content")) {
+        imageLayer.style.opacity = getComputedStyle(imageLayer).opacity;
+      }
+      cancelPress();
+      if (recoveryTimerRef.current !== null) clearTimeout(recoveryTimerRef.current);
+      if (navigationFrameRef.current !== null) cancelAnimationFrame(navigationFrameRef.current);
+      navigationFrameRef.current = null;
+      document.documentElement.dataset.portfolioView = snapshot.view;
+      try { localStorage.setItem("portfolio-view", snapshot.view); } catch { /* In-memory view still restores. */ }
+      const token = ++nextTokenRef.current;
+      interruptedReturnReachedHomeRef.current = false;
+      preflightRef.current = { token, pressDone: true };
+      setReturnContent(registryRef.current.get(snapshot.transitionId)?.source ?? null);
+      setTransition({
+        ...current, token, direction: "return", phase: "preflight",
+        sourceCoverRect: visibleRect, destinationCoverRect: layoutRect,
+        returnTargetRect: undefined, interruptedReturn: true,
+        offscreenReturn: false, pressNaturalRect: undefined,
+        pressAnimationTime: undefined, sourceReady: true,
+      });
+      recoveryTimerRef.current = setTimeout(() => complete(token), recoveryTimeoutMs);
+      navigationFrameRef.current = requestAnimationFrame(() => {
+        navigationFrameRef.current = null;
+        if (activeRef.current?.token === token) router.replace(snapshot.homePath, { scroll: false });
+      });
       return true;
     }
     const snapshot = lastSnapshotRef.current ?? readSnapshot();
@@ -434,7 +487,20 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
     const token = prepareReturn(snapshot);
     navigate(snapshot.homePath, token);
     return true;
-  }, [navigate, prepareReturn, reduceMotion]);
+  }, [cancelPress, complete, navigate, prepareReturn, reduceMotion, router, setTransition]);
+
+  useEffect(() => {
+    const current = activeRef.current;
+    if (!current?.interruptedReturn || current.direction !== "return") return;
+    if (normalizedPath(pathname) === normalizedPath(current.homePath)) {
+      interruptedReturnReachedHomeRef.current = true;
+    } else if (interruptedReturnReachedHomeRef.current &&
+      normalizedPath(pathname) === normalizedPath(current.casePath)) {
+      // A previously dispatched forward push can still commit after home.
+      interruptedReturnReachedHomeRef.current = false;
+      router.replace(current.homePath, { scroll: false });
+    }
+  }, [pathname, router]);
 
   useEffect(() => {
     const handlePopState = () => {
@@ -551,8 +617,9 @@ export function CaseCoverMotionProvider({ children }: { children: ReactNode }) {
       <CaseCoverMotionContext.Provider value={context}>
         {children}
         {active ? <CaseCoverTransitionLayer
-          key={active.token} active={active} content={content}
-          replacementContent={replacementContent} getPressAnimationTime={getPressAnimationTime}
+          key={active.layerKey} active={active} content={content}
+          replacementContent={replacementContent} returnContent={returnContent}
+          getPressAnimationTime={getPressAnimationTime}
           onPressReady={onPressReady} onSourceReady={onSourceReady}
           onFinish={finishMotion}
         /> : null}
@@ -565,10 +632,11 @@ export function CaseMotionRoutes({ children }: { children: ReactNode }) {
   return <div className="case-motion-route">{children}</div>;
 }
 
-function CaseCoverTransitionLayer({ active, content, replacementContent, getPressAnimationTime, onPressReady, onSourceReady, onFinish }: {
+function CaseCoverTransitionLayer({ active, content, replacementContent, returnContent, getPressAnimationTime, onPressReady, onSourceReady, onFinish }: {
   active: ActiveTransition;
   content: ReactNode | null;
   replacementContent: ReactNode | null;
+  returnContent: ReactNode | null;
   getPressAnimationTime: (token: number) => number | undefined;
   onPressReady: (token: number) => void;
   onSourceReady: (token: number, ready: boolean) => void;
@@ -577,6 +645,7 @@ function CaseCoverTransitionLayer({ active, content, replacementContent, getPres
   const layerRef = useRef<HTMLDivElement>(null);
   const sourceRef = useRef<HTMLDivElement>(null);
   const replacementRef = useRef<HTMLDivElement>(null);
+  const returnRef = useRef<HTMLDivElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
   const layoutRect = active.destinationCoverRect ?? active.sourceCoverRect;
   const initialTransform = layoutRect
@@ -638,6 +707,7 @@ function CaseCoverTransitionLayer({ active, content, replacementContent, getPres
     const backdrop = backdropRef.current;
     const source = sourceRef.current;
     const replacement = replacementRef.current;
+    const returnImage = returnRef.current;
     const destination = getVisibleCover(active.transitionId, active.direction === "forward" ? "target" : "source");
     const track = (animation: AnimationPlaybackControls) => {
       animations.push(animation);
@@ -682,15 +752,39 @@ function CaseCoverTransitionLayer({ active, content, replacementContent, getPres
         }
       }
       if (backdrop) sceneAnimations.push(track(animate(backdrop, {
-        opacity: active.direction === "return" ? [0.536, 0] : [0, 0.08],
+        opacity: active.interruptedReturn
+          ? [Number(getComputedStyle(backdrop).opacity), 0]
+          : active.direction === "return" ? [0.536, 0] : [0, 0.08],
       }, { duration, ease: returnContextEase })));
       // Full transform goes through Motion's native DOM animation path. No RAF
       // writes to inherited root variables and no React updates per frame.
       const geometryStartedAt = performance.now();
       const geometryFinished = track(animate(layer, {
-        transform: [initialTransform, settledCoverTransform],
+        transform: [initialTransform,
+          active.interruptedReturn && active.returnTargetRect
+            ? getCoverTransform(active.returnTargetRect, layoutRect)
+            : settledCoverTransform],
       }, coverMotion));
       const crossfadeFinished = (async () => {
+        if (active.interruptedReturn && returnImage) {
+          const ready = await waitForCoverImages(returnImage, signal);
+          if (signal.aborted) return;
+          if (!ready) {
+            await geometryFinished;
+            if (!signal.aborted) {
+              preserveStyles(destination, ["visibility"]);
+              destination.style.visibility = "visible";
+              await track(animate(layer, { opacity: [1, 0] }, { duration: coverFade.return.duration }));
+            }
+            return;
+          }
+          const fade = coverFade.return;
+          const remainingDelay = Math.max(0, fade.delay - (performance.now() - geometryStartedAt) / 1000);
+          await track(animate(returnImage, { opacity: [0, 1] }, {
+            duration: fade.duration, delay: remainingDelay, ease: returnContextEase,
+          }));
+          return;
+        }
         if (active.offscreenReturn || !source || !replacement) return;
         // The overlay is the image the visitor sees during the flight. The
         // route image can finish decoding independently before the handoff;
@@ -730,7 +824,7 @@ function CaseCoverTransitionLayer({ active, content, replacementContent, getPres
       controller.abort();
       // cancel() avoids Motion's deferred stop() sample reapplying partial
       // transforms after route-owned styles have been restored on browser Back.
-      const overlayStyles = [layer, source, replacement, backdrop].flatMap((element) => {
+      const overlayStyles = [layer, source, replacement, returnImage, backdrop].flatMap((element) => {
         if (!element) return [];
         const style = getComputedStyle(element);
         return [{ element, transform: style.transform, opacity: style.opacity }];
@@ -742,7 +836,7 @@ function CaseCoverTransitionLayer({ active, content, replacementContent, getPres
       });
       styleCleanup.forEach((cleanup) => cleanup());
     };
-  }, [active, content, replacementContent, initialTransform, layoutRect, onFinish]);
+  }, [active, content, replacementContent, returnContent, initialTransform, layoutRect, onFinish]);
 
   return (
     <>
@@ -755,6 +849,9 @@ function CaseCoverTransitionLayer({ active, content, replacementContent, getPres
         {replacementContent ? <div ref={replacementRef}
           className="case-cover-motion-layer__content case-cover-motion-layer__content--replacement"
         >{replacementContent}</div> : null}
+        {active.interruptedReturn && returnContent ? <div ref={returnRef}
+          className="case-cover-motion-layer__content case-cover-motion-layer__content--return"
+        >{returnContent}</div> : null}
       </div> : null}
     </>
   );

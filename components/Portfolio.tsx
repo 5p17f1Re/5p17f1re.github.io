@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
@@ -542,14 +543,14 @@ function ProjectCard({
     }
   }
 
-  // Link prefetches near the visible card in production. Keep that priority;
-  // prefetching every case on mount makes unseen routes compete with it.
+  // Portfolio owns route prefetch priority for the selected view.
   return project.slug ? (
     <Link
       {...props}
       ref={interactiveCardRef}
       className="project project--link"
       href={casePath!}
+      prefetch={false}
       aria-label={text.openCaseStudy(project.title)}
       onClick={handleCaseOpen}
       onPointerDown={handleCasePointerDown}
@@ -834,6 +835,7 @@ function PortfolioIntro({ about, localeTextTransitionId, reveal, reduceMotion }:
 
 export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
   const { active: activeCoverMotion } = useCaseCoverMotion();
+  const router = useRouter();
   const [skipInitialReveal] = useState(() => activeCoverMotion?.direction === "return");
   const [activeLocale, setActiveLocale] = useState<SiteLocale>(locale);
   const projects = getProjects(activeLocale);
@@ -1115,6 +1117,36 @@ export function Portfolio({ locale = "en" }: { locale?: SiteLocale }) {
   }
 
   const displayedView = nextView ?? view;
+  const caseMotionActive = Boolean(activeCoverMotion);
+
+  useEffect(() => {
+    // Do not start unrelated route requests during an opening or return flight.
+    if (!viewReady || caseMotionActive) return;
+    const layer = displayedView === "birdview"
+      ? birdviewLayerRef.current : snakeviewLayerRef.current;
+    const links = [...(layer?.querySelectorAll<HTMLAnchorElement>("a.project--link[href]") ?? [])];
+    if (!links.length) return;
+    const requested = new Set<string>();
+    const prefetch = (link: HTMLAnchorElement) => {
+      const path = link.getAttribute("href");
+      if (!path || requested.has(path)) return;
+      requested.add(path);
+      router.prefetch(path);
+    };
+
+    // Snakeview's first case starts far below About. Prepare that route after
+    // the saved view is known, then follow the remaining cards one screen ahead.
+    prefetch(links[0]);
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        prefetch(entry.target as HTMLAnchorElement);
+        observer.unobserve(entry.target);
+      }
+    }, { rootMargin: `${Math.min(Math.round(window.innerHeight), 600)}px 0px` });
+    for (const link of links.slice(1)) observer.observe(link);
+    return () => observer.disconnect();
+  }, [activeLocale, caseMotionActive, displayedView, router, viewReady]);
   // The alternate layout may mount later or during a manual switch. Only the
   // layout selected for the first page reveal should run its entrance.
   const initialReveal = !skipInitialReveal && !alternateViewPrepared && !nextView;
